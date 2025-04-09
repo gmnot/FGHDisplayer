@@ -96,19 +96,6 @@ class Ordinal:
     fs = self.fundamental_sequence_at(n)
     return f'{self.to_latex()}[{n}]={fs}'
 
-# Example: Construct an expression 3 + (w * 2)
-expr_tree = Ordinal(
-  Node(
-    '+',
-    Node(
-      '*',
-      Node('w'),
-      Node('2')
-    ),
-    Node('3'),
-  )
-)
-
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -127,26 +114,37 @@ latex_html_headers = r"""<!DOCTYPE html>
   </style>
 </head>
 <body>
-
 """
 
-latex_html_ends = r"""
-
-
-</body>
+latex_html_ends = r"""</body>
 </html>
 """
 
 def latex_to_html(latex_str_list, path):
   with open(path, "w") as file:
       file.write(latex_html_headers)
+      file.write('\n')
       for s in latex_str_list:
-        file.write(f'<p>$$ {s} $$</p>')
+        file.write(f'<p>$$ {s} $$</p>\n')
+      file.write('\n')
       file.write(latex_html_ends)
 
-print(expr_tree)  # Output: Infix Expression: (3 + (w * 2))
-latex_to_html([
-  expr_tree.to_latex(),
-  Ordinal(Node('1')).fundamental_sequence_display(3),
-  Ordinal(Node('w')).fundamental_sequence_display(3),
-], './test.html')
+if __name__ == '__main__':
+  # Example: w * 2 + 3
+  expr_tree = Ordinal(
+    Node(
+      '+',
+      Node(
+        '*',
+        Node('w'),
+        Node('2')
+      ),
+      Node('3'),
+    )
+  )
+  print(expr_tree)  # Output: Infix Expression: (3 + (w * 2))
+  latex_to_html([
+    expr_tree.to_latex(),
+    Ordinal(Node('1')).fundamental_sequence_display(3),
+    Ordinal(Node('w')).fundamental_sequence_display(3),
+  ], './test.html')
