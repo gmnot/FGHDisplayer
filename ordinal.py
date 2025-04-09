@@ -144,11 +144,9 @@ class Node:
     return Node(str(i - 1))
   
   def simplify(self):
-    match self.value:
-      case '*':
-        if self.right == Node('1'):
-          self.value, self.left, self.right = \
-            self.left.value, self.left.left, self.left.right
+    if self.value in '*^' and self.right == Node('1'):
+      self.value, self.left, self.right = \
+        self.left.value, self.left.left, self.left.right
 
   @staticmethod
   def simplified(node: Node):
@@ -161,23 +159,28 @@ class Node:
         return Node(self.value)
       assert self.value == 'w'
       return Node(str(n))
+
+    def reduce(node: Node) -> Node:
+      if node.right.is_natural():
+        assert node.right != Node('0'), node
+        if node.right == Node('1'):
+          return node.left
+        return Node('+' if node.value == '*' else '*',
+                    Node.simplified(Node(node.value, node.left, node.right.dec())),
+                    node.left
+                    )
+      else:
+        return Node(node.value,
+                    node.left,
+                    node.right.fundamental_sequence_at(n))
+
     match self.value:
       case '+':
         return Node(self.value, self.left, self.right.fundamental_sequence_at(n))
       case '*':
-        if self.right.is_natural():
-          assert self.right != Node('0'), self
-          if self.right == Node('1'):
-            return self.left.fundamental_sequence_at(n)
-          return Node('+',
-                      Node.simplified(Node(self.value, self.left, self.right.dec())),
-                      self.left
-                      ).fundamental_sequence_at(n)
-        else:
-          return Node(self.value,
-                      self.left,
-                      self.right.fundamental_sequence_at(n)).fundamental_sequence_at(n)
-      # todo: add ^
+        return reduce(self).fundamental_sequence_at(n)
+      case '^':
+        return reduce(self).fundamental_sequence_at(n)
       case _:
         assert 0, self
 class Ordinal:
@@ -265,5 +268,8 @@ if __name__ == '__main__':
     Ordinal.from_str('w^2+w').fundamental_sequence_display(3, Node.from_str('w^2+3')),
     Ordinal.from_str('w*1').fundamental_sequence_display(3, Node.from_str('3')),
     Ordinal.from_str('w*2').fundamental_sequence_display(3, Node.from_str('w+3')),
-    Ordinal.from_str('w*w').fundamental_sequence_display(3, Node.from_str('w*2+3')),
+    Ordinal.from_str('w*w').fundamental_sequence_display(4, Node.from_str('w*3+4')),
+    Ordinal.from_str('w^1').fundamental_sequence_display(4, Node.from_str('4')),
+    Ordinal.from_str('w^2').fundamental_sequence_display(3, Node.from_str('w*2+3')),
+    Ordinal.from_str('w^w').fundamental_sequence_display(3, Node.from_str('w^2*2+(w*2+3)')),
   ], './test.html')
