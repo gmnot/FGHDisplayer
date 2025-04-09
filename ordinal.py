@@ -1,4 +1,6 @@
 from __future__ import annotations
+import re
+
 class Node:
   value: str
   left : Node
@@ -26,6 +28,67 @@ class Node:
 
   def is_natural(self):
     return all('0' <= c <= '9' for c in self.value)
+
+  @staticmethod
+  def from_str(expression: str):
+    """
+    Read an infix expression and construct the corresponding binary tree.
+    """
+    def precedence(op):
+      if op == "+":
+        return 1
+      if op == "*":
+        return 2
+      if op == "^":
+        return 3
+      return 0
+
+    def to_postfix(tokens):
+      """
+      Convert the infix expression tokens to postfix (RPN) using Shunting Yard algorithm.
+      """
+      out = []
+      stack = []
+      for token in tokens:
+        if token.isdigit() or token == 'w':  # Operand (natural number or 'w')
+          out.append(token)
+        elif token == "(":  # Left Parenthesis
+          stack.append(token)
+        elif token == ")":  # Right Parenthesis
+          while stack and stack[-1] != "(":
+            out.append(stack.pop())
+          stack.pop()  # pop the '('
+        else:  # Operator
+          while (stack and precedence(stack[-1]) >= precedence(token)):
+            out.append(stack.pop())
+          stack.append(token)
+
+      while stack:
+        out.append(stack.pop())
+      return out
+
+    def build_tree(postfix) -> Node:
+      """
+      Build a binary tree from the postfix expression.
+      """
+      stack = []
+      for token in postfix:
+        if token.isdigit() or token == 'w':  # Operand
+          stack.append(Node(token))
+        else:  # Operator
+          right = stack.pop()
+          left = stack.pop()
+          stack.append(Node(token, left, right))
+      return stack[0]
+
+    # Tokenize the expression
+    tokens = re.findall(r'\d+|w|[+*^()]', expression)
+
+    # Convert infix to postfix (RPN)
+    postfix = to_postfix(tokens)
+
+    # Build and return the tree from the postfix expression
+    return build_tree(postfix)
 
   def ord_to_latex(self):
     """
@@ -61,14 +124,18 @@ class Node:
            self.op_to_latex() + \
            '{' + self.right.to_latex() + '}'
 
-  def fundamental_sequence_at(self, n):
+  def fundamental_sequence_at(self, n) -> Node:
     if self.is_atomic():
       if self.is_natural():
-        return self.value
+        return Node(self.value)
       assert self.value == 'w'
-      return str(n)
-    assert 0
-
+      return Node(str(n))
+    match self.value:
+      case '+':
+        return Node(self.value, self.left, self.right.fundamental_sequence_at(n))
+      # todo: add here
+      case _:
+        assert 0, self
 class Ordinal:
   root : Node
 
@@ -85,16 +152,20 @@ class Ordinal:
     """
     return "" if self.root is None else self.root.to_infix()
 
+  @staticmethod
+  def from_str(expression: str):
+    return Ordinal(Node.from_str(expression))
+
   def to_latex(self):
     return self.root.to_latex()
 
-  def fundamental_sequence_at(self, n):
+  def fundamental_sequence_at(self, n) -> Node:
     assert self.root is not None
     return self.root.fundamental_sequence_at(n)
-  
+
   def fundamental_sequence_display(self, n):
     fs = self.fundamental_sequence_at(n)
-    return f'{self.to_latex()}[{n}]={fs}'
+    return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -147,4 +218,5 @@ if __name__ == '__main__':
     expr_tree.to_latex(),
     Ordinal(Node('1')).fundamental_sequence_display(3),
     Ordinal(Node('w')).fundamental_sequence_display(3),
+    Ordinal.from_str('w^2+w').fundamental_sequence_display(3),
   ], './test.html')
