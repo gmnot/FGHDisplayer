@@ -17,6 +17,11 @@ class Node:
     self.left = left
     self.right = right
 
+  def replace(self, other: Node):
+    self.value = other.value
+    self.left  = other.left
+    self.right = other.right
+
   def __eq__(self, other):
     return self.value == other.value and \
            self.left.__eq__(other.left) and \
@@ -131,6 +136,24 @@ class Node:
     return '{' + self.left.to_latex() + '}' + \
            self.op_to_latex() + \
            '{' + self.right.to_latex() + '}'
+  
+  def dec(self) -> Node:
+    assert self.is_atomic() and self.is_natural()
+    i = int(self.value)
+    assert i > 0, self
+    return Node(str(i - 1))
+  
+  def simplify(self):
+    match self.value:
+      case '*':
+        if self.right == Node('1'):
+          self.value, self.left, self.right = \
+            self.left.value, self.left.left, self.left.right
+
+  @staticmethod
+  def simplified(node: Node):
+    node.simplify()
+    return node
 
   def fundamental_sequence_at(self, n) -> Node:
     if self.is_atomic():
@@ -141,7 +164,20 @@ class Node:
     match self.value:
       case '+':
         return Node(self.value, self.left, self.right.fundamental_sequence_at(n))
-      # todo: add here
+      case '*':
+        if self.right.is_natural():
+          assert self.right != Node('0'), self
+          if self.right == Node('1'):
+            return self.left.fundamental_sequence_at(n)
+          return Node('+',
+                      Node.simplified(Node(self.value, self.left, self.right.dec())),
+                      self.left
+                      ).fundamental_sequence_at(n)
+        else:
+          return Node(self.value,
+                      self.left,
+                      self.right.fundamental_sequence_at(n)).fundamental_sequence_at(n)
+      # todo: add ^
       case _:
         assert 0, self
 class Ordinal:
@@ -227,4 +263,7 @@ if __name__ == '__main__':
     Ordinal(Node('w')).fundamental_sequence_display(3, Node('3')),
     Ordinal.from_str('w+2').fundamental_sequence_display(3, Node.from_str('w+2')),
     Ordinal.from_str('w^2+w').fundamental_sequence_display(3, Node.from_str('w^2+3')),
+    Ordinal.from_str('w*1').fundamental_sequence_display(3, Node.from_str('3')),
+    Ordinal.from_str('w*2').fundamental_sequence_display(3, Node.from_str('w+3')),
+    Ordinal.from_str('w*w').fundamental_sequence_display(3, Node.from_str('w*2+3')),
   ], './test.html')
