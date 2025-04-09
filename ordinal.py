@@ -23,6 +23,7 @@ class Node:
     self.right = other.right
 
   def __eq__(self, other):
+    # todo: consider associative laws
     return self.value == other.value and \
            self.left.__eq__(other.left) and \
            self.right.__eq__(other.right)
@@ -136,13 +137,13 @@ class Node:
     return '{' + self.left.to_latex() + '}' + \
            self.op_to_latex() + \
            '{' + self.right.to_latex() + '}'
-  
+
   def dec(self) -> Node:
     assert self.is_atomic() and self.is_natural()
     i = int(self.value)
     assert i > 0, self
     return Node(str(i - 1))
-  
+
   def simplify(self):
     if self.value in '*^' and self.right == Node('1'):
       self.value, self.left, self.right = \
@@ -219,6 +220,22 @@ class Ordinal:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
     return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
+class FGH:
+  ord: Ordinal
+  x: int | FGH
+
+  def __init__(self, ord, x):
+    self.ord = ord
+    self.x   = x
+
+  def __str__(self):
+    return f'f({self.ord}, {self.x})'
+
+  def to_latex(self):
+    x_latex = self.x if isinstance(self.x, int) else self.x.to_latex()
+    return f'f_{{{self.ord.to_latex()}}}({x_latex})'
+
+
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -227,7 +244,10 @@ latex_html_headers = r"""<!DOCTYPE html>
   <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.css">
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
-    onload="renderMathInElement(document.body, { delimiters: [ {left: '\\\\(', right: '\\\\)', display: false}, {left: '$$', right: '$$', display: true} ] });">
+    onload="renderMathInElement(document.body, { delimiters: [
+      {left: '\\\\(', right: '\\\\)', display: false},
+      {left: '$$', right: '$$', display: true}
+  ] });">
   </script>
   <style>
     body {
@@ -258,8 +278,10 @@ if __name__ == '__main__':
     Node('+',
          Node('*', Node('w'), Node('2')),
          Node('3'),
-  ))
+         )
+  )
   print(expr_tree)  # Output: Infix Expression: (3 + (w * 2))
+
   latex_to_html([
     expr_tree.to_latex(),
     Ordinal(Node('1')).fundamental_sequence_display(3, Node('1')),
@@ -272,4 +294,6 @@ if __name__ == '__main__':
     Ordinal.from_str('w^1').fundamental_sequence_display(4, Node.from_str('4')),
     Ordinal.from_str('w^2').fundamental_sequence_display(3, Node.from_str('w*2+3')),
     Ordinal.from_str('w^w').fundamental_sequence_display(3, Node.from_str('w^2*2+(w*2+3)')),
+    FGH(Ordinal.from_str('w^w'), 3).to_latex(),
+    FGH(Ordinal.from_str('w^w'), FGH(Ordinal.from_str('w^w'), 3)).to_latex(),
   ], './test.html')
