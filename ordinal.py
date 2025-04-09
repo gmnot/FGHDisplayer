@@ -17,14 +17,22 @@ class Node:
     self.left = left
     self.right = right
 
-  def is_atomic(self):
-    assert (self.left is None) == (self.right is None)
-    return self.left is None
+  def __eq__(self, other):
+    return self.value == other.value and \
+           self.left.__eq__(other.left) and \
+           self.right.__eq__(other.right)
 
   def to_infix(self):
     if self.is_atomic():
       return str(self.value)
     return f"({self.left.to_infix()} {self.value} {self.right.to_infix()})"
+
+  def __str__(self):
+    return self.to_infix()
+
+  def is_atomic(self):
+    assert (self.left is None) == (self.right is None)
+    return self.left is None
 
   def is_natural(self):
     return all('0' <= c <= '9' for c in self.value)
@@ -150,7 +158,10 @@ class Ordinal:
     """
     Converts the expression tree to an infix string representation (with parentheses).
     """
-    return "" if self.root is None else self.root.to_infix()
+    return "" if self.root is None else self.root.__str__()
+
+  def __eq__(self, other):
+    return self.root == other.root
 
   @staticmethod
   def from_str(expression: str):
@@ -163,8 +174,10 @@ class Ordinal:
     assert self.root is not None
     return self.root.fundamental_sequence_at(n)
 
-  def fundamental_sequence_display(self, n):
+  def fundamental_sequence_display(self, n, expected=None):
     fs = self.fundamental_sequence_at(n)
+    if expected is not None:
+      assert fs == expected, f'{str(fs)} != {str(expected)}'
     return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
 latex_html_headers = r"""<!DOCTYPE html>
@@ -193,30 +206,25 @@ latex_html_ends = r"""</body>
 
 def latex_to_html(latex_str_list, path):
   with open(path, "w") as file:
-      file.write(latex_html_headers)
-      file.write('\n')
-      for s in latex_str_list:
-        file.write(f'<p>$$ {s} $$</p>\n')
-      file.write('\n')
-      file.write(latex_html_ends)
+    file.write(latex_html_headers)
+    file.write('\n')
+    for s in latex_str_list:
+      file.write(f'<p>$$ {s} $$</p>\n')
+    file.write('\n')
+    file.write(latex_html_ends)
 
 if __name__ == '__main__':
   # Example: w * 2 + 3
   expr_tree = Ordinal(
-    Node(
-      '+',
-      Node(
-        '*',
-        Node('w'),
-        Node('2')
-      ),
-      Node('3'),
-    )
-  )
+    Node('+',
+         Node('*', Node('w'), Node('2')),
+         Node('3'),
+  ))
   print(expr_tree)  # Output: Infix Expression: (3 + (w * 2))
   latex_to_html([
     expr_tree.to_latex(),
-    Ordinal(Node('1')).fundamental_sequence_display(3),
-    Ordinal(Node('w')).fundamental_sequence_display(3),
-    Ordinal.from_str('w^2+w').fundamental_sequence_display(3),
+    Ordinal(Node('1')).fundamental_sequence_display(3, Node('1')),
+    Ordinal(Node('w')).fundamental_sequence_display(3, Node('3')),
+    Ordinal.from_str('w+2').fundamental_sequence_display(3, Node.from_str('w+2')),
+    Ordinal.from_str('w^2+w').fundamental_sequence_display(3, Node.from_str('w^2+3')),
   ], './test.html')
