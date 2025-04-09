@@ -224,9 +224,12 @@ class FGH:
   ord: Ordinal
   x: int | FGH
 
-  def __init__(self, ord, x):
+  def __init__(self, ord: Ordinal, x):
     self.ord = ord
     self.x   = x
+
+  def __eq__(self, other):
+    return self.ord == other.ord and self.x == other.x
 
   def __str__(self):
     return f'f({self.ord}, {self.x})'
@@ -235,6 +238,16 @@ class FGH:
     x_latex = self.x if isinstance(self.x, int) else self.x.to_latex()
     return f'f_{{{self.ord.to_latex()}}}({x_latex})'
 
+  def expand_once(self):
+    if isinstance(self.x, FGH):  # todo: expand small
+      return self
+    return FGH(Ordinal(self.ord.fundamental_sequence_at(self.x)), self.x)
+
+  def expand_once_display(self, expected=None):
+    ex1 = self.expand_once()
+    if expected is not None:
+      assert expected == ex1, f'{expected} != {ex1}'
+    return f'{self.to_latex()}={ex1.to_latex()}'
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -296,4 +309,6 @@ if __name__ == '__main__':
     Ordinal.from_str('w^w').fundamental_sequence_display(3, Node.from_str('w^2*2+(w*2+3)')),
     FGH(Ordinal.from_str('w^w'), 3).to_latex(),
     FGH(Ordinal.from_str('w^w'), FGH(Ordinal.from_str('w^w'), 3)).to_latex(),
+    FGH(Ordinal.from_str('w^w'), 3).expand_once_display(FGH(Ordinal.from_str('w^2*2+(w*2+3)'), 3)),
+    FGH(Ordinal.from_str('w^w'), 3).expand_once().to_latex(),
   ], './test.html')
