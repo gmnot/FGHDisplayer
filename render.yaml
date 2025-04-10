@@ -1,0 +1,8 @@
+# render.yaml
+services:
+  - type: web
+    name: fghdisplayer
+    env: python
+    buildCommand: ""
+    startCommand: python app.py
+    plan: free
