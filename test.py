@@ -64,4 +64,9 @@ if __name__ == '__main__':
     FGH(Ordinal.from_str('w^w'), 3).to_latex(),
     FGH(Ordinal.from_str('w^w'), FGH(Ordinal.from_str('w^w'), 3)).to_latex(),
     FGH(Ordinal.from_str('w^w'), 3).expand_once_display(FGH(Ordinal.from_str('w^2*2+(w*2+3)'), 3)),
+    FGH(Ordinal('3'), 3).expand_once_display(FGH(Ordinal('2'), FGH(Ordinal('2'), FGH(Ordinal('2'), 3)))),
+    FGH(Ordinal('w'), 3).expand_once_display(FGH(Ordinal('3'), 3)),
+    FGH(Ordinal('0'), 3).expand_once_display(4),
+    FGH(Ordinal('1'), 3).expand_once_display(6),
+    FGH(Ordinal('2'), 3).expand_once_display(24),
   ], './test.html')

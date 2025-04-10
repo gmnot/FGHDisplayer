@@ -223,7 +223,11 @@ class Ordinal:
     Expression represents the entire mathematical expression as a binary tree.
     :param root: The root node of the expression (main operator)
     """
-    self.root = root
+    if isinstance(root, Node):
+      self.root = root
+    else:
+      assert isinstance(root, str), root
+      self.root = Node.from_str(root)
 
   def __str__(self):
     """
@@ -271,11 +275,26 @@ class FGH:
 
   def expand_once(self):
     if isinstance(self.x, FGH):  # todo: expand small
-      return self
-    return FGH(Ordinal(self.ord.fundamental_sequence_at(self.x)), self.x)
+      return FGH(self.ord, self.x.expand_once())
+    if self.ord.root.is_limit_ordinal():
+      return FGH(Ordinal(self.ord.fundamental_sequence_at(self.x)), self.x)
+    elif self.ord.root == Node('0'):
+      return self.x + 1
+    elif self.ord.root == Node('1'):
+      return self.x * 2
+    elif self.ord.root == Node('2'):
+      return (2 ** self.x) * self.x
+    else:
+      dec1 = Ordinal(self.ord.root.dec())
+      ret = self.x
+      for i in range(self.x):
+        ret = FGH(dec1, ret)
+      return ret
 
   def expand_once_display(self, expected=None):
     ex1 = self.expand_once()
     if expected is not None:
       assert expected == ex1, f'{expected} != {ex1}'
-    return f'{self.to_latex()}={ex1.to_latex()}'
+    if isinstance(ex1, FGH):
+      return f'{self.to_latex()}={ex1.to_latex()}'
+    return f'{self.to_latex()}={ex1}'
