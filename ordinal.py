@@ -134,15 +134,45 @@ class Node:
   def to_latex(self):
     if self.is_atomic():
       return self.ord_to_latex()
-    return '{' + self.left.to_latex() + '}' + \
-           self.op_to_latex() + \
-           '{' + self.right.to_latex() + '}'
+
+    def parentheses_on_demand(node: Node, out_op: str):
+      if node.is_atomic() or \
+         (out_op == '*' and node.value == '^'):
+        return node.to_latex()
+      return '{(' + node.to_latex() + ')}'
+
+    match self.value:
+      case '+':
+        return self.left.to_latex() + self.op_to_latex() + self.right.to_latex()
+      case '*':
+        return parentheses_on_demand(self.left, '*') + \
+               self.op_to_latex() + \
+               parentheses_on_demand(self.right, '*')
+      case '^':
+        return parentheses_on_demand(self.left, '^') + \
+               self.op_to_latex() + \
+               '{' + self.right.to_latex() + '}'
+
+  def is_limit_ordinal(self):
+    if self.is_atomic():
+      return not self.is_natural()
+    if self.value == '+':
+      return self.right.is_limit_ordinal()
+    # a * b and a ^ b is surely limit ordinal
+    assert not self.left.is_natural(), self
+    return True
 
   def dec(self) -> Node:
-    assert self.is_atomic() and self.is_natural()
-    i = int(self.value)
-    assert i > 0, self
-    return Node(str(i - 1))
+    if self.is_atomic():
+      assert self.is_natural()
+      i = int(self.value)
+      assert i > 0, self
+      return Node(str(i - 1))
+    else:
+      assert self.value == '+', self
+      if self.right == Node('1'):
+        return self.left
+      return Node(self.value, self.left, self.right.dec())
 
   def simplify(self):
     if self.value in '*^' and self.right == Node('1'):
@@ -156,31 +186,33 @@ class Node:
 
   def fundamental_sequence_at(self, n) -> Node:
     if self.is_atomic():
-      assert not self.is_natural(), self
-      assert self.value == 'w'
+      if self.is_natural():
+        return self
+      assert self.value == 'w', self
       return Node(str(n))
 
-    def reduce(node: Node) -> Node:
-      if node.right.is_natural():
-        assert node.right != Node('0'), node
+    # transform w*2 and w^2 so they can be indexed
+    def transform(node: Node) -> Node:
+      if node.right.is_limit_ordinal():
+        return Node(node.value,
+                    node.left,
+                    node.right.fundamental_sequence_at(n))
+      else:
+        assert node.right != Node('0'), self
         if node.right == Node('1'):
           return node.left
         return Node('+' if node.value == '*' else '*',
                     Node.simplified(Node(node.value, node.left, node.right.dec())),
                     node.left
                     )
-      else:
-        return Node(node.value,
-                    node.left,
-                    node.right.fundamental_sequence_at(n))
 
     match self.value:
       case '+':
         return Node(self.value, self.left, self.right.fundamental_sequence_at(n))
       case '*':
-        return reduce(self).fundamental_sequence_at(n)
+        return transform(self).fundamental_sequence_at(n)
       case '^':
-        return reduce(self).fundamental_sequence_at(n)
+        return transform(self).fundamental_sequence_at(n)
       case _:
         assert 0, self
 class Ordinal:
