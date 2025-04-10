@@ -3,6 +3,6 @@ services:
   - type: web
     name: fghdisplayer
     env: python
-    buildCommand: ""
+    buildCommand: "pip install -r requirements.txt"
     startCommand: gunicorn app:app
-    plan: freep
+    plan: free
