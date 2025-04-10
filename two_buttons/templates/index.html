@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FGHDisplayer - 添加按钮功能</title>
+</head>
+<body>
+    <h1>FGHDisplayer</h1>
+    
+    <form method="POST" action="/">
+        <label for="large_input">Ordinal:</label><br>
+        <textarea id="large_input" name="large_text" rows="10" cols="50"></textarea><br><br>
+
+        <label for="small_input">Index:</label><br>
+        <input type="text" id="small_input" name="small_text"><br><br>
+
+        <button type="submit" name="action" value="merge">Calculate</button>
+        <button type="submit" name="action" value="reverse_merge">Calculate2</button><br><br>
+    </form>
+
+    {% if result %}
+    <div>
+        <h3>合并结果：</h3>
+        <p>{{ result }}</p>
+    </div>
+    {% endif %}
+</body>
+</html>

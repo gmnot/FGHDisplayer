@@ -22,15 +22,17 @@
 <body>
   <h2>Fundamental Sequence:</h2>
   <p>input w for ω</p>
-  <form method="POST">
-    <label>Ordinal:</label><br>
-    <textarea name="text1" rows="6" cols="50"></textarea><br><br>
 
-    <label>Index:</label><br>
-    <input type="text" name="text2"><br><br>
+  <form method="POST" action="/">
+    <label for="large_input">Ordinal:</label><br>
+    <textarea id="large_input" name="large_text" rows="10" cols="50"></textarea><br><br>
 
-    <button type="submit">Calculate</button>
-  </form>
+    <label for="small_input">Index:</label><br>
+    <input type="text" id="small_input" name="small_text"><br><br>
+
+    <button type="submit" name="action" value="merge">Calculate</button>
+    <button type="submit" name="action" value="reverse_merge">Calculate2</button><br><br>
+</form>
 
   {% if result %}
     <h3>Results:</h3>
