@@ -12,10 +12,9 @@ def index():
     n_str = request.form['small_text']
     action = request.form['action']
 
-    if action == 'merge':
+    if action == 'fund_seq':
         result = Ordinal.from_str(ord_str).fundamental_sequence_display(int(n_str))
-    elif action == 'reverse_merge':
-        # 反向合并字符串
+    elif action == 'fgh':
         result = FGH(Ordinal.from_str(ord_str), int(n_str)).expand_once_display()
 
   return render_template('index.html', result=result)
