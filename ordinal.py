@@ -263,6 +263,14 @@ class FGH:
     self.ord = ord
     self.x   = x
 
+  @staticmethod
+  def seq(*args):
+    assert len(args) > 1
+    ret = args[-1]
+    for ord in args[-2::-1]:
+      ret = FGH(Ordinal.from_str(ord), ret)
+    return ret
+
   def __eq__(self, other):
     return self.ord == other.ord and self.x == other.x
 
@@ -273,26 +281,48 @@ class FGH:
     x_latex = self.x if isinstance(self.x, int) else self.x.to_latex()
     return f'f_{{{self.ord.to_latex()}}}({x_latex})'
 
-  def expand_once(self):
-    if isinstance(self.x, FGH):  # todo: expand small
-      return FGH(self.ord, self.x.expand_once())
+  # return (succ, res)
+  def expand_once(self, limit=1000):
+    if isinstance(self.x, FGH):
+      succ, x2 = self.x.expand_once()
+      return succ, FGH(self.ord, x2)
     if self.ord.root.is_limit_ordinal():
-      return FGH(Ordinal(self.ord.fundamental_sequence_at(self.x)), self.x)
+      return True, FGH(Ordinal(self.ord.fundamental_sequence_at(self.x)), self.x)
     elif self.ord.root == Node('0'):
-      return self.x + 1
+      return True, self.x + 1
     elif self.ord.root == Node('1'):
-      return self.x * 2
+      return True, self.x * 2
     elif self.ord.root == Node('2'):
-      return (2 ** self.x) * self.x
+      if self.x > limit:
+        return False, self
+      return True, (2 ** self.x) * self.x
     else:
+      if self.x > limit:
+        return False, self
       dec1 = Ordinal(self.ord.root.dec())
       ret = self.x
-      for i in range(self.x):
+      for _ in range(self.x):
         ret = FGH(dec1, ret)
-      return ret
+      return True, ret
 
   def expand_once_display(self, expected=None):
-    ex1 = self.expand_once()
+    succ, ex1 = self.expand_once()
+    if expected is not None:
+      assert expected == ex1, f'{expected} != {ex1}'
+    if isinstance(ex1, FGH):
+      return f'{self.to_latex()}={ex1.to_latex()}'
+    return f'{self.to_latex()}={ex1}'
+
+  def expand(self, limit=1000):
+    ret = self
+    for _ in range(limit):
+      succ, ret = ret.expand_once(limit)
+      if not succ or not isinstance(ret, FGH):
+        return ret
+    return ret
+
+  def expand_display(self, expected=None, limit=1000):
+    ex1 = self.expand(limit=limit)
     if expected is not None:
       assert expected == ex1, f'{expected} != {ex1}'
     if isinstance(ex1, FGH):

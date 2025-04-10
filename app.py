@@ -15,7 +15,7 @@ def index():
     if action == 'fund_seq':
         result = Ordinal.from_str(ord_str).fundamental_sequence_display(int(n_str))
     elif action == 'fgh':
-        result = FGH(Ordinal.from_str(ord_str), int(n_str)).expand_once_display()
+        result = FGH(Ordinal.from_str(ord_str), int(n_str)).expand_display()
 
   return render_template('index.html', result=result)
 
