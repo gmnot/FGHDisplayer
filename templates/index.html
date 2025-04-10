@@ -1,0 +1,25 @@
+<!-- templates/index.html -->
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="UTF-8">
+  <title>字符串合并工具</title>
+</head>
+<body>
+  <h2>请输入内容：</h2>
+  <form method="POST">
+    <label>多行文本：</label><br>
+    <textarea name="text1" rows="6" cols="50"></textarea><br><br>
+
+    <label>单行文本：</label><br>
+    <input type="text" name="text2"><br><br>
+
+    <button type="submit">合并</button>
+  </form>
+
+  {% if result %}
+    <h3>合并结果：</h3>
+    <pre>{{ result }}</pre>
+  {% endif %}
+</body>
+</html>

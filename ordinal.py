@@ -310,5 +310,5 @@ if __name__ == '__main__':
     FGH(Ordinal.from_str('w^w'), 3).to_latex(),
     FGH(Ordinal.from_str('w^w'), FGH(Ordinal.from_str('w^w'), 3)).to_latex(),
     FGH(Ordinal.from_str('w^w'), 3).expand_once_display(FGH(Ordinal.from_str('w^2*2+(w*2+3)'), 3)),
-    FGH(Ordinal.from_str('w^w'), 3).expand_once().to_latex(),
+    FGH(Ordinal.from_str('w^(w+1)'), 3).expand_once().to_latex(),
   ], './test.html')
