@@ -20,24 +20,39 @@
 </head>
 
 <body>
-  <h2>请输入内容：</h2>
+  <h2>Fundamental Sequence:</h2>
   <form method="POST">
-    <label>多行文本：</label><br>
+    <label>Ordinal:</label><br>
     <textarea name="text1" rows="6" cols="50"></textarea><br><br>
 
-    <label>单行文本：</label><br>
+    <label>Index:</label><br>
     <input type="text" name="text2"><br><br>
 
-    <button type="submit">合并</button>
+    <button type="submit">Calculate</button>
   </form>
 
   {% if result %}
-    <h3>合并结果：</h3>
-    <pre>{{ result }}</pre>
+    <h3>Results:</h3>
+    <p>$$ {{ result }} $$</p>
   {% endif %}
   {% raw %}
-<p>$$ {{\omega}\cdot{2}}+{3} $$</p>
-<p>$$ 1[3]=1 $$</p>
+    <h3>Examples:</h3>
+    <p>$$ \omega\cdot2+3 $$</p>
+    <p>$$ 1[3]=1 $$</p>
+    <p>$$ \omega[3]=3 $$</p>
+    <p>$$ \omega+2[3]=\omega+2 $$</p>
+    <p>$$ \omega^{2}+\omega[3]=\omega^{2}+3 $$</p>
+    <p>$$ \omega\cdot1[3]=3 $$</p>
+    <p>$$ \omega\cdot2[3]=\omega+3 $$</p>
+    <p>$$ \omega\cdot\omega[4]=\omega\cdot3+4 $$</p>
+    <p>$$ \omega\cdot{(\omega+1)}[3]=\omega\cdot\omega+3 $$</p>
+    <p>$$ \omega^{1}[4]=4 $$</p>
+    <p>$$ \omega^{2}[3]=\omega\cdot2+3 $$</p>
+    <p>$$ \omega^{\omega}[3]=\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
+    <p>$$ \omega^{\omega+1}[3]=\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
+    <p>$$ f_{\omega^{\omega}}(3) $$</p>
+    <p>$$ f_{\omega^{\omega}}(f_{\omega^{\omega}}(3)) $$</p>
+    <p>$$ f_{\omega^{\omega}}(3)=f_{\omega^{2}\cdot2+\omega\cdot2+3}(3) $$</p>
   {% endraw %}
 </body>
 </html>

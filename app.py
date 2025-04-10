@@ -1,5 +1,6 @@
 # app.py
 from flask import Flask, request, render_template
+from ordinal import Node, Ordinal, FGH
 
 app = Flask(__name__)
 
@@ -9,7 +10,7 @@ def index():
   if request.method == 'POST':
     text1 = request.form.get('text1', '')
     text2 = request.form.get('text2', '')
-    result = text1 + text2  # 可以自定义拼接逻辑
+    result = Ordinal.from_str(text1).fundamental_sequence_display(int(text2))
   return render_template('index.html', result=result)
 
 if __name__ == '__main__':
