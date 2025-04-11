@@ -400,7 +400,8 @@ class FGH:
     return f'f_{{{self.ord.to_latex()}}}{self.exp_str()}({x_latex})'
 
   # return (succ, res)
-  def expand_once(self, limit=1000):
+  # limit_f2: max n for f2(n) to be eval
+  def expand_once(self, limit_f2=1000) -> Tuple[bool, FGH | int]:
     if isinstance(self.x, FGH):
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2, self.exp)
@@ -411,19 +412,13 @@ class FGH:
     elif self.ord == Ord('1'):
       return True, self.x * (2 ** self.exp)
     elif self.ord == Ord('2'):
-      if self.x > limit:
+      if self.x > limit_f2:
         return False, self
       new_x = (2 ** self.x) * self.x
       return True, new_x if self.exp == 1 else FGH(2, new_x, self.exp - 1)
-    else:
-      if self.x > limit:
-        return False, self
+    else:  # any ord >= 3
       dec1 = self.ord.dec()
       return True, FGH(dec1, FGH(dec1, self.x), self.x - 1)
-      ret = self.x
-      for _ in range(self.x):
-        ret = FGH(dec1, ret)
-      return True, ret
 
   def expand_once_display(self, expected=None):
     succ, res = self.expand_once()
@@ -434,7 +429,7 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  def expand(self, limit=1000):
+  def expand(self, limit=100):
     ret = self
     for _ in range(limit):
       succ, ret = ret.expand_once(limit)
@@ -442,7 +437,7 @@ class FGH:
         return ret
     return ret
 
-  def expand_display(self, expected=None, limit=1000):
+  def expand_display(self, expected=None, limit=100):
     ex1 = self.expand(limit=limit)
     if expected is not None:
       assert expected == ex1, f'{expected} != {ex1}'

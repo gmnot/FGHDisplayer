@@ -69,6 +69,8 @@ if __name__ == '__main__':
   print(expr_tree)  # Output: Infix Expression: (3 + (w * 2))
 
   f223 = 2**24*24
+  f2_256 = 29642774844752946028434172162224104410437116074403984394101141506025761187823616
+
   latex_to_html([
     expr_tree.to_latex(),
     test_f_seq('1', 3, '1'),
@@ -97,6 +99,7 @@ if __name__ == '__main__':
     FGH(Ord('0'), 3).expand_display(4),
     FGH(Ord('1'), 3).expand_display(6),
     FGH(Ord('2'), 3).expand_display(24),
+    FGH(Ord('2'), 256).expand_display(f2_256),
     FGH(Ord('3'), 3).expand_display(FGH(Ord('2'), f223)),
     FGH(Ord.from_str('w+1'), 3).expand_display(FGH('w', FGH(2, f223), 2)),
     # FGH(Node('w^w'), 3).expand_display(),
