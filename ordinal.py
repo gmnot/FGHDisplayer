@@ -248,6 +248,7 @@ class Ord:
     node.simplify()
     return node
 
+  # todo 1: hint when any limits are met
   def fundamental_sequence_at(self, n, record_steps=False, record_limit=12) \
     -> Tuple[Ord, List[Ord]]:
 
@@ -384,7 +385,6 @@ class FGH:
     elif self.ord == Ord('1'):
       return True, self.x * (2 ** self.exp)
     elif self.ord == Ord('2'):
-      # ! check exp
       if self.x > limit:
         return False, self
       new_x = (2 ** self.x) * self.x

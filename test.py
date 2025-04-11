@@ -50,6 +50,16 @@ def latex_to_html(latex_str_list, path):
     file.write('\n')
     file.write(latex_html_ends)
 
+def test_f_seq(ord1 : str, n : int, ord2=None, show_steps=False):
+  formula = Ord.from_str(ord1).fundamental_sequence_display(
+            n,
+            Ord.from_str(ord2) if ord2 is not None else None,
+            show_steps=show_steps)
+  if show_steps:
+    return (OutType.DIV, formula)
+  else:
+    return formula
+
 if __name__ == '__main__':
   # Example: w * 2 + 3
   expr_tree = Ord('+',
@@ -61,30 +71,27 @@ if __name__ == '__main__':
   f223 = 2**24*24
   latex_to_html([
     expr_tree.to_latex(),
-    Ord('1').fundamental_sequence_display(3, Ord('1')),
-    Ord('w').fundamental_sequence_display(3, Ord('3')),
-    Ord.from_str('w+2').fundamental_sequence_display(3, Ord.from_str('w+2')),
-    Ord.from_str('w^2+w').fundamental_sequence_display(3, Ord.from_str('w^2+3')),
-    Ord.from_str('w*1').fundamental_sequence_display(3, Ord.from_str('3')),
-    Ord.from_str('w*2').fundamental_sequence_display(3, Ord.from_str('w+3')),
-    Ord.from_str('w*w').fundamental_sequence_display(4, Ord.from_str('w*3+4')),
-    Ord.from_str('w*(w+1)').fundamental_sequence_display(3, Ord.from_str('w*w+3')),
-    Ord.from_str('w^1').fundamental_sequence_display(4, Ord.from_str('4')),
-    Ord.from_str('w^2').fundamental_sequence_display(3, Ord.from_str('w*2+3')),
-    Ord.from_str('w^w').fundamental_sequence_display(3, Ord.from_str('w^2*2+(w*2+3)')),
-    Ord.from_str('w^(w+1)').fundamental_sequence_display(3,
-      Ord.from_str('(((w ^ w) * 2) + (((w ^ 2) * 2) + ((w * 2) + 3)))')),
-    (OutType.DIV,
-     Ord.from_str('w^((w^2)*2+(w*2)+2)').fundamental_sequence_display(
-       3, show_steps=True)),
-    (OutType.DIV, Ord.from_str('e').fundamental_sequence_display(3, show_steps=True)),
-    (OutType.DIV, Ord.from_str('e*w').fundamental_sequence_display(3, show_steps=True)),
-    (OutType.DIV, Ord.from_str('e^w').fundamental_sequence_display(3, show_steps=True)),
+    test_f_seq('1', 3, '1'),
+    test_f_seq('w', 3, '3'),
+    test_f_seq('w+2'                , 3, 'w+2'),
+    test_f_seq('w^2+w'              , 3, 'w^2+3'),
+    test_f_seq('w*1'                , 3, '3'),
+    test_f_seq('w*2'                , 3, 'w+3'),
+    test_f_seq('w*w'                , 4, 'w*3+4'),
+    test_f_seq('w*(w+1)'            , 3, 'w*w+3'),
+    test_f_seq('w^1'                , 4, '4'),
+    test_f_seq('w^2'                , 3, 'w*2+3'),
+    test_f_seq('w^w'                , 3, 'w^2*2+(w*2+3)'),
+    test_f_seq('w^(w+1)'            , 3, '(((w^w)*2) + (((w^2)*2) + (w*2+3)))'),
+    test_f_seq('w^((w^2)*2+(w*2)+2)', 3, show_steps=True),
+    test_f_seq('e'                  , 3, show_steps=True),
+    test_f_seq('e*w'                , 3, show_steps=True),
+    test_f_seq('e^w'                , 3, show_steps=True),
 
     (OutType.PLAIN, '<h3>FGH</h3>\n'),
     # FGH(Ord.from_str('w^w'), 3).to_latex(),
     # FGH(Ord.from_str('w^w'), FGH(Ord.from_str('w^w'), 3)).to_latex(),
-    FGH(Ord('3'), 3).expand_once_display(FGH(2, FGH(2, 3), 2)),
+    FGH(Ord('3'), 3).expand_once_display(FGH(2, FGH(2, 3), 2)),  # todo 1: show steps for those
     FGH(Ord('w'), 3).expand_once_display(FGH(Ord('3'), 3)),
     FGH('w^w', 3).expand_once_display(FGH(Ord.from_str('w^2*2+(w*2+3)'), 3)),
     FGH(Ord('0'), 3).expand_display(4),
