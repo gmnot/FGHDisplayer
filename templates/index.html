@@ -8,7 +8,8 @@
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     onload="renderMathInElement(document.body, { delimiters: [
-      {left: '$$', right: '$$', display: true}
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
   ] });">
   </script>
   <style>
@@ -16,13 +17,48 @@
       font-family: sans-serif;
       padding: 2em;
     }
+    table {
+      border-collapse: collapse;
+      margin-top: 1em;
+      width: 40%;
+    }
+
+    th, td {
+      border: 2px solid #333;
+      padding: 10px;
+      text-align: center;
+      font-size: 1.1em;
+    }
+
+    th {
+      background-color: #f0f0f0;
+    }
   </style>
 </head>
 
 <body>
   <h2>Fundamental Sequence:</h2>
-  <p>input w for ω</p>
-
+  <h3>Input Help:</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>What you input</th>
+        <th>What it becomes</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr>
+        <td>w^w</td>
+        <td>$\omega^\omega$</td>
+      </tr>
+      <tr>
+        <td>e+1</td>
+        <td>$\varepsilon_{0} + 1$</td>
+      </tr>
+    </tbody>
+  </table>
+  <br>
+  <br>
   <form method="POST" action="/">
     <label for="large_input">Ordinal:</label><br>
     <textarea id="large_input" name="large_text" rows="10" cols="50"></textarea><br><br>

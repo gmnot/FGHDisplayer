@@ -274,9 +274,16 @@ class Ord:
     fs, steps = self.fundamental_sequence_at(n, record_steps=show_steps)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
-    if show_steps:
-      return '='.join(f'{s.to_latex()}[{n}]' for s in steps) + f'={fs.to_latex()}'
-    return f'{self.to_latex()}[{n}]={fs.to_latex()}'
+
+    if not show_steps:
+      return f'{self.to_latex()}[{n}]={fs.to_latex()}'
+
+    ret = r'<div> $$ \begin{align*}' + '\n'
+    ret += steps[0].to_latex()
+    for ord in steps[1:] + [fs]:
+      ret += f'  &= {ord.to_latex()}[{n}] ' + r'\\' + '\n'
+    ret += r'\end{align*} $$ </div>' + '\n'
+    return ret
 
 class FGH:
   ord: Ord
