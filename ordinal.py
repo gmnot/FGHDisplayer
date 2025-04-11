@@ -137,7 +137,6 @@ class Ord:
       return 0
 
     def is_operand(tok):
-      # todo 1
       return tok.isdigit() or tok in Token.ord_maps
 
     def to_postfix(tokens):
@@ -251,12 +250,34 @@ class Ord:
     node.simplify()
     return node
 
+  class FSRecord:
+    limit     : int
+    data      : List[Ord]
+    full      : bool
+    n_discard : int
+
+    def __init__(self, limit):
+      self.limit     = limit
+      self.data      = []
+      self.full      = False
+      self.n_discard = 0
+
+    def record(self, rec_pre, ord):
+      if self.full:
+        self.n_discard += 1
+      else:
+        if rec_pre is None:
+          self.data.append(ord)
+        else:
+          assert rec_pre.is_valid()
+          self.data.append(Ord('+', rec_pre, ord))
+        assert len(self.data) <= self.limit
+        if len(self.data) == self.limit:
+          self.full = True
+
   # todo 1: hint when any limits are met
-  def fundamental_sequence_at(self, n, record_steps=False, record_limit=12) \
-    -> Tuple[Ord, List[Ord]]:
-
-    steps : List[Ord] = []
-
+  def fundamental_sequence_at(self, n, rec=None) \
+    -> Ord:
     class RecType(Enum):
       FALSE = 0
       TRUE  = 1
@@ -265,12 +286,8 @@ class Ord:
     def impl(ord : Ord, n, record : RecType = RecType.FALSE, rec_pre=None) \
       -> Ord:
 
-      if record == RecType.TRUE and len(steps) < record_limit:
-        if rec_pre is None:
-          steps.append(ord)
-        else:
-          assert rec_pre.is_valid()
-          steps.append(Ord('+', rec_pre, ord))
+      if record == RecType.TRUE:
+        rec.record(rec_pre, ord)
 
       def update(rec):  # SKIP -> TRUE, other->other
         return RecType.TRUE if rec != RecType.FALSE else RecType.FALSE
@@ -318,21 +335,27 @@ class Ord:
         case _:
           assert 0, ord
 
-    res = impl(self, n, RecType.TRUE if record_steps else RecType.FALSE)
-    return res, steps
+    res = impl(self, n, RecType.TRUE if rec is not None else RecType.FALSE)
+    return res
 
   def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
-    fs, steps = self.fundamental_sequence_at(n, record_steps=show_steps)
+    recorder = Ord.FSRecord(15) if show_steps else None
+    fs = self.fundamental_sequence_at(n, recorder)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
 
     if not show_steps:
       return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
+    assert recorder is not None
     ret = r' \begin{align*}' + '\n'
-    ret += f'{steps[0].to_latex()}[{n}]'
-    for ord in steps[1:] + [fs]:
-      ret += f'  &= {ord.to_latex()}[{n}] ' + r'\\' + '\n'
+    ret += f'{recorder.data[0].to_latex()}[{n}]'
+    for ord in recorder.data[1:]:
+      ret += f'  &= {ord.to_latex()}[{n}] \\\\\n'
+    if recorder.n_discard > 0:
+      ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
+             f'{recorder.n_discard} lines skipped' r'}} \\' + '\n'
+    ret += f'  &= {fs.to_latex()}[{n}] \\\\\n'
     ret += r'\end{align*} ' + '\n'
     return ret
 
@@ -382,7 +405,7 @@ class FGH:
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
-      return True, FGH(self.ord.fundamental_sequence_at(self.x)[0], self.x)
+      return True, FGH(self.ord.fundamental_sequence_at(self.x), self.x)
     elif self.ord == Ord('0'):
       return True, self.x + self.exp
     elif self.ord == Ord('1'):
