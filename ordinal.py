@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import List, Dict
+from typing import List, Dict, Tuple
 import re
 
 class Veblen:
@@ -196,48 +196,59 @@ class Ord:
     node.simplify()
     return node
 
-  def fundamental_sequence_at(self, n) -> Ord:
-    if self.is_atomic():
-      if self.is_natural():
-        return self
-      assert self.value in Ord.ord_mappings.keys(), self
-      match self.value:
-        case 'w':
-          return Ord(str(n))
-        case 'e':
-          return Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)).fundamental_sequence_at(n)
+  def fundamental_sequence_at(self, n, record_steps=False) -> Tuple[Ord, List[Ord]]:
+    steps = []
+
+    def impl(ord, n, record=False) -> Ord:
+      if record:
+        steps.append(ord)
+
+      if ord.is_atomic():
+        if ord.is_natural():
+          return ord
+        assert ord.value in Ord.ord_mappings.keys(), ord
+        match ord.value:
+          case 'w':
+            return Ord(str(n))
+          case 'e':
+            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n, record=record)
+          case _:
+            assert 0, f'{ord} @ {n}'
+
+      # transform w*2 and w^2 so they can be indexed
+      def transform(node: Ord) -> Ord:
+        if node.right.is_limit_ordinal():
+          return Ord(node.value,
+                     node.left,
+                     impl(node.right, n))
+        else:
+          assert node.right != Ord('0'), ord
+          if node.right == Ord('1'):
+            return node.left
+          return Ord('+' if node.value == '*' else '*',
+                      Ord.simplified(Ord(node.value, node.left, node.right.dec())),
+                      node.left
+                     )
+
+      match ord.value:
+        case '+':
+          return Ord(ord.value, ord.left, impl(ord.right, n))
+        case '*':
+          return impl(transform(ord), n, record)
+        case '^':
+          return impl(transform(ord), n, record)
         case _:
-          assert 0, f'{self} @ {n}'
+          assert 0, ord
 
-    # transform w*2 and w^2 so they can be indexed
-    def transform(node: Ord) -> Ord:
-      if node.right.is_limit_ordinal():
-        return Ord(node.value,
-                    node.left,
-                    node.right.fundamental_sequence_at(n))
-      else:
-        assert node.right != Ord('0'), self
-        if node.right == Ord('1'):
-          return node.left
-        return Ord('+' if node.value == '*' else '*',
-                    Ord.simplified(Ord(node.value, node.left, node.right.dec())),
-                    node.left
-                   )
+    res = impl(self, n, record=record_steps)
+    return res, steps
 
-    match self.value:
-      case '+':
-        return Ord(self.value, self.left, self.right.fundamental_sequence_at(n))
-      case '*':
-        return transform(self).fundamental_sequence_at(n)
-      case '^':
-        return transform(self).fundamental_sequence_at(n)
-      case _:
-        assert 0, self
-
-  def fundamental_sequence_display(self, n, expected=None):
-    fs = self.fundamental_sequence_at(n)
+  def fundamental_sequence_display(self, n, expected=None, show_steps=False):
+    fs, steps = self.fundamental_sequence_at(n, record_steps=show_steps)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
+    if show_steps:
+      return '='.join(f'{s.to_latex()}[{n}]' for s in steps) + f'={fs.to_latex()}'
     return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
 class FGH:
@@ -272,7 +283,7 @@ class FGH:
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2)
     if self.ord.is_limit_ordinal():
-      return True, FGH(self.ord.fundamental_sequence_at(self.x), self.x)
+      return True, FGH(self.ord.fundamental_sequence_at(self.x)[0], self.x)
     elif self.ord == Ord('0'):
       return True, self.x + 1
     elif self.ord == Ord('1'):
