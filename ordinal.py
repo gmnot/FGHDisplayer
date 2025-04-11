@@ -1,7 +1,7 @@
 from __future__ import annotations
 from copy import deepcopy
 from enum import Enum
-from typing import List, Dict, Tuple
+from typing import List, Dict, Tuple, cast
 import re
 
 from html_utils import contact_request
@@ -70,8 +70,11 @@ class Token:
     return str(self.v)
 
   def is_natural(self):
-    # todo 1: is int
-    return isinstance(self.v, int) or self.v.isdigit()
+    return isinstance(self.v, int)
+
+  def get_natrual(self) -> int:
+    assert self.is_natural()
+    return cast(int, self.v)
 
   def to_latex(self):
     if self.is_natural():
@@ -79,6 +82,7 @@ class Token:
     if self.v in Token.latex_maps.keys():
       return Token.latex_maps[self.v]
     assert 0, self
+
 
 # Ordinal
 class Ord:
@@ -228,18 +232,17 @@ class Ord:
 
   def dec(self) -> Ord:
     if self.is_atomic():
-      assert self.is_natural()
-      i = int(self.token.v)
+      i = self.token.get_natrual()
       assert i > 0, self
-      return Ord(str(i - 1))
+      return Ord(i - 1)
     else:
       assert self.token.v == '+', self
-      if self.right == Ord('1'):
+      if self.right == Ord(1):
         return self.left
       return Ord(self.token, self.left, self.right.dec())
 
   def simplify(self):
-    if self.token.v in '*^' and self.right == Ord('1'):
+    if self.token.v in '*^' and self.right == Ord(1):
       self.token, self.left, self.right = \
         self.left.token, self.left.left, self.left.right
 
