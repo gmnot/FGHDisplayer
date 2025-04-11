@@ -43,6 +43,8 @@ def latex_to_html(latex_str_list, path):
         match s[0]:
           case OutType.PLAIN:
             file.write(f'{s[1]}')
+          case OutType.DIV:
+            file.write(f'<div>$$ {s[1]} $$</p>\n')
           case _:
             assert 0, s[0]
     file.write('\n')
@@ -72,12 +74,12 @@ if __name__ == '__main__':
     Ord.from_str('w^w').fundamental_sequence_display(3, Ord.from_str('w^2*2+(w*2+3)')),
     Ord.from_str('w^(w+1)').fundamental_sequence_display(3,
       Ord.from_str('(((w ^ w) * 2) + (((w ^ 2) * 2) + ((w * 2) + 3)))')),
-    (OutType.PLAIN,
+    (OutType.DIV,
      Ord.from_str('w^((w^2)*2+(w*2)+2)').fundamental_sequence_display(
        3, show_steps=True)),
-    (OutType.PLAIN, Ord.from_str('e').fundamental_sequence_display(3, show_steps=True)),
-    (OutType.PLAIN, Ord.from_str('e*w').fundamental_sequence_display(3, show_steps=True)),
-    (OutType.PLAIN, Ord.from_str('e^w').fundamental_sequence_display(3, show_steps=True)),
+    (OutType.DIV, Ord.from_str('e').fundamental_sequence_display(3, show_steps=True)),
+    (OutType.DIV, Ord.from_str('e*w').fundamental_sequence_display(3, show_steps=True)),
+    (OutType.DIV, Ord.from_str('e^w').fundamental_sequence_display(3, show_steps=True)),
     (OutType.PLAIN, '<h3>FGH</h3>\n'),
     FGH(Ord.from_str('w^w'), 3).to_latex(),
     FGH(Ord.from_str('w^w'), FGH(Ord.from_str('w^w'), 3)).to_latex(),

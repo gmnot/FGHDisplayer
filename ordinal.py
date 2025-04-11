@@ -4,6 +4,11 @@ from enum import Enum
 from typing import List, Dict, Tuple
 import re
 
+"""
+todo:
+- License
+- Input checks (blank, type)
+"""
 class Veblen:
   param: List[Ord]
 
@@ -278,11 +283,11 @@ class Ord:
     if not show_steps:
       return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
-    ret = r'<div> $$ \begin{align*}' + '\n'
-    ret += steps[0].to_latex()
+    ret = r' \begin{align*}' + '\n'
+    ret += f'{steps[0].to_latex()}[{n}]'
     for ord in steps[1:] + [fs]:
       ret += f'  &= {ord.to_latex()}[{n}] ' + r'\\' + '\n'
-    ret += r'\end{align*} $$ </div>' + '\n'
+    ret += r'\end{align*} ' + '\n'
     return ret
 
 class FGH:

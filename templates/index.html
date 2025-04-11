@@ -25,7 +25,7 @@
 
     th, td {
       border: 2px solid #333;
-      padding: 10px;
+      padding: 8px;
       text-align: center;
       font-size: 1.1em;
     }
@@ -37,7 +37,7 @@
 </head>
 
 <body>
-  <h2>Fundamental Sequence:</h2>
+  <h2>FGH Displayer</h2>
   <h3>Input Help:</h3>
   <table>
     <thead>
@@ -58,6 +58,8 @@
     </tbody>
   </table>
   <br>
+  <p>Note: invalid and ill-formed (like $1 +\omega $) input is not strictly checked.
+     Correctness not guaranteed in this situation.</p>
   <br>
   <form method="POST" action="/">
     <label for="large_input">Ordinal:</label><br>
@@ -72,7 +74,7 @@
 
   {% if result %}
     <h3>Results:</h3>
-    <p>$$ {{ result }} $$</p>
+    <div> $$ {{ result }} $$ </div>
   {% endif %}
   {% raw %}
     <h3>Examples:</h3>

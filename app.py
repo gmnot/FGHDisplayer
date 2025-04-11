@@ -13,9 +13,10 @@ def index():
     action = request.form['action']
 
     if action == 'fund_seq':
-        result = Ord.from_str(ord_str).fundamental_sequence_display(int(n_str))
+        result = Ord.from_str(ord_str).fundamental_sequence_display(
+                 int(n_str), show_steps=True)
     elif action == 'fgh':
-        result = FGH(Ord.from_str(ord_str), int(n_str)).expand_display()
+        result = f'{FGH(Ord.from_str(ord_str), int(n_str)).expand_display()}'
 
   return render_template('index.html', result=result)
 
