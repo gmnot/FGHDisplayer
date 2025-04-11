@@ -218,7 +218,7 @@ class Ord:
           steps.append(ord)
         else:
           assert rec_pre.is_valid()
-          steps.append(Ord('+', deepcopy(rec_pre), deepcopy(ord)))
+          steps.append(Ord('+', rec_pre, ord))
 
       def update(rec):  # SKIP -> TRUE, other->other
         return RecType.TRUE if rec != RecType.FALSE else RecType.FALSE
@@ -232,7 +232,7 @@ class Ord:
             return Ord(str(n))
           case 'e':
             return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n,
-                        update(record), deepcopy(rec_pre))
+                        update(record), rec_pre)
           case _:
             assert 0, f'{ord} @ {n}'
 
@@ -258,14 +258,14 @@ class Ord:
           new_rec = RecType.SKIP if record == RecType.TRUE else RecType.FALSE
           new_pre = ord.left \
                     if rec_pre is None \
-                    else Ord('+', deepcopy(rec_pre), deepcopy(ord.left))
+                    else Ord('+', rec_pre, ord.left)
           return Ord(ord.value,
                      ord.left,
                      impl(ord.right, n, new_rec , new_pre))
         case '*':
-          return impl(transform(ord), n, update(record), deepcopy(rec_pre))
+          return impl(transform(ord), n, update(record), rec_pre)
         case '^':
-          return impl(transform(ord), n, update(record), deepcopy(rec_pre))
+          return impl(transform(ord), n, update(record), rec_pre)
         case _:
           assert 0, ord
 
