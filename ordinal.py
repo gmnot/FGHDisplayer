@@ -33,39 +33,74 @@ class Veblen:
     assert len(args) > 0
     self.param = [o for o in args[::-1]]
 
-# Ordinal
-class Ord:
-  value: str  # operator +,*,^ ; natural number str; w,e ; Veblen
-  left : Ord
-  right: Ord
-
-  ord_mappings : Dict[str, str] = {
+# number, w, e, operators, Veblen
+class Token:
+  v: int | str | Veblen
+  ord_maps : Dict[str, str] = {
     'w': r'\omega',
     'e': r'\varepsilon_{0}',
     'x': r'\xi_{0}',
     'h': r'\eta_{0}',
   }
+  latex_maps : Dict[str, str] = {
+    **ord_maps,
+    '+': '+',
+    '*': r'\cdot',
+    '^': '^',
+  }
 
-  def __init__(self, value, left=None, right=None):
-    self.value = value
+  def __init__(self, v):
+    match v:
+      case Token():
+        self.v = v.v
+      case int() | Veblen():
+        self.v = v
+      case str():
+        if v.isdigit():
+          self.v = int(v)
+        else:
+          self.v = v
+      case _:
+        assert 0, v
+
+  def __eq__(self, other):
+    return type(self.v) == type(other.v) and self.v == other.v
+
+  def __str__(self):
+    return str(self.v)
+
+  def is_natural(self):
+    # todo 1: is int
+    return isinstance(self.v, int) or self.v.isdigit()
+
+  def to_latex(self):
+    if self.is_natural():
+      return str(self.v)
+    if self.v in Token.latex_maps.keys():
+      return Token.latex_maps[self.v]
+    assert 0, self
+
+# Ordinal
+class Ord:
+  token: Token  # operator +,*,^ ; natural number str; w,e ; Veblen
+  left : Ord
+  right: Ord
+
+  def __init__(self, token, left=None, right=None):
+    self.token = Token(token)
     self.left  = left
     self.right = right
 
-  def replace(self, other: Ord):
-    self.value = other.value
-    self.left  = other.left
-    self.right = other.right
-
   def __eq__(self, other):
     # todo: consider associative laws
-    return self.value == other.value and \
+    return self.token == other.token and \
            self.left.__eq__(other.left) and \
            self.right.__eq__(other.right)
 
   def to_infix(self):
     if self.is_atomic():
-      return str(self.value)
-    return f"({self.left.to_infix()} {self.value} {self.right.to_infix()})"
+      return str(self.token)
+    return f"({self.left.to_infix()} {self.token} {self.right.to_infix()})"
 
   def __str__(self):
     return self.to_infix()
@@ -79,7 +114,7 @@ class Ord:
            self.left.is_valid() and self.right.is_valid()
 
   def is_natural(self):
-    return all('0' <= c <= '9' for c in self.value)
+    return self.token.is_natural()
 
   @staticmethod
   def from_str(expression: str):
@@ -97,8 +132,9 @@ class Ord:
         return 3
       return 0
 
-    def is_operand(token):
-      return token.isdigit() or token in Ord.ord_mappings.keys()
+    def is_operand(tok):
+      # todo 1
+      return tok.isdigit() or tok in Token.ord_maps
 
     def to_postfix(tokens):
       """
@@ -106,19 +142,19 @@ class Ord:
       """
       out = []
       stack = []
-      for token in tokens:
-        if is_operand(token):
-          out.append(token)
-        elif token == "(":
-          stack.append(token)
-        elif token == ")":
+      for tok in tokens:
+        if is_operand(tok):
+          out.append(tok)
+        elif tok == "(":
+          stack.append(tok)
+        elif tok == ")":
           while stack and stack[-1] != "(":
             out.append(stack.pop())
           stack.pop()  # pop the '('
         else:  # Operator
-          while (stack and precedence(stack[-1]) >= precedence(token)):
+          while (stack and precedence(stack[-1]) >= precedence(tok)):
             out.append(stack.pop())
-          stack.append(token)
+          stack.append(tok)
 
       while stack:
         out.append(stack.pop())
@@ -129,13 +165,13 @@ class Ord:
       Build a binary tree from the postfix expression.
       """
       stack = []
-      for token in postfix:
-        if is_operand(token):
-          stack.append(Ord(token))
+      for tok in postfix:
+        if is_operand(tok):
+          stack.append(Ord(tok))
         else:  # Operator
           right = stack.pop()
           left = stack.pop()
-          stack.append(Ord(token, left, right))
+          stack.append(Ord(tok, left, right))
 
       kraise(len(stack) != 1,
              f"Can't read ordinal from {expression}: " +
@@ -146,7 +182,7 @@ class Ord:
       return stack[0]
 
     try:
-      tokens = re.findall(r'\d+|[+*^()]|' + '|'.join(Ord.ord_mappings.keys()), expression)
+      tokens = re.findall(r'\d+|[+*^()]|' + '|'.join(Token.ord_maps), expression)
       # Convert infix to postfix (RPN)
       postfix = to_postfix(tokens)
       return build_tree(postfix)
@@ -157,62 +193,34 @@ class Ord:
                        str(e) if debug_mode else
                        f"If you believe your input is valid, {contact_request}.")
 
-  def ord_to_latex(self):
-    """
-    basic ord symbol to latex.
-    1,2,3,...
-    ord_mappings.keys(),
-    Veblen
-    """
-    if self.is_natural():
-      return self.value
-    if self.value in Ord.ord_mappings.keys():
-      return Ord.ord_mappings[self.value]
-    assert 0, self.value
-
-  def op_to_latex(self):
-    match self.value:
-      case '+':
-        return '+'
-      case '*':
-        return r'\cdot'
-      case '^':
-        return '^'
-      case _:
-        assert 0, self.value
-
-  def val_to_latex(self):
-    if self.is_atomic():
-      return self.ord_to_latex()
-    else:
-      return self.op_to_latex()
-
   def to_latex(self):
     if self.is_atomic():
-      return self.ord_to_latex()
+      return self.token.to_latex()
 
     def parentheses_on_demand(node: Ord, out_op: str):
       if node.is_atomic() or \
-         (out_op == '*' and node.value == '^'):
+         (out_op == '*' and node.token.v == '^'):
         return node.to_latex()
       return '{(' + node.to_latex() + ')}'
 
-    match self.value:
+    match self.token.v:
       case '+':
-        return self.left.to_latex() + self.op_to_latex() + self.right.to_latex()
+        return self.left.to_latex()  + \
+               self.token.to_latex() + \
+               self.right.to_latex()
       case '*':
         return parentheses_on_demand(self.left, '*') + \
-               self.op_to_latex() + \
+               self.token.to_latex() + \
                parentheses_on_demand(self.right, '*')
       case '^':
         return parentheses_on_demand(self.left, '^') + \
-               self.op_to_latex() + \
+               self.token.to_latex() + \
                '{' + self.right.to_latex() + '}'
 
   def is_limit_ordinal(self):
     if self.is_atomic():
       return not self.is_natural()
-    if self.value == '+':
+    if self.token.v == '+':
       return self.right.is_limit_ordinal()
     # a * b and a ^ b is surely limit ordinal
     assert not self.left.is_natural(), self
@@ -221,19 +229,19 @@ class Ord:
   def dec(self) -> Ord:
     if self.is_atomic():
       assert self.is_natural()
-      i = int(self.value)
+      i = int(self.token.v)
       assert i > 0, self
       return Ord(str(i - 1))
     else:
-      assert self.value == '+', self
+      assert self.token.v == '+', self
       if self.right == Ord('1'):
         return self.left
-      return Ord(self.value, self.left, self.right.dec())
+      return Ord(self.token, self.left, self.right.dec())
 
   def simplify(self):
-    if self.value in '*^' and self.right == Ord('1'):
-      self.value, self.left, self.right = \
-        self.left.value, self.left.left, self.left.right
+    if self.token.v in '*^' and self.right == Ord('1'):
+      self.token, self.left, self.right = \
+        self.left.token, self.left.left, self.left.right
 
   @staticmethod
   def simplified(node: Ord):
@@ -250,7 +258,9 @@ class Ord:
       TRUE  = 1
       SKIP  = 2  # skip just one, and true for following
 
-    def impl(ord, n, record : RecType = RecType.FALSE, rec_pre=None) -> Ord:
+    def impl(ord : Ord, n, record : RecType = RecType.FALSE, rec_pre=None) \
+      -> Ord:
+
       if record == RecType.TRUE and len(steps) < record_limit:
         if rec_pre is None:
           steps.append(ord)
@@ -264,8 +274,7 @@ class Ord:
       if ord.is_atomic():
         if ord.is_natural():
           return ord
-        assert ord.value in Ord.ord_mappings.keys(), ord
-        match ord.value:
+        match ord.token.v:
           case 'w':
             return Ord(str(n))
           case 'e':
@@ -277,25 +286,25 @@ class Ord:
       # transform w*2 and w^2 so they can be indexed
       def transform(node: Ord) -> Ord:
         if node.right.is_limit_ordinal():
-          return Ord(node.value,
+          return Ord(node.token,
                      node.left,
                      impl(node.right, n))
         else:
           assert node.right != Ord('0'), ord
           if node.right == Ord('1'):
             return node.left
-          return Ord('+' if node.value == '*' else '*',
-                      Ord.simplified(Ord(node.value, node.left, node.right.dec())),
+          return Ord('+' if node.token.v == '*' else '*',
+                      Ord.simplified(Ord(node.token, node.left, node.right.dec())),
                       node.left
                      )
 
-      match ord.value:
+      match ord.token.v:
         case '+':
           new_rec = RecType.SKIP if record == RecType.TRUE else RecType.FALSE
           new_pre = ord.left \
                     if rec_pre is None \
                     else Ord('+', rec_pre, ord.left)
-          return Ord(ord.value,
+          return Ord(ord.token,
                      ord.left,
                      impl(ord.right, n, new_rec , new_pre))
         case '*':
