@@ -1,4 +1,4 @@
-from ordinal import Node, FGH
+from ordinal import Ord, FGH
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -38,40 +38,44 @@ def latex_to_html(latex_str_list, path):
 
 if __name__ == '__main__':
   # Example: w * 2 + 3
-  expr_tree = Node('+',
-                   Node('*', Node('w'), Node('2')),
-                   Node('3'),
-                   )
+  expr_tree = Ord('+',
+                   Ord('*', Ord('w'), Ord('2')),
+                   Ord('3'),
+                  )
   print(expr_tree)  # Output: Infix Expression: (3 + (w * 2))
 
   f223 = 2**24*24
   latex_to_html([
     expr_tree.to_latex(),
-    Node('1').fundamental_sequence_display(3, Node('1')),
-    Node('w').fundamental_sequence_display(3, Node('3')),
-    Node.from_str('w+2').fundamental_sequence_display(3, Node.from_str('w+2')),
-    Node.from_str('w^2+w').fundamental_sequence_display(3, Node.from_str('w^2+3')),
-    Node.from_str('w*1').fundamental_sequence_display(3, Node.from_str('3')),
-    Node.from_str('w*2').fundamental_sequence_display(3, Node.from_str('w+3')),
-    Node.from_str('w*w').fundamental_sequence_display(4, Node.from_str('w*3+4')),
-    Node.from_str('w*(w+1)').fundamental_sequence_display(3, Node.from_str('w*w+3')),
-    Node.from_str('w^1').fundamental_sequence_display(4, Node.from_str('4')),
-    Node.from_str('w^2').fundamental_sequence_display(3, Node.from_str('w*2+3')),
-    Node.from_str('w^w').fundamental_sequence_display(3, Node.from_str('w^2*2+(w*2+3)')),
-    Node.from_str('w^(w+1)').fundamental_sequence_display(3,
-      Node.from_str('(((w ^ w) * 2) + (((w ^ 2) * 2) + ((w * 2) + 3)))')),
-    FGH(Node.from_str('w^w'), 3).to_latex(),
-    FGH(Node.from_str('w^w'), FGH(Node.from_str('w^w'), 3)).to_latex(),
-    FGH(Node.from_str('w^w'), 3).expand_once_display(FGH(Node.from_str('w^2*2+(w*2+3)'), 3)),
-    FGH(Node('3'), 3).expand_once_display(FGH.seq('2', '2', '2', 3)),
-    FGH(Node('w'), 3).expand_once_display(FGH(Node('3'), 3)),
-    FGH(Node('0'), 3).expand_once_display(4),
-    FGH(Node('1'), 3).expand_once_display(6),
-    FGH(Node('2'), 3).expand_display(24),
-    FGH(Node('3'), 3).expand_display(FGH(Node('2'), f223)),
-    FGH(Node.from_str('w+1'), 3).expand_display(FGH.seq('w', 'w', '2', f223)),
+    Ord('1').fundamental_sequence_display(3, Ord('1')),
+    Ord('w').fundamental_sequence_display(3, Ord('3')),
+    Ord.from_str('w+2').fundamental_sequence_display(3, Ord.from_str('w+2')),
+    Ord.from_str('w^2+w').fundamental_sequence_display(3, Ord.from_str('w^2+3')),
+    Ord.from_str('w*1').fundamental_sequence_display(3, Ord.from_str('3')),
+    Ord.from_str('w*2').fundamental_sequence_display(3, Ord.from_str('w+3')),
+    Ord.from_str('w*w').fundamental_sequence_display(4, Ord.from_str('w*3+4')),
+    Ord.from_str('w*(w+1)').fundamental_sequence_display(3, Ord.from_str('w*w+3')),
+    Ord.from_str('w^1').fundamental_sequence_display(4, Ord.from_str('4')),
+    Ord.from_str('w^2').fundamental_sequence_display(3, Ord.from_str('w*2+3')),
+    Ord.from_str('w^w').fundamental_sequence_display(3, Ord.from_str('w^2*2+(w*2+3)')),
+    Ord.from_str('w^(w+1)').fundamental_sequence_display(3,
+      Ord.from_str('(((w ^ w) * 2) + (((w ^ 2) * 2) + ((w * 2) + 3)))')),
+    Ord.from_str('e').fundamental_sequence_display(3),
+    Ord.from_str('e*w').fundamental_sequence_display(3),
+    Ord.from_str('e^w').fundamental_sequence_display(3),
+    # FGH
+    FGH(Ord.from_str('w^w'), 3).to_latex(),
+    FGH(Ord.from_str('w^w'), FGH(Ord.from_str('w^w'), 3)).to_latex(),
+    FGH(Ord.from_str('w^w'), 3).expand_once_display(FGH(Ord.from_str('w^2*2+(w*2+3)'), 3)),
+    FGH(Ord('3'), 3).expand_once_display(FGH.seq('2', '2', '2', 3)),
+    FGH(Ord('w'), 3).expand_once_display(FGH(Ord('3'), 3)),
+    FGH(Ord('0'), 3).expand_once_display(4),
+    FGH(Ord('1'), 3).expand_once_display(6),
+    FGH(Ord('2'), 3).expand_display(24),
+    FGH(Ord('3'), 3).expand_display(FGH(Ord('2'), f223)),
+    FGH(Ord.from_str('w+1'), 3).expand_display(FGH.seq('w', 'w', '2', f223)),
     # FGH(Node('w^w'), 3).expand_display(),
-    FGH(Node.from_str('w^w+1'), 3).expand_display(),
-    FGH(Node.from_str('w^(w^w)'), 2).expand_display(),  # todo: correct?
-    FGH(Node.from_str('w^(w^w)'), 3).expand_display(limit=3),  # todo: smarter length ctrl
+    FGH(Ord.from_str('w^w+1'), 3).expand_display(),
+    FGH(Ord.from_str('w^(w^w)'), 2).expand_display(),  # todo: correct?
+    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=3),  # todo: smarter length ctrl
   ], './test.html')

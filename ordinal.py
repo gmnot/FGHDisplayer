@@ -1,23 +1,33 @@
 from __future__ import annotations
+from typing import List, Dict
 import re
 
-class Node:
-  value: str
-  left : Node
-  right: Node
+class Veblen:
+  param: List[Ord]
+
+  def __init__(self, *args: Ord):
+    assert len(args) > 0
+    self.param = [o for o in args[::-1]]
+
+# Ordinal
+class Ord:
+  value: str  # operator +,*,^ ; natural number str; w,e ; Veblen
+  left : Ord
+  right: Ord
+
+  ord_mappings : Dict[str, str] = {
+    'w': r'\omega',
+    'e': r'\varepsilon_{0}',
+    'x': r'\xi_{0}',
+    'h': r'\eta_{0}',
+  }
 
   def __init__(self, value, left=None, right=None):
-    """
-    Node represents an operator or operand in the expression tree.
-    :param value: The operator (+, *, ^) or operand (natural number or 'w')
-    :param left: Left subtree (Expression to the left of the operator)
-    :param right: Right subtree (Expression to the right of the operator)
-    """
     self.value = value
-    self.left = left
+    self.left  = left
     self.right = right
 
-  def replace(self, other: Node):
+  def replace(self, other: Ord):
     self.value = other.value
     self.left  = other.left
     self.right = other.right
@@ -57,6 +67,9 @@ class Node:
         return 3
       return 0
 
+    def is_operand(token):
+      return token.isdigit() or token in Ord.ord_mappings.keys()
+
     def to_postfix(tokens):
       """
       Convert the infix expression tokens to postfix (RPN) using Shunting Yard algorithm.
@@ -64,11 +77,11 @@ class Node:
       out = []
       stack = []
       for token in tokens:
-        if token.isdigit() or token == 'w':  # Operand (natural number or 'w')
+        if is_operand(token):
           out.append(token)
-        elif token == "(":  # Left Parenthesis
+        elif token == "(":
           stack.append(token)
-        elif token == ")":  # Right Parenthesis
+        elif token == ")":
           while stack and stack[-1] != "(":
             out.append(stack.pop())
           stack.pop()  # pop the '('
@@ -81,38 +94,37 @@ class Node:
         out.append(stack.pop())
       return out
 
-    def build_tree(postfix) -> Node:
+    def build_tree(postfix) -> Ord:
       """
       Build a binary tree from the postfix expression.
       """
       stack = []
       for token in postfix:
-        if token.isdigit() or token == 'w':  # Operand
-          stack.append(Node(token))
+        if is_operand(token):
+          stack.append(Ord(token))
         else:  # Operator
           right = stack.pop()
           left = stack.pop()
-          stack.append(Node(token, left, right))
+          stack.append(Ord(token, left, right))
       return stack[0]
 
-    # Tokenize the expression
-    tokens = re.findall(r'\d+|w|[+*^()]', expression)
-
+    tokens = re.findall(r'\d+|[+*^()]|' + '|'.join(Ord.ord_mappings.keys()), expression)
     # Convert infix to postfix (RPN)
     postfix = to_postfix(tokens)
-
-    # Build and return the tree from the postfix expression
     return build_tree(postfix)
 
   def ord_to_latex(self):
     """
     basic ord symbol to latex.
-    such as 1,2,3..., w, \varepsilon, ...
+    1,2,3,...
+    ord_mappings.keys(),
+    Veblen
     """
     if self.is_natural():
       return self.value
-    assert self.value == 'w'
-    return r'\omega'
+    if self.value in Ord.ord_mappings.keys():
+      return Ord.ord_mappings[self.value]
+    assert 0, self.value
 
   def op_to_latex(self):
     match self.value:
@@ -135,7 +147,7 @@ class Node:
     if self.is_atomic():
       return self.ord_to_latex()
 
-    def parentheses_on_demand(node: Node, out_op: str):
+    def parentheses_on_demand(node: Ord, out_op: str):
       if node.is_atomic() or \
          (out_op == '*' and node.value == '^'):
         return node.to_latex()
@@ -162,53 +174,59 @@ class Node:
     assert not self.left.is_natural(), self
     return True
 
-  def dec(self) -> Node:
+  def dec(self) -> Ord:
     if self.is_atomic():
       assert self.is_natural()
       i = int(self.value)
       assert i > 0, self
-      return Node(str(i - 1))
+      return Ord(str(i - 1))
     else:
       assert self.value == '+', self
-      if self.right == Node('1'):
+      if self.right == Ord('1'):
         return self.left
-      return Node(self.value, self.left, self.right.dec())
+      return Ord(self.value, self.left, self.right.dec())
 
   def simplify(self):
-    if self.value in '*^' and self.right == Node('1'):
+    if self.value in '*^' and self.right == Ord('1'):
       self.value, self.left, self.right = \
         self.left.value, self.left.left, self.left.right
 
   @staticmethod
-  def simplified(node: Node):
+  def simplified(node: Ord):
     node.simplify()
     return node
 
-  def fundamental_sequence_at(self, n) -> Node:
+  def fundamental_sequence_at(self, n) -> Ord:
     if self.is_atomic():
       if self.is_natural():
         return self
-      assert self.value == 'w', self
-      return Node(str(n))
+      assert self.value in Ord.ord_mappings.keys(), self
+      match self.value:
+        case 'w':
+          return Ord(str(n))
+        case 'e':
+          return Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)).fundamental_sequence_at(n)
+        case _:
+          assert 0, f'{self} @ {n}'
 
     # transform w*2 and w^2 so they can be indexed
-    def transform(node: Node) -> Node:
+    def transform(node: Ord) -> Ord:
       if node.right.is_limit_ordinal():
-        return Node(node.value,
+        return Ord(node.value,
                     node.left,
                     node.right.fundamental_sequence_at(n))
       else:
-        assert node.right != Node('0'), self
-        if node.right == Node('1'):
+        assert node.right != Ord('0'), self
+        if node.right == Ord('1'):
           return node.left
-        return Node('+' if node.value == '*' else '*',
-                    Node.simplified(Node(node.value, node.left, node.right.dec())),
+        return Ord('+' if node.value == '*' else '*',
+                    Ord.simplified(Ord(node.value, node.left, node.right.dec())),
                     node.left
-                    )
+                   )
 
     match self.value:
       case '+':
-        return Node(self.value, self.left, self.right.fundamental_sequence_at(n))
+        return Ord(self.value, self.left, self.right.fundamental_sequence_at(n))
       case '*':
         return transform(self).fundamental_sequence_at(n)
       case '^':
@@ -223,10 +241,10 @@ class Node:
     return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
 class FGH:
-  ord: Node
+  ord: Ord
   x: int | FGH
 
-  def __init__(self, ord: Node, x):
+  def __init__(self, ord: Ord, x):
     self.ord = ord
     self.x   = x
 
@@ -235,7 +253,7 @@ class FGH:
     assert len(args) > 1
     ret = args[-1]
     for ord in args[-2::-1]:
-      ret = FGH(Node.from_str(ord), ret)
+      ret = FGH(Ord.from_str(ord), ret)
     return ret
 
   def __eq__(self, other):
@@ -255,11 +273,11 @@ class FGH:
       return succ, FGH(self.ord, x2)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fundamental_sequence_at(self.x), self.x)
-    elif self.ord == Node('0'):
+    elif self.ord == Ord('0'):
       return True, self.x + 1
-    elif self.ord == Node('1'):
+    elif self.ord == Ord('1'):
       return True, self.x * 2
-    elif self.ord == Node('2'):
+    elif self.ord == Ord('2'):
       if self.x > limit:
         return False, self
       return True, (2 ** self.x) * self.x
