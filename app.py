@@ -1,6 +1,7 @@
 # app.py
 from flask import Flask, request, render_template
-from ordinal import Ord, FGH
+from ordinal import Ord, FGH, KnownError, kraise, ord_set_debug_mode
+from html_utils import latex_to_block, contact_request
 
 app = Flask(__name__)
 
@@ -8,17 +9,32 @@ app = Flask(__name__)
 def index():
   result = ''
   if request.method == 'POST':
-    ord_str = request.form['large_text']
-    n_str = request.form['small_text']
-    action = request.form['action']
+    try:
+      ord_str = request.form['large_text']
+      n_str = request.form['small_text']
+      action = request.form['action']
 
-    if action == 'fund_seq':
-        result = Ord.from_str(ord_str).fundamental_sequence_display(
-                 int(n_str), show_steps=True)
-    elif action == 'fgh':
-        result = f'{FGH(Ord.from_str(ord_str), int(n_str)).expand_display()}'
+      kraise(len(n_str) == 0, "Can't read index from empty string")
+      kraise(not n_str.isdigit(), f"index {n_str} is not a number")
+      n = int(n_str)
+
+      if action == 'fund_seq':
+        result = latex_to_block(Ord.from_str(ord_str).fundamental_sequence_display(
+                                n, show_steps=True))
+      elif action == 'fgh':
+        result = latex_to_block(FGH(Ord.from_str(ord_str), n).expand_display())
+
+    except KnownError as e:
+      result = f'{e}'
+    except Exception as e:
+      if app.debug:
+        result = f'Unknown error. Debugging: {e}'
+      else:
+        result = f"Unknown error, {contact_request}."
 
   return render_template('index.html', result=result)
 
 if __name__ == '__main__':
-  app.run(debug=True)
+  debug = True
+  ord_set_debug_mode(debug)
+  app.run(debug=debug)

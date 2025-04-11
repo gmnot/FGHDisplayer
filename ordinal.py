@@ -4,11 +4,28 @@ from enum import Enum
 from typing import List, Dict, Tuple
 import re
 
+from html_utils import contact_request
+
 """
 todo:
-- License
-- Input checks (blank, type)
+- copy examples
+- f_2^2(3) to save space
 """
+
+debug_mode = False
+def ord_set_debug_mode(new : bool):
+  global debug_mode
+  debug_mode = new
+
+class KnownError(Exception):
+  @staticmethod
+  def raise_if(cond, msg):
+    if cond:
+      raise KnownError(msg)
+
+def kraise(*args):
+  return KnownError.raise_if(*args)
+
 class Veblen:
   param: List[Ord]
 
@@ -69,6 +86,8 @@ class Ord:
     """
     Read an infix expression and construct the corresponding binary tree.
     """
+    kraise(len(expression) == 0, "Can't read Ordinal from empty string")
+
     def precedence(op):
       if op == "+":
         return 1
@@ -117,12 +136,26 @@ class Ord:
           right = stack.pop()
           left = stack.pop()
           stack.append(Ord(token, left, right))
+
+      kraise(len(stack) != 1,
+             f"Can't read ordinal from {expression}: " +
+             f"len(stack) is {len(stack)}: " + ' '.join(str(ord) for ord in stack)
+             if debug_mode
+             else f"{len(stack)} terms found. If you believe your input is valid" +
+                  contact_request)
       return stack[0]
 
-    tokens = re.findall(r'\d+|[+*^()]|' + '|'.join(Ord.ord_mappings.keys()), expression)
-    # Convert infix to postfix (RPN)
-    postfix = to_postfix(tokens)
-    return build_tree(postfix)
+    try:
+      tokens = re.findall(r'\d+|[+*^()]|' + '|'.join(Ord.ord_mappings.keys()), expression)
+      # Convert infix to postfix (RPN)
+      postfix = to_postfix(tokens)
+      return build_tree(postfix)
+    except KnownError as e:
+      raise e
+    except Exception as e:
+      raise KnownError(f"Can't read ordinal from {expression}: " +
+                       str(e) if debug_mode else
+                       f"If you believe your input is valid, {contact_request}.")
 
   def ord_to_latex(self):
     """
@@ -275,7 +308,7 @@ class Ord:
     res = impl(self, n, RecType.TRUE if record_steps else RecType.FALSE)
     return res, steps
 
-  def fundamental_sequence_display(self, n, expected=None, show_steps=False):
+  def fundamental_sequence_display(self, n : str, expected=None, show_steps=False):
     fs, steps = self.fundamental_sequence_at(n, record_steps=show_steps)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
