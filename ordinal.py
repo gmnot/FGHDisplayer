@@ -141,7 +141,7 @@ class Ord:
              f"Can't read ordinal from {expression}: " +
              f"len(stack) is {len(stack)}: " + ' '.join(str(ord) for ord in stack)
              if debug_mode
-             else f"{len(stack)} terms found. If you believe your input is valid" +
+             else f"{len(stack)} terms found. If you believe your input is valid, " +
                   contact_request)
       return stack[0]
 
@@ -308,7 +308,7 @@ class Ord:
     res = impl(self, n, RecType.TRUE if record_steps else RecType.FALSE)
     return res, steps
 
-  def fundamental_sequence_display(self, n : str, expected=None, show_steps=False):
+  def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
     fs, steps = self.fundamental_sequence_at(n, record_steps=show_steps)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
@@ -326,10 +326,19 @@ class Ord:
 class FGH:
   ord: Ord
   x: int | FGH
+  exp: int
 
-  def __init__(self, ord: Ord, x):
-    self.ord = ord
+  def __init__(self, ord, x, exp=1):
+    if isinstance(ord, Ord):
+      self.ord = ord
+    elif isinstance(ord, str):
+      self.ord = Ord.from_str(ord)
+    elif isinstance(ord, int):
+      self.ord = Ord.from_str(str(ord))
+    else:
+      assert 0, ord
     self.x   = x
+    self.exp = exp
 
   @staticmethod
   def seq(*args):
@@ -340,46 +349,55 @@ class FGH:
     return ret
 
   def __eq__(self, other):
-    return self.ord == other.ord and self.x == other.x
+    if isinstance(self.x, int) != isinstance(other.x, int):
+      return False
+    return self.ord == other.ord and self.x == other.x and self.exp == other.exp
+
+  def exp_str(self):
+    return "" if self.exp == 1 else f"^{self.exp}"
 
   def __str__(self):
-    return f'f({self.ord}, {self.x})'
+    return f'f{self.exp_str()}({self.ord}, {self.x})'
 
   def to_latex(self):
     x_latex = self.x if isinstance(self.x, int) else self.x.to_latex()
-    return f'f_{{{self.ord.to_latex()}}}({x_latex})'
+    return f'f_{{{self.ord.to_latex()}}}{self.exp_str()}({x_latex})'
 
   # return (succ, res)
   def expand_once(self, limit=1000):
     if isinstance(self.x, FGH):
       succ, x2 = self.x.expand_once()
-      return succ, FGH(self.ord, x2)
+      return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fundamental_sequence_at(self.x)[0], self.x)
     elif self.ord == Ord('0'):
-      return True, self.x + 1
+      return True, self.x + self.exp
     elif self.ord == Ord('1'):
-      return True, self.x * 2
+      return True, self.x * (2 ** self.exp)
     elif self.ord == Ord('2'):
+      # ! check exp
       if self.x > limit:
         return False, self
-      return True, (2 ** self.x) * self.x
+      new_x = (2 ** self.x) * self.x
+      return True, new_x if self.exp == 1 else FGH(2, new_x, self.exp - 1)
     else:
       if self.x > limit:
         return False, self
       dec1 = self.ord.dec()
+      return True, FGH(dec1, FGH(dec1, self.x), self.x - 1)
       ret = self.x
       for _ in range(self.x):
         ret = FGH(dec1, ret)
       return True, ret
 
   def expand_once_display(self, expected=None):
-    succ, ex1 = self.expand_once()
+    succ, res = self.expand_once()
     if expected is not None:
-      assert expected == ex1, f'{expected} != {ex1}'
-    if isinstance(ex1, FGH):
-      return f'{self.to_latex()}={ex1.to_latex()}'
-    return f'{self.to_latex()}={ex1}'
+      assert expected == res, f'{expected} != {res}'
+    res_str = res.to_latex() if isinstance(res, FGH) else str(res)
+    maybe_unfinished = isinstance(res, FGH) and succ
+    return f'{self.to_latex()}={res_str}' + \
+           ('=...' if maybe_unfinished else '')
 
   def expand(self, limit=1000):
     ret = self
