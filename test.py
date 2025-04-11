@@ -1,3 +1,4 @@
+from enum import Enum
 from ordinal import Ord, FGH
 
 latex_html_headers = r"""<!DOCTYPE html>
@@ -27,12 +28,23 @@ latex_html_ends = r"""</body>
 </html>
 """
 
+class OutType(Enum):
+  DIV    = 1
+  PLAIN  = 2
+
 def latex_to_html(latex_str_list, path):
   with open(path, "w") as file:
     file.write(latex_html_headers)
     file.write('\n')
     for s in latex_str_list:
-      file.write(f'<p>$$ {s} $$</p>\n')
+      if isinstance(s, str):
+        file.write(f'<p>$$ {s} $$</p>\n')
+      else:
+        match s[0]:
+          case OutType.PLAIN: 
+            file.write(f'{s[1]}')
+          case _:
+            assert 0, s[0]
     file.write('\n')
     file.write(latex_html_ends)
 
@@ -64,7 +76,7 @@ if __name__ == '__main__':
     Ord.from_str('e').fundamental_sequence_display(3, show_steps=True),
     Ord.from_str('e*w').fundamental_sequence_display(3, show_steps=True),
     Ord.from_str('e^w').fundamental_sequence_display(3, show_steps=True),
-    # FGH
+    (OutType.PLAIN, '<h3>FGH</h3>\n'),
     FGH(Ord.from_str('w^w'), 3).to_latex(),
     FGH(Ord.from_str('w^w'), FGH(Ord.from_str('w^w'), 3)).to_latex(),
     FGH(Ord.from_str('w^w'), 3).expand_once_display(FGH(Ord.from_str('w^2*2+(w*2+3)'), 3)),

@@ -253,8 +253,6 @@ class Ord:
 
       match ord.value:
         case '+':
-          # todo 1: (A+B)[n] is recorded at beginning, and inside will record
-          #          A+B[n], which looks the same
           new_rec = RecType.SKIP if record == RecType.TRUE else RecType.FALSE
           new_pre = ord.left \
                     if rec_pre is None \
