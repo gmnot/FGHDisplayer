@@ -1,4 +1,6 @@
 from __future__ import annotations
+from copy import deepcopy
+from enum import Enum
 from typing import List, Dict, Tuple
 import re
 
@@ -47,8 +49,12 @@ class Ord:
     return self.to_infix()
 
   def is_atomic(self):
-    assert (self.left is None) == (self.right is None)
+    assert (self.left is None) == (self.right is None), self
     return self.left is None
+
+  def is_valid(self):
+    return self.is_atomic() or \
+           self.left.is_valid() and self.right.is_valid()
 
   def is_natural(self):
     return all('0' <= c <= '9' for c in self.value)
@@ -196,12 +202,26 @@ class Ord:
     node.simplify()
     return node
 
-  def fundamental_sequence_at(self, n, record_steps=False) -> Tuple[Ord, List[Ord]]:
-    steps = []
+  def fundamental_sequence_at(self, n, record_steps=False, record_limit=12) \
+    -> Tuple[Ord, List[Ord]]:
 
-    def impl(ord, n, record=False) -> Ord:
-      if record:
-        steps.append(ord)
+    steps : List[Ord] = []
+
+    class RecType(Enum):
+      FALSE = 0
+      TRUE  = 1
+      SKIP  = 2  # skip just one, and true for following
+
+    def impl(ord, n, record : RecType = RecType.FALSE, rec_pre=None) -> Ord:
+      if record == RecType.TRUE and len(steps) < record_limit:
+        if rec_pre is None:
+          steps.append(ord)
+        else:
+          assert rec_pre.is_valid()
+          steps.append(Ord('+', deepcopy(rec_pre), deepcopy(ord)))
+
+      def update(rec):  # SKIP -> TRUE, other->other
+        return RecType.TRUE if rec != RecType.FALSE else RecType.FALSE
 
       if ord.is_atomic():
         if ord.is_natural():
@@ -211,7 +231,8 @@ class Ord:
           case 'w':
             return Ord(str(n))
           case 'e':
-            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n, record=record)
+            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n,
+                        update(record), deepcopy(rec_pre))
           case _:
             assert 0, f'{ord} @ {n}'
 
@@ -232,15 +253,23 @@ class Ord:
 
       match ord.value:
         case '+':
-          return Ord(ord.value, ord.left, impl(ord.right, n))
+          # todo 1: (A+B)[n] is recorded at beginning, and inside will record
+          #          A+B[n], which looks the same
+          new_rec = RecType.SKIP if record == RecType.TRUE else RecType.FALSE
+          new_pre = ord.left \
+                    if rec_pre is None \
+                    else Ord('+', deepcopy(rec_pre), deepcopy(ord.left))
+          return Ord(ord.value,
+                     ord.left,
+                     impl(ord.right, n, new_rec , new_pre))
         case '*':
-          return impl(transform(ord), n, record)
+          return impl(transform(ord), n, update(record), deepcopy(rec_pre))
         case '^':
-          return impl(transform(ord), n, record)
+          return impl(transform(ord), n, update(record), deepcopy(rec_pre))
         case _:
           assert 0, ord
 
-    res = impl(self, n, record=record_steps)
+    res = impl(self, n, RecType.TRUE if record_steps else RecType.FALSE)
     return res, steps
 
   def fundamental_sequence_display(self, n, expected=None, show_steps=False):
