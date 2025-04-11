@@ -215,39 +215,6 @@ class Node:
         return transform(self).fundamental_sequence_at(n)
       case _:
         assert 0, self
-class Ordinal:
-  root : Node
-
-  def __init__(self, root=None):
-    """
-    Expression represents the entire mathematical expression as a binary tree.
-    :param root: The root node of the expression (main operator)
-    """
-    if isinstance(root, Node):
-      self.root = root
-    else:
-      assert isinstance(root, str), root
-      self.root = Node.from_str(root)
-
-  def __str__(self):
-    """
-    Converts the expression tree to an infix string representation (with parentheses).
-    """
-    return "" if self.root is None else self.root.__str__()
-
-  def __eq__(self, other):
-    return self.root == other.root
-
-  @staticmethod
-  def from_str(expression: str):
-    return Ordinal(Node.from_str(expression))
-
-  def to_latex(self):
-    return self.root.to_latex()
-
-  def fundamental_sequence_at(self, n) -> Node:
-    assert self.root is not None
-    return self.root.fundamental_sequence_at(n)
 
   def fundamental_sequence_display(self, n, expected=None):
     fs = self.fundamental_sequence_at(n)
@@ -256,10 +223,10 @@ class Ordinal:
     return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
 class FGH:
-  ord: Ordinal
+  ord: Node
   x: int | FGH
 
-  def __init__(self, ord: Ordinal, x):
+  def __init__(self, ord: Node, x):
     self.ord = ord
     self.x   = x
 
@@ -268,7 +235,7 @@ class FGH:
     assert len(args) > 1
     ret = args[-1]
     for ord in args[-2::-1]:
-      ret = FGH(Ordinal.from_str(ord), ret)
+      ret = FGH(Node.from_str(ord), ret)
     return ret
 
   def __eq__(self, other):
@@ -286,20 +253,20 @@ class FGH:
     if isinstance(self.x, FGH):
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2)
-    if self.ord.root.is_limit_ordinal():
-      return True, FGH(Ordinal(self.ord.fundamental_sequence_at(self.x)), self.x)
-    elif self.ord.root == Node('0'):
+    if self.ord.is_limit_ordinal():
+      return True, FGH(self.ord.fundamental_sequence_at(self.x), self.x)
+    elif self.ord == Node('0'):
       return True, self.x + 1
-    elif self.ord.root == Node('1'):
+    elif self.ord == Node('1'):
       return True, self.x * 2
-    elif self.ord.root == Node('2'):
+    elif self.ord == Node('2'):
       if self.x > limit:
         return False, self
       return True, (2 ** self.x) * self.x
     else:
       if self.x > limit:
         return False, self
-      dec1 = Ordinal(self.ord.root.dec())
+      dec1 = self.ord.dec()
       ret = self.x
       for _ in range(self.x):
         ret = FGH(dec1, ret)

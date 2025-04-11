@@ -1,6 +1,6 @@
 # app.py
 from flask import Flask, request, render_template
-from ordinal import Node, Ordinal, FGH
+from ordinal import Node, FGH
 
 app = Flask(__name__)
 
@@ -13,9 +13,9 @@ def index():
     action = request.form['action']
 
     if action == 'fund_seq':
-        result = Ordinal.from_str(ord_str).fundamental_sequence_display(int(n_str))
+        result = Node.from_str(ord_str).fundamental_sequence_display(int(n_str))
     elif action == 'fgh':
-        result = FGH(Ordinal.from_str(ord_str), int(n_str)).expand_display()
+        result = FGH(Node.from_str(ord_str), int(n_str)).expand_display()
 
   return render_template('index.html', result=result)
 
