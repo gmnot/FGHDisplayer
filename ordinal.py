@@ -150,8 +150,32 @@ class Ord:
     self.left  = left
     self.right = right
 
+  def rotate(self) -> None:
+    if self.is_atomic():
+      return
+    if self.token.v == '+' and self.left.token.v == '+':
+      #          +                     +
+      #        /   \                 /   \
+      #      +      r    ===>      ll      +
+      #     / \                           / \
+      #   ll   lr                       lr    r
+      self.left, self.right = \
+        Ord.rotated(self.left.left), \
+        Ord('+', Ord.rotated(self.left.right), Ord.rotated(self.right))
+    else:
+      self.left.rotate()
+      self.right.rotate()
+
+  @staticmethod
+  def rotated(ord : Ord) -> Ord:
+    if ord is None:
+      return None
+    ord.rotate()
+    return ord
+
   def __eq__(self, other):
-    # todo: consider associative laws
+    self.rotate()
+    other.rotate()
     return self.token == other.token and \
            self.left.__eq__(other.left) and \
            self.right.__eq__(other.right)

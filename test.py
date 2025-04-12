@@ -72,10 +72,10 @@ if __name__ == '__main__':
   f223 = 2**24*24
   f2_256 = 29642774844752946028434172162224104410437116074403984394101141506025761187823616
 
+  assert Ord.from_str('(w*2+w)+1') == Ord.from_str('w*2+(w+1)')  # associative
+
   tests = [
     expr_tree.to_latex(),
-    # FGH(Ord.from_str('w^w'), 3).to_latex(),
-    # FGH(Ord.from_str('w^w'), FGH(Ord.from_str('w^w'), 3)).to_latex(),
     (OutType.PLAIN, r'<h3> $ f_c(n) $ </h3>'+'\n'),
     FGH(0, 3  ).expand_display(4),
     FGH(1, 3  ).expand_display(6),
@@ -98,10 +98,10 @@ if __name__ == '__main__':
     test_f_s('w^2'                , 4, 'w*3+4'),
     test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),
     test_f_s('w^2+w'              , 3, 'w^2+3'),
-    test_f_s('w^3'                , 4, 'w^2*3+(w*3+4)'),
-    test_f_s('w^w'                , 3, 'w^2*2+(w*2+3)'),
-    test_f_s('w^(w+1)'            , 3, '(w^w)*2 + ((w^2)*2 + (w*2+3))', show_steps=True),
-    test_f_s('w^((w^2)*2+(w*2)+2)', 3, show_steps=True),
+    test_f_s('w^3'                , 4, 'w^2*3+w*3+4'),
+    test_f_s('w^w'                , 3, 'w^2*2+w*2+3'),
+    test_f_s('w^(w+1)'            , 3, '(w^w)*2 + ((w^2)*2 + w*2 + 3)', show_steps=True),
+    test_f_s('w^((w^2)*2+w*2+2)', 3, show_steps=True),
 
     (OutType.PLAIN, r'<h3> $ \varepsilon_0 $ </h3>'+'\n'),
     test_f_s('e'                  , 3, show_steps=True),
@@ -109,7 +109,7 @@ if __name__ == '__main__':
     test_f_s('e^w'                , 3, show_steps=True),
 
     (OutType.PLAIN, '<h3>FGH</h3>\n'),
-    FGH('w^w', 3).expand_once_display(FGH(Ord.from_str('w^2*2+(w*2+3)'), 3)),
+    FGH('w^w', 3).expand_once_display(FGH(Ord.from_str('w^2*2+w*2+3'), 3)),
     FGH('w^w', 3).expand_display(show_steps=True),
     FGH(Ord.from_str('w^w+1'), 3).expand_display(show_steps=True),
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),  # todo: correct?
