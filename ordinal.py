@@ -91,12 +91,28 @@ class Record:
   n_discard : int
 
   def __init__(self, rec_limit, cal_limit):
-    assert rec_limit > 0
+    assert rec_limit >= 2
+    assert cal_limit >= rec_limit
     self.rec_limit = rec_limit
     self.cal_limit = cal_limit
     self.data      = []
     self.full      = rec_limit == 0
     self.n_discard = 0
+
+  def no_mid_steps(self):
+    return self.rec_limit == 2
+
+  def to_latex(self, entry_to_latex):
+    ret = r' \begin{align*}' + '\n'
+    ret += entry_to_latex(self.data[0])
+    for ord in self.data[1:-1]:
+      ret += f'  &= {entry_to_latex(ord)} \\\\\n'
+    if self.n_discard > 0:
+      ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
+             f'{self.n_discard} lines skipped' r'}} \\' + '\n'
+    ret += f'  &= {entry_to_latex(self.data[-1])} \\\\\n'
+    ret += r'\end{align*} ' + '\n'
+    return ret
 
 # Ordinal
 class Ord:
@@ -267,8 +283,10 @@ class Ord:
   class FSRecord(Record):
     data      : List[Ord]
 
-    def record(self, rec_pre, ord):
-      if self.full:
+    def record(self, rec_pre, ord, res=False):
+      if res:  # force for result
+          self.data.append(ord)
+      elif self.full:
         self.n_discard += 1
       else:
         if rec_pre is None:
@@ -277,10 +295,10 @@ class Ord:
           assert rec_pre.is_valid()
           self.data.append(Ord('+', rec_pre, ord))
         assert len(self.data) <= self.rec_limit
-        if len(self.data) == self.rec_limit:
+        if len(self.data) == self.rec_limit - 1:  # save 1 for result
           self.full = True
 
-  def fundamental_sequence_at(self, n, rec=None) -> Ord:
+  def fundamental_sequence_at(self, n, rec : FSRecord | None = None) -> Ord:
     class RecType(Enum):
       FALSE = 0
       TRUE  = 1
@@ -290,6 +308,7 @@ class Ord:
       -> Ord:
 
       if record == RecType.TRUE:
+        assert rec is not None
         rec.record(rec_pre, ord)
 
       def update(rec):  # SKIP -> TRUE, other->other
@@ -339,6 +358,8 @@ class Ord:
           assert 0, ord
 
     res = impl(self, n, RecType.TRUE if rec is not None else RecType.FALSE)
+    if rec is not None:
+      rec.record(None, res, res=True)
     return res
 
   def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
@@ -351,16 +372,10 @@ class Ord:
       return f'{self.to_latex()}[{n}]={fs.to_latex()}'
 
     assert recorder is not None
-    ret = r' \begin{align*}' + '\n'
-    ret += f'{recorder.data[0].to_latex()}[{n}]'
-    for ord in recorder.data[1:]:
-      ret += f'  &= {ord.to_latex()}[{n}] \\\\\n'
-    if recorder.n_discard > 0:
-      ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
-             f'{recorder.n_discard} lines skipped' r'}} \\' + '\n'
-    ret += f'  &= {fs.to_latex()}[{n}] \\\\\n'
-    ret += r'\end{align*} ' + '\n'
-    return ret
+
+    def ord_to_fs(ord):
+      return f'{ord.to_latex()}[{n}]'
+    return recorder.to_latex(ord_to_fs)
 
 class FGH:
   ord: Ord
@@ -444,7 +459,6 @@ class FGH:
 
   # todo 1: hint when limit met
   def expand(self, recorder : FGHRecord):
-
     ret = self
     recorder.record(ret)
     for _ in range(recorder.cal_limit):
@@ -455,7 +469,7 @@ class FGH:
     return ret
 
   def expand_display(self, expected=None, limit=100, show_steps=False):
-    recorder = FGH.FGHRecord(15 if show_steps else 1, limit)
+    recorder = FGH.FGHRecord(15 if show_steps else 2, limit)
     ex1 = self.expand(recorder)
     if expected is not None:
       assert expected == ex1, f'{expected} != {ex1}'

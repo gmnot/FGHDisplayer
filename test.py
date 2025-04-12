@@ -83,7 +83,7 @@ if __name__ == '__main__':
     test_f_seq('w*(w+1)'            , 3, 'w*w+3'),
     test_f_seq('w^1'                , 4, '4'),
     test_f_seq('w^2'                , 3, 'w*2+3'),
-    test_f_seq('w^w'                , 3, 'w^2*2+(w*2+3)'),
+    test_f_seq('w^w'                , 3, 'w^2*2+(w*2+3)', show_steps=True),
     test_f_seq('w^(w+1)'            , 3, '(((w^w)*2) + (((w^2)*2) + (w*2+3)))'),
     test_f_seq('w^((w^2)*2+(w*2)+2)', 3, show_steps=True),
     test_f_seq('e'                  , 3, show_steps=True),
