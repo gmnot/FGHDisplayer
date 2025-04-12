@@ -84,15 +84,18 @@ class Token:
     assert 0, self
 
 class Record:
-  limit     : int
-  data      : List
+  rec_limit : int
+  cal_limit : int
+  data      : List  # allow extra elem for result
   full      : bool
   n_discard : int
 
-  def __init__(self, limit):
-    self.limit     = limit
+  def __init__(self, rec_limit, cal_limit):
+    assert rec_limit > 0
+    self.rec_limit = rec_limit
+    self.cal_limit = cal_limit
     self.data      = []
-    self.full      = False
+    self.full      = rec_limit == 0
     self.n_discard = 0
 
 # Ordinal
@@ -273,8 +276,8 @@ class Ord:
         else:
           assert rec_pre.is_valid()
           self.data.append(Ord('+', rec_pre, ord))
-        assert len(self.data) <= self.limit
-        if len(self.data) == self.limit:
+        assert len(self.data) <= self.rec_limit
+        if len(self.data) == self.rec_limit:
           self.full = True
 
   def fundamental_sequence_at(self, n, rec=None) -> Ord:
@@ -339,7 +342,7 @@ class Ord:
     return res
 
   def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
-    recorder = Ord.FSRecord(15) if show_steps else None
+    recorder = Ord.FSRecord(15, 200) if show_steps else None
     fs = self.fundamental_sequence_at(n, recorder)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
@@ -429,17 +432,31 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
+  class FGHRecord(Record):
+    def record(self, fgh):
+      if self.full:
+        self.n_discard += 1
+      else:
+        self.data.append(fgh)
+        assert len(self.data) <= self.rec_limit
+        if len(self.data) == self.rec_limit:
+          self.full = True
+
   # todo 1: hint when limit met
-  def expand(self, limit=100):
+  def expand(self, recorder : FGHRecord):
+
     ret = self
-    for _ in range(limit):
+    recorder.record(ret)
+    for _ in range(recorder.cal_limit):
       succ, ret = ret.expand_once()
       if not succ or not isinstance(ret, FGH):
         return ret
+      recorder.record(ret)
     return ret
 
-  def expand_display(self, expected=None, limit=100):
-    ex1 = self.expand(limit=limit)
+  def expand_display(self, expected=None, limit=100, show_steps=False):
+    recorder = FGH.FGHRecord(15 if show_steps else 1, limit)
+    ex1 = self.expand(recorder)
     if expected is not None:
       assert expected == ex1, f'{expected} != {ex1}'
     if isinstance(ex1, FGH):
