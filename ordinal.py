@@ -122,6 +122,23 @@ class Record:
     ret += r'\end{align*} ' + '\n'
     return ret
 
+def test_display(obj, f_calc, f_display, expected=None,
+                 limit=100, test_only=False , show_steps=False):
+  recorder = Record(15) if show_steps else None
+  res = f_calc(obj, limit, recorder)
+
+  if expected is not None:
+    assert res == expected, f'{res} != {expected}'
+
+  if test_only:
+    return None
+
+  if not show_steps:
+    return f'{f_display(obj)}={f_display(res)}'
+
+  assert recorder is not None
+  return recorder.to_latex(f_display)
+
 # Ordinal
 class Ord:
   token: Token  # operator +,*,^ ; natural number str; w,e ; Veblen
@@ -288,10 +305,7 @@ class Ord:
     node.simplify()
     return node
 
-  class FSRecord(Record):
-    data : List[Ord]
-
-  def fundamental_sequence_at(self, n, rec : FSRecord | None = None) -> Ord:
+  def fundamental_sequence_at(self, n, rec : Record | None = None) -> Ord:
     class RecType(Enum):
       FALSE = 0
       TRUE  = 1
@@ -359,11 +373,8 @@ class Ord:
       rec.record(res, res=True)
     return res
 
-  def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
-    recorder = Ord.FSRecord(15) if show_steps else None
-    fs = self.fundamental_sequence_at(n, recorder)
-    if expected is not None:
-      assert fs == expected, f'{str(fs)} != {str(expected)}'
+  def fundamental_sequence_display(self,
+    n : int, expected=None, test_only=False, show_steps=False):
 
     first = True
 
@@ -375,12 +386,11 @@ class Ord:
         first = False
       return ret
 
-    if not show_steps:
-      return f'{ord_to_fs(self)}={ord_to_fs(fs)}'
+    def calc(ord, limit, recorder):
+      return ord.fundamental_sequence_at(n, recorder)
 
-    assert recorder is not None
-
-    return recorder.to_latex(ord_to_fs)
+    return test_display(self, calc, ord_to_fs, expected,
+                        None, test_only, show_steps)
 
 class FGH:
   ord: Ord
@@ -452,11 +462,8 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  class FGHRecord(Record):
-    pass
-
   # todo 1: hint when limit met
-  def expand(self, limit=100, recorder : FGHRecord | None = None):
+  def expand(self, limit=100, recorder : Record | None = None):
     ret : FGH | int = self
     if recorder:
       recorder.record(ret)
@@ -469,19 +476,16 @@ class FGH:
         return ret
     return ret
 
-  def expand_display(self, expected=None, limit=100, show_steps=False):
-    recorder = FGH.FGHRecord(15) if show_steps else None
-    res = self.expand(limit, recorder)
-    if expected is not None:
-      assert expected == res, f'{expected} != {res}'
+  def expand_display(self, expected=None, limit=100,
+    test_only=False, show_steps=False):
 
     def fgh_to_latex(fgh : FGH | int):
       if isinstance(fgh, FGH):
         return fgh.to_latex()
       return str(fgh)
 
-    if not show_steps:
-      return f'{fgh_to_latex(self)}={fgh_to_latex(res)}'
+    def calc(fgh, limit, recorder):
+      return fgh.expand(limit, recorder)
 
-    assert recorder is not None
-    return recorder.to_latex(fgh_to_latex)
+    return test_display(self, calc, fgh_to_latex, expected,
+                        limit, test_only, show_steps)

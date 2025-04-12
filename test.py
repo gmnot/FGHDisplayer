@@ -10,8 +10,8 @@ latex_html_headers = r"""<!DOCTYPE html>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/katex.min.js"></script>
   <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.9/dist/contrib/auto-render.min.js"
     onload="renderMathInElement(document.body, { delimiters: [
-      {left: '\\\\(', right: '\\\\)', display: false},
-      {left: '$$', right: '$$', display: true}
+      {left: '$$', right: '$$', display: true},
+      {left: '$', right: '$', display: false}
   ] });">
   </script>
   <style>
@@ -50,10 +50,11 @@ def latex_to_html(latex_str_list, path):
     file.write('\n')
     file.write(latex_html_ends)
 
-def test_f_seq(ord1 : str, n : int, ord2=None, show_steps=False):
+def test_f_s(ord1 : str, n : int, ord2=None, test_only=False, show_steps=False):
   formula = Ord.from_str(ord1).fundamental_sequence_display(
             n,
-            Ord.from_str(ord2) if ord2 is not None else None,
+            expected=Ord.from_str(ord2) if ord2 is not None else None,
+            test_only=test_only,
             show_steps=show_steps)
   if show_steps:
     return (OutType.DIV, formula)
@@ -71,40 +72,49 @@ if __name__ == '__main__':
   f223 = 2**24*24
   f2_256 = 29642774844752946028434172162224104410437116074403984394101141506025761187823616
 
-  latex_to_html([
+  tests = [
     expr_tree.to_latex(),
-    test_f_seq('1', 3, '1'),
-    test_f_seq('w', 3, '3'),
-    test_f_seq('w+2'                , 3, 'w+2'),
-    test_f_seq('w^2+w'              , 3, 'w^2+3'),
-    test_f_seq('w*1'                , 3, '3'),
-    test_f_seq('w*2'                , 3, 'w+3'),
-    test_f_seq('w*w'                , 4, 'w*3+4'),
-    test_f_seq('w*(w+1)'            , 3, 'w*w+3'),
-    test_f_seq('w^1'                , 4, '4'),
-    test_f_seq('w^2'                , 3, 'w*2+3'),
-    test_f_seq('w^w'                , 3, 'w^2*2+(w*2+3)', show_steps=True),
-    test_f_seq('w^(w+1)'            , 3, '(((w^w)*2) + (((w^2)*2) + (w*2+3)))'),
-    test_f_seq('w^((w^2)*2+(w*2)+2)', 3, show_steps=True),
-    test_f_seq('e'                  , 3, show_steps=True),
-    test_f_seq('e*w'                , 3, show_steps=True),
-    test_f_seq('e^w'                , 3, show_steps=True),
-
-    (OutType.PLAIN, '<h3>FGH</h3>\n'),
     # FGH(Ord.from_str('w^w'), 3).to_latex(),
     # FGH(Ord.from_str('w^w'), FGH(Ord.from_str('w^w'), 3)).to_latex(),
-    FGH(Ord('3'), 3).expand_once_display(FGH(2, FGH(2, 3), 2)),  # todo 1: show steps for those
-    FGH(Ord('w'), 3).expand_once_display(FGH(Ord('3'), 3)),
-    FGH('w^w', 3).expand_once_display(FGH(Ord.from_str('w^2*2+(w*2+3)'), 3)),
-    FGH(Ord('0'), 3).expand_display(4),
-    FGH(Ord('1'), 3).expand_display(6),
-    FGH(Ord('2'), 3).expand_display(24),
-    FGH(Ord('2'), 256).expand_display(f2_256),
-    FGH(Ord('3'), 3).expand_display(FGH(Ord('2'), f223)),
+    (OutType.PLAIN, r'<h3> $ f_c(n) $ </h3>'+'\n'),
+    FGH(0, 3  ).expand_display(4),
+    FGH(1, 3  ).expand_display(6),
+    FGH(2, 3  ).expand_display(24),
+    FGH(2, 256).expand_display(f2_256),
+    FGH(3, 3  ).expand_display(FGH(2, f223)),
+
+    (OutType.PLAIN, r'<h3> $ \omega^\alpha $ </h3>'+'\n'),
+    test_f_s('1'  , 3, '1', test_only=True),
+    test_f_s('w'  , 3, '3', test_only=True),
+    test_f_s('w*1', 3, '3', test_only=True),
+    test_f_s('w^1', 4, '4', test_only=True),
+    FGH('w', 3).expand_display(FGH(2, f223)),
     FGH(Ord.from_str('w+1'), 3).expand_display(FGH('w', FGH(2, f223), 2)),
-    # FGH(Node('w^w'), 3).expand_display(),
+    test_f_s('w+2'                , 3, 'w+2'   , test_only=True),
+    test_f_s('w+w'                , 4, 'w+4'),
+    test_f_s('w*2'                , 3, 'w+3'),
+    test_f_s('w*w'                , 4, 'w*3+4', test_only=True),
+    test_f_s('w^2'                , 3, 'w*2+3', test_only=True),
+    test_f_s('w^2'                , 4, 'w*3+4'),
+    test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),
+    test_f_s('w^2+w'              , 3, 'w^2+3'),
+    test_f_s('w^3'                , 4, 'w^2*3+(w*3+4)'),
+    test_f_s('w^w'                , 3, 'w^2*2+(w*2+3)'),
+    test_f_s('w^(w+1)'            , 3, '(w^w)*2 + ((w^2)*2 + (w*2+3))', show_steps=True),
+    test_f_s('w^((w^2)*2+(w*2)+2)', 3, show_steps=True),
+
+    (OutType.PLAIN, r'<h3> $ \varepsilon_0 $ </h3>'+'\n'),
+    test_f_s('e'                  , 3, show_steps=True),
+    test_f_s('e*w'                , 3, show_steps=True),
+    test_f_s('e^w'                , 3, show_steps=True),
+
+    (OutType.PLAIN, '<h3>FGH</h3>\n'),
+    FGH('w^w', 3).expand_once_display(FGH(Ord.from_str('w^2*2+(w*2+3)'), 3)),
+    FGH('w^w', 3).expand_display(show_steps=True),
     FGH(Ord.from_str('w^w+1'), 3).expand_display(show_steps=True),
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),  # todo: correct?
     # todo: smarter length ctrl
     FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=3, show_steps=True),
-  ], './test.html')
+  ]
+
+  latex_to_html([s for s in tests if s is not None], './test.html')

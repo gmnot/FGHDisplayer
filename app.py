@@ -22,7 +22,9 @@ def index():
         result = latex_to_block(Ord.from_str(ord_str).fundamental_sequence_display(
                                 n, show_steps=True))
       elif action == 'fgh':
-        result = latex_to_block(FGH(Ord.from_str(ord_str), n).expand_display())
+        result = latex_to_block(FGH(Ord.from_str(ord_str), n).expand_display(
+          show_steps=True
+        ))
 
     except KnownError as e:
       result = f'{e}'
