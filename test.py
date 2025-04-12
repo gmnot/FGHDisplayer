@@ -98,6 +98,7 @@ if __name__ == '__main__':
     test_f_s('w*1', 3, '3', test_only=True),
     test_f_s('w^1', 4, '4', test_only=True),
     FGH('w'  , 3).expand_display(FGH(2, f223)),
+    # FGH('1+w', 3).expand_display(show_steps=True),
     FGH('w+1', 3).expand_display(FGH('w', FGH(2, f223), 2)),
     test_f_s('w+2'                , 3, 'w+2'   , test_only=True),
     # todo: more FGH instead

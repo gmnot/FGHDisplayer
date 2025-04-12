@@ -447,7 +447,7 @@ class FGH:
     return self.ord == other.ord and self.x == other.x and self.exp == other.exp
 
   def exp_str(self):
-    return "" if self.exp == 1 else f"^{self.exp}"
+    return "" if self.exp == 1 else f"^{{{self.exp}}}"
 
   def __str__(self):
     return f'f{self.exp_str()}({self.ord}, {self.x})'
@@ -458,7 +458,7 @@ class FGH:
 
   # return (succ, res)
   # limit_f2: max n for f2(n) to be eval
-  def expand_once(self, limit_f2=1000) -> Tuple[bool, FGH | int]:
+  def expand_once(self, digit_limit=1000) -> Tuple[bool, FGH | int]:
     if isinstance(self.x, FGH):
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2, self.exp)
@@ -467,9 +467,11 @@ class FGH:
     elif self.ord == Ord('0'):
       return True, self.x + self.exp
     elif self.ord == Ord('1'):
+      if self.exp > digit_limit * 3:
+        return False, self
       return True, self.x * (2 ** self.exp)
     elif self.ord == Ord('2'):
-      if self.x > limit_f2:
+      if self.x > digit_limit * 3:
         return False, self
       new_x = (2 ** self.x) * self.x
       return True, new_x if self.exp == 1 else FGH(2, new_x, self.exp - 1)
