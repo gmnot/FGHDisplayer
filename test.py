@@ -50,13 +50,13 @@ def latex_to_html(latex_str_list, path):
     file.write('\n')
     file.write(latex_html_ends)
 
-def test_f_s(ord1 : str, n : int, ord2=None, test_only=False, show_steps=False):
+def test_f_s(ord1 : str, n : int, ord2=None, test_only=False, show_step=False):
   formula = Ord.from_str(ord1).fundamental_sequence_display(
             n,
             expected=Ord.from_str(ord2) if ord2 is not None else None,
             test_only=test_only,
-            show_steps=show_steps)
-  if show_steps:
+            show_steps=show_step)
+  if show_step:
     return (OutType.DIV, formula)
   else:
     return formula
@@ -84,45 +84,48 @@ if __name__ == '__main__':
 
   tests = [
     expr_tree.to_latex(),
-    (OutType.PLAIN, r'<h3> $ f_c(n) $ </h3>'+'\n'),
+    (OutType.PLAIN, r'<h2> $ f_c(n) $ </h2>'+'\n'),
     FGH(0, 3  ).expand_display(4),
     FGH(1, 3  ).expand_display(6),
     FGH(2, 3  ).expand_display(24),
-    FGH(2, 256).expand_display(f2_256),
+    FGH(2, 256).expand_display(f2_256, test_only=True),
+    FGH(3, 2  ).expand_display(2048),
     FGH(3, 3  ).expand_display(FGH(2, f223)),
 
-    (OutType.PLAIN, r'<h3> $ \omega^\alpha $ </h3>'+'\n'),
+    (OutType.PLAIN, r'<h2> $ \omega^\alpha $ </h2>'+'\n'),
     test_f_s('1'  , 3, '1', test_only=True),
     test_f_s('w'  , 3, '3', test_only=True),
     test_f_s('w*1', 3, '3', test_only=True),
     test_f_s('w^1', 4, '4', test_only=True),
-    FGH('w', 3).expand_display(FGH(2, f223)),
-    FGH(Ord.from_str('w+1'), 3).expand_display(FGH('w', FGH(2, f223), 2)),
+    FGH('w'  , 3).expand_display(FGH(2, f223)),
+    FGH('w+1', 3).expand_display(FGH('w', FGH(2, f223), 2)),
     test_f_s('w+2'                , 3, 'w+2'   , test_only=True),
-    test_f_s('w+w'                , 4, 'w+4'),
-    test_f_s('w*2'                , 3, 'w+3'),
+    # todo: more FGH instead
+    test_f_s('w+w'                , 4, 'w+4'  , test_only=True),
+    test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
+    FGH('w*2+1', 3).expand_display(),
     test_f_s('w*w'                , 4, 'w*3+4', test_only=True),
     test_f_s('w^2'                , 3, 'w*2+3', test_only=True),
     test_f_s('w^2'                , 4, 'w*3+4'),
     test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),
     test_f_s('w^2+w'              , 3, 'w^2+3'),
+    FGH('w^2+w+1', 3).expand_display(),
     test_f_s('w^3'                , 4, 'w^2*3+w*3+4'),
     test_f_s('w^w'                , 3, 'w^2*2+w*2+3'),
-    test_f_s('w^(w+1)'            , 3, '(w^w)*2 + ((w^2)*2 + w*2 + 3)', show_steps=True),
-    test_f_s('w^((w^2)*2+w*2+2)', 3, show_steps=True),
+    FGH('w^w'  , 3).expand_once_display(FGH('w^2*2+w*2+3', 3), test_only=True),
+    FGH('w^w'  , 3).expand_display(test_only=True),
+    FGH('w^w+1', 3).expand_display(),
+    test_f_s('w^(w+1)'            , 3, 'w^w*2 + w^2*2 + w*2 + 3', show_step=True),
+    test_f_s('w^((w^2)*2+w*2+2)'  , 3, test_only=True),
 
-    (OutType.PLAIN, r'<h3> $ \varepsilon_0 $ </h3>'+'\n'),
-    test_f_s('e'                  , 3, show_steps=True),
-    test_f_s('e*w'                , 3, show_steps=True),
-    test_f_s('e^w'                , 3, show_steps=True),
-
-    (OutType.PLAIN, '<h3>FGH</h3>\n'),
-    FGH('w^w', 3).expand_once_display(FGH(Ord.from_str('w^2*2+w*2+3'), 3)),
-    FGH('w^w', 3).expand_display(show_steps=True),
-    FGH(Ord.from_str('w^w+1'), 3).expand_display(show_steps=True),
-    FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),  # todo: correct?
-    # todo: smarter length ctrl
-    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=3, show_steps=True),
+    (OutType.PLAIN, r'<h2> $ \varepsilon_0 $ </h2>'+'\n'),
+    # todo
+    test_f_s('e'                  , 3, show_step=True),
+    FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),
+    # todo: smarter length ctrl based on terms
+    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=4, show_steps=True),
+    test_f_s('e*w'                , 3),
+    test_f_s('e^w'                , 3),
   ]
 
-  latex_to_html([s for s in tests if s is not None], './test.html')
+  latex_to_html([s for s in tests if s is not None], './local_test.html')

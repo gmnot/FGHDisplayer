@@ -117,7 +117,7 @@ class Record:
       ret += f'  &= {entry_to_latex(ord)} \\\\\n'
     if self.n_discard > 0:
       ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
-             f'{self.n_discard} lines skipped' r'}} \\' + '\n'
+             f'after {self.n_discard} more steps' r'}} \\' + '\n'
     ret += f'  &= {entry_to_latex(self.data[-1])} \\\\\n'
     ret += r'\end{align*} ' + '\n'
     return ret
@@ -477,10 +477,12 @@ class FGH:
       dec1 = self.ord.dec()
       return True, FGH(dec1, FGH(dec1, self.x), self.x - 1)
 
-  def expand_once_display(self, expected=None):
+  def expand_once_display(self, expected=None, test_only=False):
     succ, res = self.expand_once()
     if expected is not None:
       assert expected == res, f'{expected} != {res}'
+    if test_only:
+      return None
     res_str = res.to_latex() if isinstance(res, FGH) else str(res)
     maybe_unfinished = isinstance(res, FGH) and succ
     return f'{self.to_latex()}={res_str}' + \
