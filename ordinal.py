@@ -85,28 +85,25 @@ class Token:
 
 class Record:
   rec_limit : int
-  cal_limit : int
   data      : List  # allow extra elem for result
   full      : bool
   n_discard : int
 
-  def __init__(self, rec_limit, cal_limit):
+  def __init__(self, rec_limit):
     assert rec_limit >= 2
-    assert cal_limit >= rec_limit
     self.rec_limit = rec_limit
-    self.cal_limit = cal_limit
     self.data      = []
-    self.full      = rec_limit == 0
+    self.full      = False
     self.n_discard = 0
 
   def no_mid_steps(self):
     return self.rec_limit == 2
 
   def record(self, entry, res=False):
-    if res:  # force for result
-        self.data.append(entry)
-    elif self.full:
+    if self.full:
       self.n_discard += 1
+      if res:  # force replace
+        self.data[-1] = entry
     else:
       self.data.append(entry)
       assert len(self.data) <= self.rec_limit
@@ -292,7 +289,7 @@ class Ord:
     return node
 
   class FSRecord(Record):
-    data      : List[Ord]
+    data : List[Ord]
 
   def fundamental_sequence_at(self, n, rec : FSRecord | None = None) -> Ord:
     class RecType(Enum):
@@ -363,18 +360,26 @@ class Ord:
     return res
 
   def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
-    recorder = Ord.FSRecord(15, 200) if show_steps else None
+    recorder = Ord.FSRecord(15) if show_steps else None
     fs = self.fundamental_sequence_at(n, recorder)
     if expected is not None:
       assert fs == expected, f'{str(fs)} != {str(expected)}'
 
+    first = True
+
+    def ord_to_fs(ord : Ord):
+      nonlocal first
+      ret = f'{ord.to_latex()}'
+      if first or ord.is_limit_ordinal():
+        ret += f'[{n}]'
+        first = False
+      return ret
+
     if not show_steps:
-      return f'{self.to_latex()}[{n}]={fs.to_latex()}'
+      return f'{ord_to_fs(self)}={ord_to_fs(fs)}'
 
     assert recorder is not None
 
-    def ord_to_fs(ord):
-      return f'{ord.to_latex()}[{n}]'
     return recorder.to_latex(ord_to_fs)
 
 class FGH:
@@ -448,31 +453,35 @@ class FGH:
            ('=...' if maybe_unfinished else '')
 
   class FGHRecord(Record):
-    def record(self, fgh):
-      if self.full:
-        self.n_discard += 1
-      else:
-        self.data.append(fgh)
-        assert len(self.data) <= self.rec_limit
-        if len(self.data) == self.rec_limit:
-          self.full = True
+    pass
 
   # todo 1: hint when limit met
-  def expand(self, recorder : FGHRecord):
-    ret = self
-    recorder.record(ret)
-    for _ in range(recorder.cal_limit):
-      succ, ret = ret.expand_once()
+  def expand(self, limit=100, recorder : FGHRecord | None = None):
+    ret : FGH | int = self
+    if recorder:
+      recorder.record(ret)
+
+    for _ in range(limit):
+      succ, ret = cast(FGH, ret).expand_once()
+      if succ and recorder:
+        recorder.record(ret, res=True)
       if not succ or not isinstance(ret, FGH):
         return ret
-      recorder.record(ret)
     return ret
 
   def expand_display(self, expected=None, limit=100, show_steps=False):
-    recorder = FGH.FGHRecord(15 if show_steps else 2, limit)
-    ex1 = self.expand(recorder)
+    recorder = FGH.FGHRecord(15) if show_steps else None
+    res = self.expand(limit, recorder)
     if expected is not None:
-      assert expected == ex1, f'{expected} != {ex1}'
-    if isinstance(ex1, FGH):
-      return f'{self.to_latex()}={ex1.to_latex()}'
-    return f'{self.to_latex()}={ex1}'
+      assert expected == res, f'{expected} != {res}'
+
+    def fgh_to_latex(fgh : FGH | int):
+      if isinstance(fgh, FGH):
+        return fgh.to_latex()
+      return str(fgh)
+
+    if not show_steps:
+      return f'{fgh_to_latex(self)}={fgh_to_latex(res)}'
+
+    assert recorder is not None
+    return recorder.to_latex(fgh_to_latex)

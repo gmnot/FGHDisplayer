@@ -103,7 +103,8 @@ if __name__ == '__main__':
     FGH(Ord('3'), 3).expand_display(FGH(Ord('2'), f223)),
     FGH(Ord.from_str('w+1'), 3).expand_display(FGH('w', FGH(2, f223), 2)),
     # FGH(Node('w^w'), 3).expand_display(),
-    FGH(Ord.from_str('w^w+1'), 3).expand_display(),
-    FGH(Ord.from_str('w^(w^w)'), 2).expand_display(),  # todo: correct?
-    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=3),  # todo: smarter length ctrl
+    FGH(Ord.from_str('w^w+1'), 3).expand_display(show_steps=True),
+    FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),  # todo: correct?
+    # todo: smarter length ctrl
+    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=3, show_steps=True),
   ], './test.html')
