@@ -105,6 +105,7 @@ if __name__ == '__main__':
     test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
     FGH('w*2+1', 3).expand_display(),
     test_f_s('w*w'                , 4, 'w*3+4', test_only=True),
+    test_f_s('v(0,2)'             , 3, 'w*2+3', show_step=True),
     test_f_s('w^2'                , 3, 'w*2+3', test_only=True),
     test_f_s('w^2'                , 4, 'w*3+4'),
     test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),

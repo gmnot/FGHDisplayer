@@ -24,12 +24,79 @@ class KnownError(Exception):
 def kraise(*args):
   return KnownError.raise_if(*args)
 
-class Veblen:
-  param: List[Ord]
+def strip_pre_post(pre: str, s: str, post: str) -> str:
+  l1, l2 = len(pre), len(post)
+  assert len(s) >= l1 + l2, f'{s} {pre} {post}'
+  assert s.startswith(pre) and s.endswith(post), f'{s} {pre} {post}'
+  return s[l1:-l2]
 
-  def __init__(self, *args: Ord):
-    assert len(args) > 0
-    self.param = [o for o in args[::-1]]
+class Veblen:
+  param: List[Ord]  # v:       v(1, 0, 0)
+                    # index:   0  1  2
+
+  def __init__(self, *args):
+    assert len(args) >= 2
+    self.param = [Ord.from_any(o) for o in args]
+
+  @staticmethod
+  def from_str(s_ : str) -> Veblen:
+    s = strip_pre_post('v(', s_, ')').strip()
+    ords = map(Ord.from_str, s.split(','))
+    return Veblen(*ords)
+
+  def __eq__(self, other):
+    # todo: consider complex Veblen
+    return isinstance(other, Veblen) and \
+           all(v == o for v, o in zip(self.param, other.param))
+
+  def __add__(self, rhs):
+    return Ord('+', self, rhs)
+
+  def __str__(self):
+    return 'v({})'.format(', '.join(map(str, self.param)))
+
+  def to_latex(self):
+    return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
+
+  def arity(self):
+    return len(self.param)
+
+  def is_binary(self):
+    return self.arity() == 2
+
+  def index(self, n : int) -> Ord:
+    assert self.is_binary(), f'WIP {self}'
+    ax = self.param[0]   # first non-zero term except last term. a or a+1
+    gx = self.param[-1]  # last term, g or g+1
+
+    if gx == Ord(0) and n == 0:  # R4: v(a, 0)[0] = 0
+      return Ord(0)
+    if ax == Ord(0):  # R2: v(0, g) = w^g
+      return Ord('^', Ord('w'), gx)
+    if gx.is_limit_ordinal():  # R3, g is LO
+      # todo 1: record expand, pass in rec
+      return Ord(Veblen(ax, gx.fundamental_sequence_at(n)))
+    if ax.is_limit_ordinal():  # R8-9 v(a, .)
+      # todo 1: reduce time of rotate, only when init and change
+      if gx == Ord(0):  # R8 v(a, 0)
+        # todo 1: record
+        return Ord(Veblen(ax.fundamental_sequence_at(n), 0))
+      else:  # R9 v(a, g+1)
+        return Ord(Veblen(ax.fundamental_sequence_at(n), Veblen(ax, gx.dec()) + 1))
+    else:  # R5-7 v(a+1, .)
+      a = ax.dec()
+      if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
+        # todo 1: record
+        return Ord(Veblen(a, Veblen(ax, Ord(0)).index(n-1)))
+      else:
+        if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
+          # e.g. e1[0] = e0 + 1
+          return Veblen(ax, gx.dec()) + 1
+        else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
+          # e.g. e2 = {e1+1, w^(...), w^w^(...), }
+          return Ord(Veblen(a, self.index(n-1)))
+
+
 
 # number, w, e, operators, Veblen
 class Token:
@@ -54,18 +121,25 @@ class Token:
       case int() | Veblen():
         self.v = v
       case str():
+        assert len(v) > 0
         if v.isdigit():
           self.v = int(v)
+        elif v[0] == 'v':
+          self.v = Veblen.from_str(v)
         else:
           self.v = v
       case _:
         assert 0, v
 
-  def __eq__(self, other):
+  def __eq__(self, other_):
+    other = other_ if isinstance(other_, Token) else Token(other_)
     return type(self.v) == type(other.v) and self.v == other.v
 
   def __str__(self):
     return str(self.v)
+
+  def __repr__(self):
+    return self.__str__()
 
   def is_natural(self):
     return isinstance(self.v, int)
@@ -77,7 +151,9 @@ class Token:
   def to_latex(self):
     if self.is_natural():
       return str(self.v)
-    if self.v in Token.latex_maps.keys():
+    if isinstance(self.v, Veblen):
+      return self.v.to_latex()
+    elif self.v in Token.latex_maps.keys():
       return Token.latex_maps[self.v]
     assert 0, self
 
@@ -145,8 +221,8 @@ class Ord:
 
   def __init__(self, token, left=None, right=None):
     self.token = Token(token)
-    self.left  = left
-    self.right = right
+    self.left  = Ord.from_any(left)
+    self.right = Ord.from_any(right)
 
   def rotate(self) -> None:
     if self.is_atomic():
@@ -172,6 +248,8 @@ class Ord:
     return ord
 
   def __eq__(self, other):
+    if isinstance(other, int):
+      return self.token.v == other
     self.rotate()
     other.rotate()
     return self.token == other.token and \
@@ -213,8 +291,9 @@ class Ord:
         return 3
       return 0
 
-    def is_operand(tok):
-      return tok.isdigit() or tok in Token.ord_maps
+    def is_operand(tok : str):
+      return tok.isdigit() or tok in Token.ord_maps or \
+             len(tok) > 3 and tok.startswith('v(')
 
     def to_postfix(tokens):
       """
@@ -262,7 +341,7 @@ class Ord:
       return stack[0]
 
     try:
-      tokens = re.findall(r'\d+|[+*^()]|' + '|'.join(Token.ord_maps), expression)
+      tokens = re.findall(r'\d+|[+*^()]|v\(.*?\)|' + '|'.join(Token.ord_maps), expression)
       # Convert infix to postfix (RPN)
       postfix = to_postfix(tokens)
       return build_tree(postfix)
@@ -272,6 +351,19 @@ class Ord:
       raise KnownError(f"Can't read ordinal from {expression}: " +
                        str(e) if debug_mode else
                        f"If you believe your input is valid, {contact_request}.")
+
+  @staticmethod
+  def from_any(expression) -> Ord | None:
+    if isinstance(expression, Ord):
+      return expression
+    elif isinstance(expression, str):
+      return Ord.from_str(expression)
+    elif isinstance(expression, int):
+      return Ord.from_str(str(expression))
+    elif expression is None:
+      return None
+    else:
+      assert 0, expression
 
   def to_latex(self):
     if self.is_atomic():
@@ -352,10 +444,12 @@ class Ord:
           return ord
         match ord.token.v:
           case 'w':
-            return Ord(str(n))
+            return Ord(n)
           case 'e':
             return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n,
                         update(record), rec_pre)
+          case Veblen():
+            return impl(ord.token.v.index(n), n, update(record), rec_pre)
           case _:
             assert 0, f'{ord} @ {n}'
 
@@ -420,14 +514,7 @@ class FGH:
   exp: int
 
   def __init__(self, ord, x, exp=1):
-    if isinstance(ord, Ord):
-      self.ord = ord
-    elif isinstance(ord, str):
-      self.ord = Ord.from_str(ord)
-    elif isinstance(ord, int):
-      self.ord = Ord.from_str(str(ord))
-    else:
-      assert 0, ord
+    self.ord = Ord.from_any(ord)
     self.x   = x
     self.exp = exp
 
