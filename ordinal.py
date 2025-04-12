@@ -102,6 +102,17 @@ class Record:
   def no_mid_steps(self):
     return self.rec_limit == 2
 
+  def record(self, entry, res=False):
+    if res:  # force for result
+        self.data.append(entry)
+    elif self.full:
+      self.n_discard += 1
+    else:
+      self.data.append(entry)
+      assert len(self.data) <= self.rec_limit
+      if len(self.data) == self.rec_limit - 1:  # save 1 for result
+        self.full = True
+
   def to_latex(self, entry_to_latex):
     ret = r' \begin{align*}' + '\n'
     ret += entry_to_latex(self.data[0])
@@ -283,21 +294,6 @@ class Ord:
   class FSRecord(Record):
     data      : List[Ord]
 
-    def record(self, rec_pre, ord, res=False):
-      if res:  # force for result
-          self.data.append(ord)
-      elif self.full:
-        self.n_discard += 1
-      else:
-        if rec_pre is None:
-          self.data.append(ord)
-        else:
-          assert rec_pre.is_valid()
-          self.data.append(Ord('+', rec_pre, ord))
-        assert len(self.data) <= self.rec_limit
-        if len(self.data) == self.rec_limit - 1:  # save 1 for result
-          self.full = True
-
   def fundamental_sequence_at(self, n, rec : FSRecord | None = None) -> Ord:
     class RecType(Enum):
       FALSE = 0
@@ -309,7 +305,11 @@ class Ord:
 
       if record == RecType.TRUE:
         assert rec is not None
-        rec.record(rec_pre, ord)
+        if rec_pre is None:
+          rec.record(ord)
+        else:
+          assert rec_pre.is_valid()
+          rec.record(Ord('+', rec_pre, ord))
 
       def update(rec):  # SKIP -> TRUE, other->other
         return RecType.TRUE if rec != RecType.FALSE else RecType.FALSE
@@ -359,7 +359,7 @@ class Ord:
 
     res = impl(self, n, RecType.TRUE if rec is not None else RecType.FALSE)
     if rec is not None:
-      rec.record(None, res, res=True)
+      rec.record(res, res=True)
     return res
 
   def fundamental_sequence_display(self, n : int, expected=None, show_steps=False):
