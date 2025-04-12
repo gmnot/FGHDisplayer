@@ -153,7 +153,7 @@ class Ord:
   def rotate(self) -> None:
     if self.is_atomic():
       return
-    if self.token.v == '+' and self.left.token.v == '+':
+    while self.token.v == '+' and self.left.token.v == '+':
       #          +                     +
       #        /   \                 /   \
       #      +      r    ===>      ll      +

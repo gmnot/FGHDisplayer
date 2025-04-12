@@ -61,6 +61,14 @@ def test_f_s(ord1 : str, n : int, ord2=None, test_only=False, show_steps=False):
   else:
     return formula
 
+def test_associative():
+  for s1, s2 in [('(w*2+w)+1', 'w*2+(w+1)'),
+                 ('((w^2+w*2)+w)+1', 'w^2+(w*2+(w+1))'),
+                 ('(((w^w+w^2)+w*2)+w)+1', 'w^w+(w^2+(w*2+(w+1)))'),
+                 ]:
+    ord1, ord2 = Ord.from_str(s1), Ord.from_str(s2)
+    assert ord1 == ord2, f'\n{ord1}\n{ord2}'
+
 if __name__ == '__main__':
   # Example: w * 2 + 3
   expr_tree = Ord('+',
@@ -72,7 +80,7 @@ if __name__ == '__main__':
   f223 = 2**24*24
   f2_256 = 29642774844752946028434172162224104410437116074403984394101141506025761187823616
 
-  assert Ord.from_str('(w*2+w)+1') == Ord.from_str('w*2+(w+1)')  # associative
+  test_associative()
 
   tests = [
     expr_tree.to_latex(),
