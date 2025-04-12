@@ -38,12 +38,30 @@
 
 <body>
   <h2>FGH Displayer</h2>
-  <h3>Input Help:</h3>
+  <form method="POST" action="/">
+    <label for="large_input">Ordinal:</label><br>
+    <textarea id="large_input" name="large_text" rows="5" cols="50"></textarea><br><br>
+
+    <label for="small_input">Index:</label><br>
+    <input type="text" id="small_input" name="small_text"><br><br>
+
+    <button type="submit" name="action" value="fgh">show FGH</button><br><br>
+    <button type="submit" name="action" value="fund_seq">show fundamental sequence</button>
+</form>
+
+  {% if result %}
+    <h3>Results:</h3>
+    <div> {{ result }} </div>
+  {% endif %}
+
+  {% raw %}
+  <br>
+  <h3>Input Shortcut:</h3>
   <table>
     <thead>
       <tr>
-        <th>What you input</th>
-        <th>What it becomes</th>
+        <th>What you input in 'Ordinal'</th>
+        <th>What it represents</th>
       </tr>
     </thead>
     <tbody>
@@ -58,25 +76,9 @@
     </tbody>
   </table>
   <br>
-  <p>Note: invalid and ill-formed input (like $1 +\omega $) is not strictly checked.
-     Correctness not guaranteed in this situation.</p>
+  <p>Note: invalid and ill-formed input (like $1 +\omega $) is <b>not strictly checked</b>.
+    Correctness not guaranteed in this situation.</p>
   <br>
-  <form method="POST" action="/">
-    <label for="large_input">Ordinal:</label><br>
-    <textarea id="large_input" name="large_text" rows="10" cols="50"></textarea><br><br>
-
-    <label for="small_input">Index:</label><br>
-    <input type="text" id="small_input" name="small_text"><br><br>
-
-    <button type="submit" name="action" value="fund_seq">Eval FS</button>
-    <button type="submit" name="action" value="fgh">Eval FGH</button><br><br>
-</form>
-
-  {% if result %}
-    <h3>Results:</h3>
-    <div> {{ result }} </div>
-  {% endif %}
-  {% raw %}
 
   <h2> Examples </h2>
   <h2> $ f_c(n) $ </h2>
@@ -159,6 +161,9 @@
   <p>$$ \varepsilon_{0}\cdot\omega[3]=\varepsilon_{0}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
   <p>$$ \varepsilon_{0}^{\omega}[3]=\varepsilon_{0}^{2}\cdot{(\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2)}+\varepsilon_{0}\cdot{(\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2)}+\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
   
+  <h2> Contact </h2>
+  <p>For any questions and feedbacks, please feel free to reach out to me!</p>
+  <p>Project email: fghdisplayer@gmail.com</p>
   {% endraw %}
 </body>
 </html>

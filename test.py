@@ -101,7 +101,6 @@ if __name__ == '__main__':
     # FGH('1+w', 3).expand_display(show_steps=True),
     FGH('w+1', 3).expand_display(FGH('w', FGH(2, f223), 2)),
     test_f_s('w+2'                , 3, 'w+2'   , test_only=True),
-    # todo: more FGH instead
     test_f_s('w+w'                , 4, 'w+4'  , test_only=True),
     test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
     FGH('w*2+1', 3).expand_display(),
@@ -120,11 +119,10 @@ if __name__ == '__main__':
     test_f_s('w^((w^2)*2+w*2+2)'  , 3, test_only=True),
 
     (OutType.PLAIN, r'<h2> $ \varepsilon_0 $ </h2>'+'\n'),
-    # todo
     test_f_s('e'                  , 3, show_step=True),
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),
     # todo: smarter length ctrl based on terms
-    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=4, show_steps=True),
+    FGH(Ord.from_str('e'), 3).expand_display(limit=4, show_steps=True),
     test_f_s('e*w'                , 3),
     test_f_s('e^w'                , 3),
   ]

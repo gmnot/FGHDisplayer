@@ -8,8 +8,6 @@ from html_utils import contact_request
 
 """
 todo:
-- copy examples
-- f_2^2(3) to save space
 """
 
 debug_mode = False
@@ -490,7 +488,6 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  # todo 1: hint when limit met
   def expand(self, limit=100, recorder : Record | None = None):
     ret : FGH | int = self
     if recorder:
