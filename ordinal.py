@@ -83,6 +83,17 @@ class Token:
       return Token.latex_maps[self.v]
     assert 0, self
 
+class Record:
+  limit     : int
+  data      : List
+  full      : bool
+  n_discard : int
+
+  def __init__(self, limit):
+    self.limit     = limit
+    self.data      = []
+    self.full      = False
+    self.n_discard = 0
 
 # Ordinal
 class Ord:
@@ -250,17 +261,8 @@ class Ord:
     node.simplify()
     return node
 
-  class FSRecord:
-    limit     : int
+  class FSRecord(Record):
     data      : List[Ord]
-    full      : bool
-    n_discard : int
-
-    def __init__(self, limit):
-      self.limit     = limit
-      self.data      = []
-      self.full      = False
-      self.n_discard = 0
 
     def record(self, rec_pre, ord):
       if self.full:
@@ -275,9 +277,7 @@ class Ord:
         if len(self.data) == self.limit:
           self.full = True
 
-  # todo 1: hint when any limits are met
-  def fundamental_sequence_at(self, n, rec=None) \
-    -> Ord:
+  def fundamental_sequence_at(self, n, rec=None) -> Ord:
     class RecType(Enum):
       FALSE = 0
       TRUE  = 1
@@ -429,10 +429,11 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
+  # todo 1: hint when limit met
   def expand(self, limit=100):
     ret = self
     for _ in range(limit):
-      succ, ret = ret.expand_once(limit)
+      succ, ret = ret.expand_once()
       if not succ or not isinstance(ret, FGH):
         return ret
     return ret
