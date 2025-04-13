@@ -132,6 +132,7 @@ if __name__ == '__main__':
     FGH(Ord.from_str('e'), 3).expand_display(limit=4, show_steps=True),
     test_f_s('e*w'                , 3),
     test_f_s('e^w'                , 3),
+    # test_f_s('e^e'                , 3),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')

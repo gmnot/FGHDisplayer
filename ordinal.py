@@ -73,6 +73,10 @@ class Veblen:
     return self.arity() == 2
 
   def index(self, n : int, rec: Recorder) -> Ord:
+    # todo 1: separate cnt for steps discarded before '...'
+    if rec.inc_discard_check_limit():
+      return Ord(self)
+
     assert self.is_binary(), f'WIP {self}'
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
@@ -171,6 +175,7 @@ class Recorder:
   data      : List  # allow extra elem for result
   full      : bool
   n_discard : int
+  n_pre_discard : int  # discarded before reach limit
 
   def __init__(self, rec_limit, cal_limit):
     assert rec_limit >= 2 or rec_limit == 0  # 0 for inactive
@@ -179,12 +184,16 @@ class Recorder:
     self.data      = []
     self.full      = False
     self.n_discard = 0
+    self.n_pre_discard = 0
 
   def active(self):
     return self.rec_limit != 0
 
+  def tot_discard(self):
+    return self.n_discard + self.n_pre_discard
+
   def cal_limit_reached(self):
-    return len(self.data) + self.n_discard >= self.cal_limit
+    return len(self.data) + self.tot_discard() >= self.cal_limit
 
   def no_mid_steps(self):
     return self.rec_limit == 2
@@ -201,6 +210,14 @@ class Recorder:
       assert len(self.data) <= self.rec_limit
       if len(self.data) == self.rec_limit - 1:  # save 1 for result
         self.full = True
+
+  # return True if cal_limit reached
+  def inc_discard_check_limit(self) -> bool:
+    if self.full:
+      self.n_discard += 1
+    else:
+      self.n_pre_discard += 1
+    return self.cal_limit_reached()
 
   def to_latex(self, entry_to_latex):
     ret = r' \begin{align*}' + '\n'
