@@ -10,11 +10,19 @@ from html_utils import contact_request
 todo:
 """
 
+# * globals
 debug_mode = False
+rotate_counter : int = 0
+
 def ord_set_debug_mode(new : bool):
   global debug_mode
   debug_mode = new
 
+def get_rotate_counter() -> int:
+  global rotate_counter
+  return rotate_counter
+
+# * Exceptions
 class KnownError(Exception):
   @staticmethod
   def raise_if(cond, msg):
@@ -64,7 +72,7 @@ class Veblen:
   def is_binary(self):
     return self.arity() == 2
 
-  def index(self, n : int) -> Ord:
+  def index(self, n : int, rec: Recorder) -> Ord:
     assert self.is_binary(), f'WIP {self}'
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
@@ -74,27 +82,27 @@ class Veblen:
     if ax == Ord(0):  # R2: v(0, g) = w^g
       return Ord('^', Ord('w'), gx)
     if gx.is_limit_ordinal():  # R3, g is LO
-      # todo 1: record expand, pass in rec
-      return Ord(Veblen(ax, gx.fundamental_sequence_at(n)))
+      # todo 1: record expansion, pass in rec
+      return Ord(Veblen(ax, gx.fundamental_sequence_at(n, rec)))
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
-      # todo 1: reduce time of rotate, only when init and change
       if gx == Ord(0):  # R8 v(a, 0)
         # todo 1: record
-        return Ord(Veblen(ax.fundamental_sequence_at(n), 0))
+        return Ord(Veblen(ax.fundamental_sequence_at(n, rec), 0))
       else:  # R9 v(a, g+1)
-        return Ord(Veblen(ax.fundamental_sequence_at(n), Veblen(ax, gx.dec()) + 1))
+        return Ord(Veblen(ax.fundamental_sequence_at(n, rec),
+                          Veblen(ax, gx.dec()) + 1))
     else:  # R5-7 v(a+1, .)
       a = ax.dec()
       if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
         # todo 1: record
-        return Ord(Veblen(a, Veblen(ax, Ord(0)).index(n-1)))
+        return Ord(Veblen(a, Veblen(ax, Ord(0)).index(n-1, rec)))
       else:
         if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
           # e.g. e1[0] = e0 + 1
           return Veblen(ax, gx.dec()) + 1
         else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
-          return Ord(Veblen(a, self.index(n-1)))
+          return Ord(Veblen(a, self.index(n-1, rec)))
 
 
 
@@ -157,23 +165,28 @@ class Token:
       return Token.latex_maps[self.v]
     assert 0, self
 
-class Record:
+class Recorder:
   rec_limit : int
   data      : List  # allow extra elem for result
   full      : bool
   n_discard : int
 
   def __init__(self, rec_limit):
-    assert rec_limit >= 2
+    assert rec_limit >= 2 or rec_limit == 0  # 0 for inactive
     self.rec_limit = rec_limit
     self.data      = []
     self.full      = False
     self.n_discard = 0
 
+  def active(self):
+    return self.rec_limit != 0
+
   def no_mid_steps(self):
     return self.rec_limit == 2
 
   def record(self, entry, res=False):
+    if not self.active():
+      return
     if self.full:
       self.n_discard += 1
       if res:  # force replace
@@ -198,7 +211,7 @@ class Record:
 
 def test_display(obj, f_calc, f_display, expected=None,
                  limit=100, test_only=False , show_steps=False):
-  recorder = Record(15) if show_steps else None
+  recorder = Recorder(15 if show_steps else 0)
   res = f_calc(obj, limit, recorder)
 
   if expected is not None:
@@ -214,6 +227,7 @@ def test_display(obj, f_calc, f_display, expected=None,
   return recorder.to_latex(f_display)
 
 # Ordinal
+ord_rotate_at_init = False
 class Ord:
   token: Token  # operator +,*,^ ; natural number str; w,e ; Veblen
   left : Ord
@@ -223,10 +237,16 @@ class Ord:
     self.token = Token(token)
     self.left  = Ord.from_any(left)
     self.right = Ord.from_any(right)
+    if ord_rotate_at_init:
+      self.rotate()
 
   def rotate(self) -> None:
     if self.is_atomic():
       return
+
+    global rotate_counter
+    rotate_counter += 1
+
     while self.token.v == '+' and self.left.token.v == '+':
       #          +                     +
       #        /   \                 /   \
@@ -250,8 +270,9 @@ class Ord:
   def __eq__(self, other):
     if isinstance(other, int):
       return self.token.v == other
-    self.rotate()
-    other.rotate()
+    if not ord_rotate_at_init:
+      self.rotate()
+      other.rotate()
     return self.token == other.token and \
            self.left.__eq__(other.left) and \
            self.right.__eq__(other.right)
@@ -259,10 +280,13 @@ class Ord:
   def to_infix(self):
     if self.is_atomic():
       return str(self.token)
-    return f"({self.left.to_infix()} {self.token} {self.right.to_infix()})"
+    return f"({self.left.to_infix()}{self.token}{self.right.to_infix()})"
 
   def __str__(self):
     return self.to_infix()
+
+  def __repr__(self):
+    return self.__str__()
 
   def is_atomic(self):
     assert (self.left is None) == (self.right is None), self
@@ -353,17 +377,20 @@ class Ord:
                        f"If you believe your input is valid, {contact_request}.")
 
   @staticmethod
-  def from_any(expression) -> Ord | None:
-    if isinstance(expression, Ord):
-      return expression
-    elif isinstance(expression, str):
-      return Ord.from_str(expression)
-    elif isinstance(expression, int):
-      return Ord.from_str(str(expression))
-    elif expression is None:
-      return None
-    else:
-      assert 0, expression
+  def from_any(expression) -> Ord:
+    match expression:
+      case None:
+        return cast(Ord, None)
+      case Ord():
+        return expression
+      case str():
+        return Ord.from_str(expression)
+      case int():
+        return Ord.from_str(str(expression))
+      case Veblen():
+        return Ord(expression)
+      case _:
+        assert 0, expression
 
   def to_latex(self):
     if self.is_atomic():
@@ -419,7 +446,8 @@ class Ord:
     node.simplify()
     return node
 
-  def fundamental_sequence_at(self, n, rec : Record | None = None) -> Ord:
+  def fundamental_sequence_at(self, n, rec : Recorder) \
+    -> Ord:
     class RecType(Enum):
       FALSE = 0
       TRUE  = 1
@@ -429,7 +457,7 @@ class Ord:
       -> Ord:
 
       if record == RecType.TRUE:
-        assert rec is not None
+        assert rec.active()
         if rec_pre is None:
           rec.record(ord)
         else:
@@ -449,7 +477,7 @@ class Ord:
             return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n,
                         update(record), rec_pre)
           case Veblen():
-            return impl(ord.token.v.index(n), n, update(record), rec_pre)
+            return impl(ord.token.v.index(n, rec), n, update(record), rec_pre)
           case _:
             assert 0, f'{ord} @ {n}'
 
@@ -460,8 +488,9 @@ class Ord:
                      node.left,
                      impl(node.right, n))
         else:
-          assert node.right != Ord('0'), ord
-          if node.right == Ord('1'):
+          if node.right == 0:
+            return Ord(1)
+          if node.right == 1:
             return node.left
           return Ord('+' if node.token.v == '*' else '*',
                       Ord.simplified(Ord(node.token, node.left, node.right.dec())),
@@ -484,9 +513,8 @@ class Ord:
         case _:
           assert 0, ord
 
-    res = impl(self, n, RecType.TRUE if rec is not None else RecType.FALSE)
-    if rec is not None:
-      rec.record(res, res=True)
+    res = impl(self, n, RecType.TRUE if rec.active() else RecType.FALSE)
+    rec.record(res, res=True)
     return res
 
   def fundamental_sequence_display(self,
@@ -548,7 +576,7 @@ class FGH:
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
-      return True, FGH(self.ord.fundamental_sequence_at(self.x), self.x)
+      return True, FGH(self.ord.fundamental_sequence_at(self.x, Recorder(0)), self.x)
     elif self.ord == Ord('0'):
       return True, self.x + self.exp
     elif self.ord == Ord('1'):
@@ -575,14 +603,14 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  def expand(self, limit=100, recorder : Record | None = None):
+  def expand(self, recorder : Recorder, limit=100):
     ret : FGH | int = self
-    if recorder:
-      recorder.record(ret)
+
+    recorder.record(ret)
 
     for _ in range(limit):
       succ, ret = cast(FGH, ret).expand_once()
-      if succ and recorder:
+      if succ:
         recorder.record(ret, res=True)
       if not succ or not isinstance(ret, FGH):
         return ret
@@ -596,8 +624,8 @@ class FGH:
         return fgh.to_latex()
       return str(fgh)
 
-    def calc(fgh, limit, recorder):
-      return fgh.expand(limit, recorder)
+    def calc(fgh : FGH, limit, recorder):
+      return fgh.expand(recorder, limit)
 
     return test_display(self, calc, fgh_to_latex, expected,
                         limit, test_only, show_steps)

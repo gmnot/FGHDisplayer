@@ -1,5 +1,5 @@
 from enum import Enum
-from ordinal import Ord, FGH
+from ordinal import Ord, FGH, get_rotate_counter
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -50,10 +50,10 @@ def latex_to_html(latex_str_list, path):
     file.write('\n')
     file.write(latex_html_ends)
 
-def test_f_s(ord1 : str, n : int, ord2=None, test_only=False, show_step=False):
-  formula = Ord.from_str(ord1).fundamental_sequence_display(
+def test_f_s(ord1 : str | int, n : int, ord2=None, test_only=False, show_step=False):
+  formula = Ord.from_any(ord1).fundamental_sequence_display(
             n,
-            expected=Ord.from_str(ord2) if ord2 is not None else None,
+            expected=Ord.from_any(ord2) if ord2 is not None else None,
             test_only=test_only,
             show_steps=show_step)
   if show_step:
@@ -66,7 +66,7 @@ def test_associative():
                  ('((w^2+w*2)+w)+1', 'w^2+(w*2+(w+1))'),
                  ('(((w^w+w^2)+w*2)+w)+1', 'w^w+(w^2+(w*2+(w+1)))'),
                  ]:
-    ord1, ord2 = Ord.from_str(s1), Ord.from_str(s2)
+    ord1, ord2 = Ord.from_any(s1), Ord.from_any(s2)
     assert ord1 == ord2, f'\n{ord1}\n{ord2}'
 
 if __name__ == '__main__':
@@ -93,19 +93,19 @@ if __name__ == '__main__':
     FGH(3, 3  ).expand_display(FGH(2, f223)),
 
     (OutType.PLAIN, r'<h2> $ \omega^\alpha $ </h2>'+'\n'),
-    test_f_s('1'  , 3, '1', test_only=True),
-    test_f_s('w'  , 3, '3', test_only=True),
-    test_f_s('w*1', 3, '3', test_only=True),
-    test_f_s('w^1', 4, '4', test_only=True),
+    test_f_s( 1   , 3, 1, test_only=True),
+    test_f_s('w'  , 3, 3, test_only=True),
+    test_f_s('w*1', 3, 3, test_only=True),
+    test_f_s('w^1', 4, 4, test_only=True),
     FGH('w'  , 3).expand_display(FGH(2, f223)),
     # FGH('1+w', 3).expand_display(show_steps=True),
     FGH('w+1', 3).expand_display(FGH('w', FGH(2, f223), 2)),
-    test_f_s('w+2'                , 3, 'w+2'   , test_only=True),
+    test_f_s('w+2'                , 3, 'w+2'  , test_only=True),
     test_f_s('w+w'                , 4, 'w+4'  , test_only=True),
     test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
     FGH('w*2+1', 3).expand_display(),
     test_f_s('w*w'                , 4, 'w*3+4', test_only=True),
-    test_f_s('v(0,2)'             , 3, 'w*2+3', show_step=True),
+    test_f_s('v(0,2)'             , 3, 'w*2+3', show_step=True),  # R2
     test_f_s('w^2'                , 3, 'w*2+3', test_only=True),
     test_f_s('w^2'                , 4, 'w*3+4'),
     test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),
@@ -120,6 +120,12 @@ if __name__ == '__main__':
     test_f_s('w^((w^2)*2+w*2+2)'  , 3, test_only=True),
 
     (OutType.PLAIN, r'<h2> $ \varepsilon_0 $ </h2>'+'\n'),
+    test_f_s('v(0,0)'             , 0, 0, test_only=True),  # R2
+    test_f_s('v(1,0)'             , 0, 0),                  # R2
+    test_f_s('v(2,0)'             , 0, 0, test_only=True),  # R2
+    test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R2
+    # todo 1: more tests
+    test_f_s('v(1,0)'             , 3, show_step=True),     # R8
     test_f_s('e'                  , 3, show_step=True),
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),
     # todo: smarter length ctrl based on terms
@@ -129,3 +135,4 @@ if __name__ == '__main__':
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
+  print(f' rotated {get_rotate_counter()} times\n')
