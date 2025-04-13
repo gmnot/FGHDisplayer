@@ -43,17 +43,19 @@ def strip_pre_post(pre: str, s: str, post: str) -> str:
 
 class Veblen:
   param: List[Ord]  # v:       v(1, 0, 0)
-                    # index:   0  1  2
+                    # index:     0  1  2
+  latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
 
-  def __init__(self, *args):
+  def __init__(self, *args, latex_force_veblen=False):
     assert len(args) >= 2
     self.param = [Ord.from_any(o) for o in args]
+    self.latex_force_veblen = latex_force_veblen
 
   @staticmethod
-  def from_str(s_ : str) -> Veblen:
+  def from_str(s_ : str, *, latex_force_veblen=False) -> Veblen:
     s = strip_pre_post('v(', s_, ')').strip()
-    ords = map(Ord.from_str, s.split(','))
-    return Veblen(*ords)
+    ords = (Ord.from_str(s, latex_force_veblen=latex_force_veblen) for s in s.split(','))
+    return Veblen(*ords, latex_force_veblen=latex_force_veblen)
 
   def __eq__(self, other):
     # todo: consider complex Veblen
@@ -67,6 +69,15 @@ class Veblen:
     return 'v({})'.format(', '.join(map(str, self.param)))
 
   def to_latex(self):
+    if self.is_binary() and not self.latex_force_veblen:
+      a = self.param[0].token.v
+      if isinstance(a, int) and 0 <= a <= 3:
+        ax = [r'\omega', r'\varepsilon', r'\xi', r'\eta'][a]
+        gx = self.param[1].to_latex()
+        if a == 0:
+          return f'{ax}^{{{gx}}}'
+        return f'{ax}_{{{gx}}}'
+
     return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
 
   def arity(self):
@@ -129,7 +140,7 @@ class Token:
     '^': '^',
   }
 
-  def __init__(self, v):
+  def __init__(self, v, *, latex_force_veblen=False):
     match v:
       case Token():
         self.v = v.v
@@ -140,7 +151,7 @@ class Token:
         if v.isdigit():
           self.v = int(v)
         elif v[0] == 'v':
-          self.v = Veblen.from_str(v)
+          self.v = Veblen.from_str(v, latex_force_veblen=latex_force_veblen)
         else:
           self.v = v
       case _:
@@ -239,6 +250,7 @@ class Recorder:
   def skip_next(self):
     self.will_skip_next = True
 
+  # todo 1: one line mode; based on number of terms
   def to_latex(self, entry_to_latex):
     ret = r' \begin{align*}' + '\n'
     ret += entry_to_latex(self.data[0])
@@ -316,10 +328,10 @@ class Node:
   left : Ord
   right: Ord
 
-  def __init__(self, token, left=None, right=None):
-    self.token = Token(token)
-    self.left  = Ord.from_any(left)
-    self.right = Ord.from_any(right)
+  def __init__(self, token, left=None, right=None, *, latex_force_veblen=False):
+    self.token = Token(token, latex_force_veblen=latex_force_veblen)
+    self.left  = Ord.from_any(left, latex_force_veblen=latex_force_veblen)
+    self.right = Ord.from_any(right, latex_force_veblen=latex_force_veblen)
 
   def n_child(self):
     return (self.left is not None) + (self.right is not None)
@@ -335,8 +347,8 @@ class Node:
 class Ord(Node):
 
   rotate_at_init = False
-  def __init__(self, token, left=None, right=None):
-    super().__init__(token, left, right)
+  def __init__(self, token, left=None, right=None, *, latex_force_veblen=False):
+    super().__init__(token, left, right, latex_force_veblen=latex_force_veblen)
     if Ord.rotate_at_init:
       self.rotate()
 
@@ -433,7 +445,7 @@ class Ord(Node):
     return None
 
   @staticmethod
-  def from_str(expression: str):
+  def from_str(expression: str, *, latex_force_veblen=False):
     """
     Read an infix expression and construct the corresponding binary tree.
     """
@@ -483,7 +495,7 @@ class Ord(Node):
       stack = []
       for tok in postfix:
         if is_operand(tok):
-          stack.append(Ord(tok))
+          stack.append(Ord(tok, latex_force_veblen=latex_force_veblen))
         else:  # Operator
           right = stack.pop()
           left = stack.pop()
@@ -502,6 +514,8 @@ class Ord(Node):
       # Convert infix to postfix (RPN)
       postfix = to_postfix(tokens)
       return build_tree(postfix)
+    except RecursionError as e:
+      raise e
     except KnownError as e:
       raise e
     except Exception as e:
@@ -510,18 +524,18 @@ class Ord(Node):
                        f"If you believe your input is valid, {contact_request}.")
 
   @staticmethod
-  def from_any(expression) -> Ord:
+  def from_any(expression, *, latex_force_veblen=False) -> Ord:
     match expression:
       case None:
         return cast(Ord, None)
       case Ord():
         return expression
       case str():
-        return Ord.from_str(expression)
+        return Ord.from_str(expression, latex_force_veblen=latex_force_veblen)
       case int():
         return Ord.from_str(str(expression))
       case Veblen() | FdmtSeq():
-        return Ord(expression)
+        return Ord(expression, latex_force_veblen=latex_force_veblen)
       case _:
         assert 0, expression
 
@@ -588,8 +602,8 @@ class FdmtSeq:
   ord: Ord
   n  : int
 
-  def __init__(self, ord, n: int):
-    self.ord = Ord.from_any(ord)
+  def __init__(self, ord, n: int, *, latex_force_veblen=False):
+    self.ord = Ord.from_any(ord, latex_force_veblen=latex_force_veblen)
     self.n   = n
 
   def __eq__(self, other):
@@ -688,8 +702,8 @@ class FGH:
   x: int | FGH
   exp: int
 
-  def __init__(self, ord, x, exp=1):
-    self.ord = Ord.from_any(ord)
+  def __init__(self, ord, x, exp=1, *, latex_force_veblen=False):
+    self.ord = Ord.from_any(ord, latex_force_veblen=latex_force_veblen)
     self.x   = x
     self.exp = exp
 
@@ -764,7 +778,8 @@ class FGH:
         return ret
     return ret
 
-  def expand_display(self, expected=None, *, limit=100,
+  expand_limit_default = 100
+  def expand_display(self, expected=None, *, limit=expand_limit_default,
     test_only=False, show_steps=False, print_str=False):
 
     def fgh_to_latex(fgh : FGH | int):
