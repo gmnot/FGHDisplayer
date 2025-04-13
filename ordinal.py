@@ -80,10 +80,10 @@ class Veblen:
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
 
-    if gx == Ord(0) and n == 0:  # R4: v(a, 0)[0] = 0
+    if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
       return Ord(0)
-    if ax == Ord(0):  # R2: v(0, g) = w^g
-      return Ord('^', Ord('w'), gx)
+    if ax == 0:  # R2: v(0, gx) = w^gx, no matter what gx is
+      return Ord('^', 'w', gx)
     if gx.is_limit_ordinal():  # R3, g is LO
       # todo 1: record expansion, pass in rec
       return Ord(Veblen(ax, gx.fs_at(n, rec)))
@@ -286,8 +286,8 @@ class FSRecorder(Recorder):
     def __exit__(self, exc_type, exc_val, exc_tb):
       self.recorder.pre = self.original_pre
 
-def test_display(obj, f_calc, f_display, expected=None,
-                 limit=100, test_only=False , show_steps=False):
+def test_display(obj, f_calc, f_display, expected=None, *,
+                 limit=100, test_only=False , show_steps=False, print_str=False):
   recorder = FSRecorder((15 if show_steps else 0), limit)
   res = f_calc(obj, recorder)
 
@@ -299,6 +299,9 @@ def test_display(obj, f_calc, f_display, expected=None,
 
   if not show_steps:
     return f'{f_display(obj)}={f_display(res)}'
+
+  if print_str:
+    print(res)
 
   assert recorder is not None
   return recorder.to_latex(f_display)
@@ -662,7 +665,8 @@ class FdmtSeq:
     recorder.record(FdmtSeq(res, self.n), res=True)
     return res
 
-  def calc_display(self, expected=None, test_only=False, show_steps=False):
+  def calc_display(self, expected=None, *,
+                   test_only=False, show_steps=False, print_str=False):
 
     def display(obj: Ord):
       return obj.to_latex()
@@ -671,7 +675,8 @@ class FdmtSeq:
       return FdmtSeq(fs.calc(recorder), self.n)
 
     return test_display(self, calc, display, expected,
-                        Ord.fs_cal_limit_default, test_only, show_steps)
+                        limit=Ord.fs_cal_limit_default, test_only=test_only,
+                        show_steps=show_steps, print_str=print_str)
 
 
 class FGH:
@@ -755,8 +760,8 @@ class FGH:
         return ret
     return ret
 
-  def expand_display(self, expected=None, limit=100,
-    test_only=False, show_steps=False):
+  def expand_display(self, expected=None, *, limit=100,
+    test_only=False, show_steps=False, print_str=False):
 
     def fgh_to_latex(fgh : FGH | int):
       if isinstance(fgh, FGH):
@@ -767,4 +772,5 @@ class FGH:
       return fgh.expand(recorder)
 
     return test_display(self, calc, fgh_to_latex, expected,
-                        limit, test_only, show_steps)
+                        limit=limit, test_only=test_only,
+                        show_steps=show_steps, print_str=print_str)

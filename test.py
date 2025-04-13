@@ -50,11 +50,13 @@ def latex_to_html(latex_str_list, path):
     file.write('\n')
     file.write(latex_html_ends)
 
-def test_f_s(ord1 : str | int, n : int, ord2=None, test_only=False, show_step=False):
+def test_f_s(ord1 : str | int, n : int, ord2=None, *,
+             test_only=False, show_step=False, print_str=False):
   formula = FdmtSeq(ord1, n).calc_display(
               expected=FdmtSeq(ord2, n) if ord2 is not None else None,
               test_only=test_only,
-              show_steps=show_step)
+              show_steps=show_step,
+              print_str=print_str)
   if show_step:
     return (OutType.DIV, formula)
   else:
@@ -112,10 +114,15 @@ if __name__ == '__main__':
     FGH('w^2+w+1', 3).expand_display(),
     test_f_s('w^3'                , 4, 'w^2*3+w*3+4'),
     test_f_s('w^w'                , 3, 'w^2*2+w*2+3'),
+    test_f_s('v(0,w)'             , 3, 'w^2*2+w*2+3', test_only=True),
     FGH('w^w'  , 3).expand_once_display(FGH('w^2*2+w*2+3', 3), test_only=True),
     FGH('w^w'  , 3).expand_display(test_only=True),
+    test_f_s('w^(w+1)'            , 3, 'w^w*2 + w^2*2 + w*2 + 3', test_only=True),
+    test_f_s('v(0,w+1)'           , 3, 'w^w*2 + w^2*2 + w*2 + 3', show_step=True),
     FGH('w^w+1', 3).expand_display(),
-    test_f_s('w^(w+1)'            , 3, 'w^w*2 + w^2*2 + w*2 + 3', show_step=True),
+    test_f_s('v(0,w*2)'           , 3,
+             '(((w^(w+2))*2)+(((w^(w+1))*2)+(((w^w)*2)+(((w^2)*2)+((w*2)+3)))))',
+                                       print_str=True),
     test_f_s('w^((w^2)*2+w*2+2)'  , 3, test_only=True),
 
     (OutType.PLAIN, r'<h2> $ \varepsilon_0 $ </h2>'+'\n'),
