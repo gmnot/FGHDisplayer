@@ -1,5 +1,5 @@
 from __future__ import annotations
-from copy import deepcopy
+from copy import copy, deepcopy
 from enum import Enum
 from typing import List, Dict, Tuple, cast
 import re
@@ -311,6 +311,13 @@ class Node:
   def n_child(self):
     return (self.left is not None) + (self.right is not None)
 
+  # give left or right subtree and a copy of remain to func
+  def recurse_node(self, attr, func):
+    sub_node = getattr(self, attr)
+    remain   = copy(self)
+    setattr(remain, attr, None)
+    return func(sub_node, remain)
+
 # Ordinal
 class Ord(Node):
 
@@ -382,7 +389,7 @@ class Ord(Node):
   def is_natural(self):
     return self.token.is_natural()
 
-  def combine(self, other: Ord):
+  def combine_with(self, other: Ord):
     if self.left is None:
       assert self.right is not None
       self.left = other
@@ -390,10 +397,11 @@ class Ord(Node):
     self.right = other
 
   # search and combine <other> to missing node of self/subtree.
+  # child_only: no recurse, fail if n_child != 1
   # return: None means failed, all full
   # note: must copy from the top. self can be changed later,
   #       like adding more half node. Returned Ord need to stay the same
-  def make_combined(self, other: Ord) -> Ord | None:
+  def make_combined(self, other: Ord, child_only=False) -> Ord | None:
     if self.n_child() == 0:
       return None
     if self.left is None:
@@ -401,6 +409,8 @@ class Ord(Node):
       return Ord(self.token, other, self.right)
     if self.right is None:
       return Ord(self.token, self.left,  other)
+    if child_only:
+      return None
     l = self.left.make_combined(other)
     if l is not None:
       return Ord(self.token, l, self.right)
@@ -634,8 +644,13 @@ class FdmtSeq:
       match ord.token.v:
         case '+':
           recorder.skip_next()
-          with recorder.PreCombineContext(recorder, Ord('+', ord.left, None)):
-            return Ord(ord.token, ord.left, impl(ord.right, n))
+
+          def record_impl(sub_node: Ord, remain: Ord):
+            with recorder.PreCombineContext(recorder, remain):
+              return remain.make_combined(impl(sub_node, n), child_only=True)
+
+          return ord.recurse_node("right", record_impl)
+
         case '*':
           return impl(transform(ord), n)
         case '^':
@@ -648,8 +663,6 @@ class FdmtSeq:
     return res
 
   def calc_display(self, expected=None, test_only=False, show_steps=False):
-
-    first = True
 
     def display(obj: Ord):
       return obj.to_latex()
