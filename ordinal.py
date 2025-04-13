@@ -87,13 +87,13 @@ class Veblen:
       return Ord('^', Ord('w'), gx)
     if gx.is_limit_ordinal():  # R3, g is LO
       # todo 1: record expansion, pass in rec
-      return Ord(Veblen(ax, gx.fundamental_sequence_at(n, rec)))
+      return Ord(Veblen(ax, gx.fs_at(n, rec)))
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
       if gx == Ord(0):  # R8 v(a, 0)
         # todo 1: record
-        return Ord(Veblen(ax.fundamental_sequence_at(n, rec), 0))
+        return Ord(Veblen(ax.fs_at(n, rec), 0))
       else:  # R9 v(a, g+1)
-        return Ord(Veblen(ax.fundamental_sequence_at(n, rec),
+        return Ord(Veblen(ax.fs_at(n, rec),
                           Veblen(ax, gx.dec()) + 1))
     else:  # R5-7 v(a+1, .)
       a = ax.dec()
@@ -477,8 +477,36 @@ class Ord:
     return node
 
   fs_cal_limit_default = 500
-  def fundamental_sequence_at(self, n, recorder : Recorder) \
-    -> Ord:
+  def fs_at(self, n, recorder : Recorder) -> Ord:
+    return FdmtSeq(self, n).calc(recorder)
+
+# Fundamental Sequence
+class FdmtSeq:
+  ord: Ord
+  n  : int
+
+  def __init__(self, ord, n: int):
+    self.ord = Ord.from_any(ord)
+    self.n   = n
+
+  def __eq__(self, other):
+    return self.ord == other.ord and self.n == other.n
+
+  def __str__(self):
+    return f'{self.ord}[{self.n}]'
+
+  def __repr__(self):
+    return self.__str__()
+
+  def to_latex(self, always_show_idx=False):
+    ret = f'{self.ord.to_latex()}'
+    if always_show_idx or self.ord.is_limit_ordinal():
+      ret += f'[{self.n}]'
+    return ret
+
+  cal_limit_default = 500
+  # todo: return FdmtSeq if not end
+  def calc(self, recorder : Recorder) -> Ord:
 
     def impl(ord : Ord, n, rec_pre=None) \
       -> Ord:
@@ -543,28 +571,30 @@ class Ord:
         case _:
           assert 0, ord
 
-    res = impl(self, n)
+    res = impl(self.ord, self.n)
     recorder.record(res, res=True)
     return res
 
-  def fundamental_sequence_display(self,
-    n : int, expected=None, test_only=False, show_steps=False):
+  def calc_display(self, expected=None, test_only=False, show_steps=False):
 
     first = True
 
-    def ord_to_fs(ord : Ord):
+    def display(obj : FdmtSeq | Ord):
+      if isinstance(obj, Ord):
+        # todo 1: for w^(w[3])
+        obj = FdmtSeq(obj, self.n)
+      #   return obj.to_latex()
       nonlocal first
-      ret = f'{ord.to_latex()}'
-      if first or ord.is_limit_ordinal():
-        ret += f'[{n}]'
-        first = False
+      ret = obj.to_latex(always_show_idx=first)
+      first = False
       return ret
 
-    def calc(ord: Ord, recorder):
-      return ord.fundamental_sequence_at(n, recorder)
+    def calc(fs: FdmtSeq, recorder):
+      return FdmtSeq(fs.calc(recorder), self.n)
 
-    return test_display(self, calc, ord_to_fs, expected,
+    return test_display(self, calc, display, expected,
                         Ord.fs_cal_limit_default, test_only, show_steps)
+
 
 class FGH:
   ord: Ord
@@ -606,7 +636,7 @@ class FGH:
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
-      return True, FGH(self.ord.fundamental_sequence_at(
+      return True, FGH(self.ord.fs_at(
         self.x, Recorder(0, Ord.fs_cal_limit_default)), self.x)
     elif self.ord == Ord('0'):
       return True, self.x + self.exp

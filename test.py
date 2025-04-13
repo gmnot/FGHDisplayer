@@ -1,5 +1,5 @@
 from enum import Enum
-from ordinal import Ord, FGH, get_rotate_counter
+from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -51,11 +51,10 @@ def latex_to_html(latex_str_list, path):
     file.write(latex_html_ends)
 
 def test_f_s(ord1 : str | int, n : int, ord2=None, test_only=False, show_step=False):
-  formula = Ord.from_any(ord1).fundamental_sequence_display(
-            n,
-            expected=Ord.from_any(ord2) if ord2 is not None else None,
-            test_only=test_only,
-            show_steps=show_step)
+  formula = FdmtSeq(ord1, n).calc_display(
+              expected=FdmtSeq(ord2, n) if ord2 is not None else None,
+              test_only=test_only,
+              show_steps=show_step)
   if show_step:
     return (OutType.DIV, formula)
   else:
