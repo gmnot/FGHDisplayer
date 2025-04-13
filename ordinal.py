@@ -202,11 +202,15 @@ class Recorder:
   def no_mid_steps(self):
     return self.rec_limit == 2
 
-  def record(self, entry, res=False):
+  # return: True if cal_limit_reached
+  def record(self, entry, res=False) -> bool:
     try:
       if not self.active():
-        return
-      if self.full:
+        return False
+
+      if self.will_skip_next:
+        pass
+      elif self.full:
         self.n_discard += 1
         if res:  # force replace
           self.data[-1] = entry
@@ -215,6 +219,8 @@ class Recorder:
         assert len(self.data) <= self.rec_limit
         if len(self.data) == self.rec_limit - 1:  # save 1 for result
           self.full = True
+
+      return self.inc_discard_check_limit()
     finally:
       self.will_skip_next = False
 
