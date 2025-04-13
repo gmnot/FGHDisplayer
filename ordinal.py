@@ -632,6 +632,8 @@ class FdmtSeq:
       def transform(node: Ord) -> Ord:
         # (w^a)[3] = w^(a[3])
         if node.right.is_limit_ordinal():
+          if node.token == '*':  # (w*w)[3] = w*(w[3]) looks the same
+            recorder.skip_next()
           return ord.recurse_node("right", record_impl)
 
         else:
