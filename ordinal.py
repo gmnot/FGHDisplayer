@@ -167,19 +167,24 @@ class Token:
 
 class Recorder:
   rec_limit : int
+  cal_limit : int
   data      : List  # allow extra elem for result
   full      : bool
   n_discard : int
 
-  def __init__(self, rec_limit):
+  def __init__(self, rec_limit, cal_limit):
     assert rec_limit >= 2 or rec_limit == 0  # 0 for inactive
     self.rec_limit = rec_limit
+    self.cal_limit = cal_limit
     self.data      = []
     self.full      = False
     self.n_discard = 0
 
   def active(self):
     return self.rec_limit != 0
+
+  def cal_limit_reached(self):
+    return len(self.data) + self.n_discard >= self.cal_limit
 
   def no_mid_steps(self):
     return self.rec_limit == 2
@@ -211,8 +216,8 @@ class Recorder:
 
 def test_display(obj, f_calc, f_display, expected=None,
                  limit=100, test_only=False , show_steps=False):
-  recorder = Recorder(15 if show_steps else 0)
-  res = f_calc(obj, limit, recorder)
+  recorder = Recorder((15 if show_steps else 0), limit)
+  res = f_calc(obj, recorder)
 
   if expected is not None:
     assert res == expected, f'{res} != {expected}'
@@ -446,6 +451,7 @@ class Ord:
     node.simplify()
     return node
 
+  fs_cal_limit_default = 200
   def fundamental_sequence_at(self, n, rec : Recorder) \
     -> Ord:
     class RecType(Enum):
@@ -453,9 +459,9 @@ class Ord:
       TRUE  = 1
       SKIP  = 2  # skip just one, and true for following
 
+    # todo: merge record to Recorder
     def impl(ord : Ord, n, record : RecType = RecType.FALSE, rec_pre=None) \
       -> Ord:
-
       if record == RecType.TRUE:
         assert rec.active()
         if rec_pre is None:
@@ -463,6 +469,9 @@ class Ord:
         else:
           assert rec_pre.is_valid()
           rec.record(Ord('+', rec_pre, ord))
+
+      if rec.cal_limit_reached():
+        return ord
 
       def update(rec):  # SKIP -> TRUE, other->other
         return RecType.TRUE if rec != RecType.FALSE else RecType.FALSE
@@ -530,11 +539,11 @@ class Ord:
         first = False
       return ret
 
-    def calc(ord, limit, recorder):
+    def calc(ord: Ord, recorder):
       return ord.fundamental_sequence_at(n, recorder)
 
     return test_display(self, calc, ord_to_fs, expected,
-                        None, test_only, show_steps)
+                        Ord.fs_cal_limit_default, test_only, show_steps)
 
 class FGH:
   ord: Ord
@@ -576,7 +585,8 @@ class FGH:
       succ, x2 = self.x.expand_once()
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
-      return True, FGH(self.ord.fundamental_sequence_at(self.x, Recorder(0)), self.x)
+      return True, FGH(self.ord.fundamental_sequence_at(
+        self.x, Recorder(0, Ord.fs_cal_limit_default)), self.x)
     elif self.ord == Ord('0'):
       return True, self.x + self.exp
     elif self.ord == Ord('1'):
@@ -603,12 +613,12 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  def expand(self, recorder : Recorder, limit=100):
+  def expand(self, recorder : Recorder):
     ret : FGH | int = self
 
     recorder.record(ret)
 
-    for _ in range(limit):
+    for _ in range(recorder.cal_limit):
       succ, ret = cast(FGH, ret).expand_once()
       if succ:
         recorder.record(ret, res=True)
@@ -624,8 +634,8 @@ class FGH:
         return fgh.to_latex()
       return str(fgh)
 
-    def calc(fgh : FGH, limit, recorder):
-      return fgh.expand(recorder, limit)
+    def calc(fgh : FGH, recorder):
+      return fgh.expand(recorder)
 
     return test_display(self, calc, fgh_to_latex, expected,
                         limit, test_only, show_steps)
