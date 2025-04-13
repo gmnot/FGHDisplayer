@@ -24,13 +24,16 @@ def get_rotate_counter() -> int:
 
 # * Exceptions
 class KnownError(Exception):
-  @staticmethod
-  def raise_if(cond, msg):
+  @classmethod
+  def raise_if(cls, cond, msg):
     if cond:
-      raise KnownError(msg)
+      raise cls(msg)
 
 def kraise(*args):
   return KnownError.raise_if(*args)
+
+class WIPError(KnownError):
+  pass
 
 def strip_pre_post(pre: str, s: str, post: str) -> str:
   l1, l2 = len(pre), len(post)
@@ -76,7 +79,8 @@ class Veblen:
     if rec.inc_discard_check_limit():
       return Ord(self)
 
-    assert self.is_binary(), f'WIP {self}'
+    WIPError.raise_if(not self.is_binary(),
+                      f"WIP: multi-var Veblen will be available soon. {self}")
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
 

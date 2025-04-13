@@ -1,5 +1,5 @@
 from enum import Enum
-from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter
+from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter, WIPError
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -70,6 +70,18 @@ def test_associative():
     ord1, ord2 = Ord.from_any(s1), Ord.from_any(s2)
     assert ord1 == ord2, f'\n{ord1}\n{ord2}'
 
+def test_exceptions():
+  cnt = 0
+  cases = [('v(2,0,0)', WIPError)]
+  for ord_str, Err in cases:
+    try:
+      test_f_s(Ord.from_any(ord_str), 3)
+    except Err:
+      cnt += 1
+    except Exception as e:
+      raise f'Exception of unexpected type {e}'
+  print(f'Test Exceptions: {cnt}/{len(cases)} cases passed')
+
 if __name__ == '__main__':
   # Example: w * 2 + 3
   expr_tree = Ord('+',
@@ -82,6 +94,7 @@ if __name__ == '__main__':
   f2_256 = 29642774844752946028434172162224104410437116074403984394101141506025761187823616
 
   test_associative()
+  test_exceptions()
 
   tests = [
     expr_tree.to_latex(),
@@ -132,16 +145,16 @@ if __name__ == '__main__':
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R2
     test_f_s('v(1,0)'             , 1, 1),                  # R5
     test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5
-    test_f_s('v(1,0)'             , 3, test_only=True),     # R5
+    test_f_s('v(1,0)'             , 3,    test_only=True),  # R5
     # todo 2: more v tests
-    # todo 2: w^w^w return if calc to the end. and assert, so limit isn't too small
     test_f_s('e'                  , 3, 'w^2*2+w*2+3', show_step=True),
+    # todo 2: w^w^w return if calc to the end. and assert, so limit isn't too small
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),
     # todo: smarter length ctrl based on terms
     FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=4, show_steps=True),
     test_f_s('e*w'                , 3),
     test_f_s('e^w'                , 3),
-    # test_f_s('e^e'                , 3),
+    # test_f_s('e^e'              , 3),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
