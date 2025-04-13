@@ -598,8 +598,14 @@ class FdmtSeq:
   # todo: return FdmtSeq if not end
   def calc(self, recorder : FSRecorder) -> Ord:
 
-    def impl(ord : Ord, n) -> Ord:
+    def impl(ord : Ord, n: int) -> Ord:
+
       fs = FdmtSeq(ord, n)
+
+      def record_impl(sub_node: Ord, remain: Ord):
+        with recorder.PreCombineContext(recorder, remain):
+          return remain.make_combined(impl(sub_node, n), child_only=True)
+
       recorder.record(fs)
       if recorder.cal_limit_reached():
         return ord
@@ -617,25 +623,17 @@ class FdmtSeq:
           case _:
             assert 0, f'{ord} @ {n}'
 
-      # transform w*2 and w^2 so they can be indexed
       def transform(node: Ord) -> Ord:
+        # (w^a)[3] = w^(a[3])
         if node.right.is_limit_ordinal():
-          # todo 2: record inside, record FS type
-          try:
-            old, recorder.rec_limit = recorder.rec_limit, 0
-            # ! todo 1: refactor, FS as Ord subtree
-            # recorder.clear_pre()
-            return Ord(node.token,
-                       node.left,
-                       impl(node.right, n))
-          finally:
-            recorder.rec_limit = old
+          return ord.recurse_node("right", record_impl)
 
         else:
           if node.right == 0:
             return Ord(1)
           if node.right == 1:
             return node.left
+          # w^(a+1)[3] = w^a * w[3]
           return Ord('+' if node.token.v == '*' else '*',
                       Ord.simplified(Ord(node.token, node.left, node.right.dec())),
                       node.left
@@ -644,13 +642,7 @@ class FdmtSeq:
       match ord.token.v:
         case '+':
           recorder.skip_next()
-
-          def record_impl(sub_node: Ord, remain: Ord):
-            with recorder.PreCombineContext(recorder, remain):
-              return remain.make_combined(impl(sub_node, n), child_only=True)
-
           return ord.recurse_node("right", record_impl)
-
         case '*':
           return impl(transform(ord), n)
         case '^':
