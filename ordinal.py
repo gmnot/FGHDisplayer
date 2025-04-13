@@ -176,6 +176,7 @@ class Recorder:
   full      : bool
   n_discard : int
   n_pre_discard : int  # discarded before reach limit
+  will_skip_next : bool  # skip the next record
 
   def __init__(self, rec_limit, cal_limit):
     assert rec_limit >= 2 or rec_limit == 0  # 0 for inactive
@@ -185,6 +186,7 @@ class Recorder:
     self.full      = False
     self.n_discard = 0
     self.n_pre_discard = 0
+    self.will_skip_next = False
 
   def active(self):
     return self.rec_limit != 0
@@ -199,17 +201,20 @@ class Recorder:
     return self.rec_limit == 2
 
   def record(self, entry, res=False):
-    if not self.active():
-      return
-    if self.full:
-      self.n_discard += 1
-      if res:  # force replace
-        self.data[-1] = entry
-    else:
-      self.data.append(entry)
-      assert len(self.data) <= self.rec_limit
-      if len(self.data) == self.rec_limit - 1:  # save 1 for result
-        self.full = True
+    try:
+      if not self.active():
+        return
+      if self.full:
+        self.n_discard += 1
+        if res:  # force replace
+          self.data[-1] = entry
+      else:
+        self.data.append(entry)
+        assert len(self.data) <= self.rec_limit
+        if len(self.data) == self.rec_limit - 1:  # save 1 for result
+          self.full = True
+    finally:
+      self.will_skip_next = False
 
   # return True if cal_limit reached
   def inc_discard_check_limit(self) -> bool:
@@ -219,12 +224,15 @@ class Recorder:
       self.n_pre_discard += 1
     return self.cal_limit_reached()
 
+  def skip_next(self):
+    self.will_skip_next = True
+
   def to_latex(self, entry_to_latex):
     ret = r' \begin{align*}' + '\n'
     ret += entry_to_latex(self.data[0])
     for ord in self.data[1:-1]:
       ret += f'  &= {entry_to_latex(ord)} \\\\\n'
-    if self.n_discard > 0:
+    if self.n_discard > 1:  # 1 step could be (a+b)[x] = a+b[x]
       ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
              f'after {self.n_discard} more steps' r'}} \\' + '\n'
     ret += f'  &= {entry_to_latex(self.data[-1])} \\\\\n'
@@ -468,30 +476,21 @@ class Ord:
     node.simplify()
     return node
 
-  fs_cal_limit_default = 200
-  def fundamental_sequence_at(self, n, rec : Recorder) \
+  fs_cal_limit_default = 500
+  def fundamental_sequence_at(self, n, recorder : Recorder) \
     -> Ord:
-    class RecType(Enum):
-      FALSE = 0
-      TRUE  = 1
-      SKIP  = 2  # skip just one, and true for following
 
-    # todo: merge record to Recorder
-    def impl(ord : Ord, n, record : RecType = RecType.FALSE, rec_pre=None) \
+    def impl(ord : Ord, n, rec_pre=None) \
       -> Ord:
-      if record == RecType.TRUE:
-        assert rec.active()
+      if recorder.active():
         if rec_pre is None:
-          rec.record(ord)
+          recorder.record(ord)
         else:
           assert rec_pre.is_valid()
-          rec.record(Ord('+', rec_pre, ord))
+          recorder.record(Ord('+', rec_pre, ord))
 
-      if rec.cal_limit_reached():
+      if recorder.cal_limit_reached():
         return ord
-
-      def update(rec):  # SKIP -> TRUE, other->other
-        return RecType.TRUE if rec != RecType.FALSE else RecType.FALSE
 
       if ord.is_atomic():
         if ord.is_natural():
@@ -500,19 +499,24 @@ class Ord:
           case 'w':
             return Ord(n)
           case 'e':
-            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n,
-                        update(record), rec_pre)
+            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n, rec_pre)
           case Veblen():
-            return impl(ord.token.v.index(n, rec), n, update(record), rec_pre)
+            return impl(ord.token.v.index(n, recorder), n, rec_pre)
           case _:
             assert 0, f'{ord} @ {n}'
 
       # transform w*2 and w^2 so they can be indexed
       def transform(node: Ord) -> Ord:
         if node.right.is_limit_ordinal():
-          return Ord(node.token,
-                     node.left,
-                     impl(node.right, n))
+          # todo 1: record inside, record FS type
+          try:
+            old, recorder.rec_limit = recorder.rec_limit, 0
+            return Ord(node.token,
+                       node.left,
+                       impl(node.right, n))
+          finally:
+            recorder.rec_limit = old
+
         else:
           if node.right == 0:
             return Ord(1)
@@ -525,22 +529,22 @@ class Ord:
 
       match ord.token.v:
         case '+':
-          new_rec = RecType.SKIP if record == RecType.TRUE else RecType.FALSE
+          recorder.skip_next()
           new_pre = ord.left \
                     if rec_pre is None \
                     else Ord('+', rec_pre, ord.left)
           return Ord(ord.token,
                      ord.left,
-                     impl(ord.right, n, new_rec , new_pre))
+                     impl(ord.right, n, new_pre))
         case '*':
-          return impl(transform(ord), n, update(record), rec_pre)
+          return impl(transform(ord), n, rec_pre)
         case '^':
-          return impl(transform(ord), n, update(record), rec_pre)
+          return impl(transform(ord), n, rec_pre)
         case _:
           assert 0, ord
 
-    res = impl(self, n, RecType.TRUE if rec.active() else RecType.FALSE)
-    rec.record(res, res=True)
+    res = impl(self, n)
+    recorder.record(res, res=True)
     return res
 
   def fundamental_sequence_display(self,

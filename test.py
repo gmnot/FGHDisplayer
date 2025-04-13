@@ -126,6 +126,7 @@ if __name__ == '__main__':
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R2
     # todo 1: more tests
     test_f_s('v(1,0)'             , 3, show_step=True),     # R8
+    # todo 1: w^w^w return if calc to the end. and assert, so limit isn't too small
     test_f_s('e'                  , 3, show_step=True),
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),
     # todo: smarter length ctrl based on terms
