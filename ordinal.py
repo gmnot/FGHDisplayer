@@ -72,7 +72,7 @@ class Veblen:
   def is_binary(self):
     return self.arity() == 2
 
-  def index(self, n : int, rec: Recorder) -> Ord:
+  def index(self, n : int, rec: FSRecorder) -> Ord:
     # todo 1: separate cnt for steps discarded before '...'
     if rec.inc_discard_check_limit():
       return Ord(self)
@@ -112,7 +112,7 @@ class Veblen:
 
 # number, w, e, operators, Veblen
 class Token:
-  v: int | str | Veblen
+  v: int | str | Veblen | FdmtSeq
   ord_maps : Dict[str, str] = {
     'w': r'\omega',
     'e': r'\varepsilon_{0}',
@@ -130,7 +130,7 @@ class Token:
     match v:
       case Token():
         self.v = v.v
-      case int() | Veblen():
+      case int() | Veblen() | FdmtSeq():
         self.v = v
       case str():
         assert len(v) > 0
@@ -239,9 +239,48 @@ class Recorder:
     ret += r'\end{align*} ' + '\n'
     return ret
 
+class FSRecorder(Recorder):
+  pre : Ord | None
+
+  def __init__(self, rec_limit, cal_limit, pre=None):
+    super().__init__(rec_limit, cal_limit)
+    self.pre = pre
+
+  def __repr__(self):
+    return f'{self.pre}'
+
+  def clear_pre(self):
+    self.pre = None
+
+  def record(self, entry, res=False):
+    if self.pre is not None:
+      entry = self.pre.make_combined(entry)
+    return super().record(entry, res)
+
+  def pre_combine_with(self, other: Ord):
+    if self.pre is None:
+      self.pre = other
+    else:
+      self.pre = self.pre.make_combined(other)
+
+  class PreCombineContext:
+    def __init__(self, recorder, ord):
+      self.recorder = recorder
+      self.ord = ord
+      self.original_pre = None
+
+    def __enter__(self):
+      # todo 2: perf: no need to store, just point to the subtree for deletion at exit
+      self.original_pre = self.recorder.pre
+      self.recorder.pre_combine_with(self.ord)
+      return self
+
+    def __exit__(self, exc_type, exc_val, exc_tb):
+      self.recorder.pre = self.original_pre
+
 def test_display(obj, f_calc, f_display, expected=None,
                  limit=100, test_only=False , show_steps=False):
-  recorder = Recorder((15 if show_steps else 0), limit)
+  recorder = FSRecorder((15 if show_steps else 0), limit)
   res = f_calc(obj, recorder)
 
   if expected is not None:
@@ -256,9 +295,8 @@ def test_display(obj, f_calc, f_display, expected=None,
   assert recorder is not None
   return recorder.to_latex(f_display)
 
-# Ordinal
-ord_rotate_at_init = False
-class Ord:
+# Binary Tree Node
+class Node:
   token: Token  # operator +,*,^ ; natural number str; w,e ; Veblen
   left : Ord
   right: Ord
@@ -267,7 +305,17 @@ class Ord:
     self.token = Token(token)
     self.left  = Ord.from_any(left)
     self.right = Ord.from_any(right)
-    if ord_rotate_at_init:
+
+  def n_child(self):
+    return (self.left is not None) + (self.right is not None)
+
+# Ordinal
+class Ord(Node):
+
+  rotate_at_init = False
+  def __init__(self, token, left=None, right=None):
+    super().__init__(token, left, right)
+    if Ord.rotate_at_init:
       self.rotate()
 
   def rotate(self) -> None:
@@ -300,7 +348,7 @@ class Ord:
   def __eq__(self, other):
     if isinstance(other, int):
       return self.token.v == other
-    if not ord_rotate_at_init:
+    if not Ord.rotate_at_init:
       self.rotate()
       other.rotate()
     return self.token == other.token and \
@@ -308,9 +356,12 @@ class Ord:
            self.right.__eq__(other.right)
 
   def to_infix(self):
-    if self.is_atomic():
+    if self.n_child() == 0:
       return str(self.token)
-    return f"({self.left.to_infix()}{self.token}{self.right.to_infix()})"
+    ret  = self.left.to_infix() if self.left else '.'
+    ret += f'{self.token}'
+    ret += self.right.to_infix() if self.right else '.'
+    return f'({ret})'
 
   def __str__(self):
     return self.to_infix()
@@ -328,6 +379,33 @@ class Ord:
 
   def is_natural(self):
     return self.token.is_natural()
+
+  def combine(self, other: Ord):
+    if self.left is None:
+      assert self.right is not None
+      self.left = other
+    assert self.right is None
+    self.right = other
+
+  # search and combine <other> to missing node of self/subtree.
+  # return: None means failed, all full
+  # note: must copy from the top. self can be changed later,
+  #       like adding more half node. Returned Ord need to stay the same
+  def make_combined(self, other: Ord) -> Ord | None:
+    if self.n_child() == 0:
+      return None
+    if self.left is None:
+      assert self.right is not None
+      return Ord(self.token, other, self.right)
+    if self.right is None:
+      return Ord(self.token, self.left,  other)
+    l = self.left.make_combined(other)
+    if l is not None:
+      return Ord(self.token, l, self.right)
+    r = self.right.make_combined(other)
+    if r is not None:
+      return Ord(self.token, self.left, r)
+    return None
 
   @staticmethod
   def from_str(expression: str):
@@ -477,7 +555,7 @@ class Ord:
     return node
 
   fs_cal_limit_default = 500
-  def fs_at(self, n, recorder : Recorder) -> Ord:
+  def fs_at(self, n, recorder : FSRecorder) -> Ord:
     return FdmtSeq(self, n).calc(recorder)
 
 # Fundamental Sequence
@@ -506,17 +584,11 @@ class FdmtSeq:
 
   cal_limit_default = 500
   # todo: return FdmtSeq if not end
-  def calc(self, recorder : Recorder) -> Ord:
+  def calc(self, recorder : FSRecorder) -> Ord:
 
-    def impl(ord : Ord, n, rec_pre=None) \
-      -> Ord:
-      if recorder.active():
-        if rec_pre is None:
-          recorder.record(ord)
-        else:
-          assert rec_pre.is_valid()
-          recorder.record(Ord('+', rec_pre, ord))
+    def impl(ord : Ord, n) -> Ord:
 
+      recorder.record(ord)
       if recorder.cal_limit_reached():
         return ord
 
@@ -527,18 +599,20 @@ class FdmtSeq:
           case 'w':
             return Ord(n)
           case 'e':
-            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n, rec_pre)
+            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n)
           case Veblen():
-            return impl(ord.token.v.index(n, recorder), n, rec_pre)
+            return impl(ord.token.v.index(n, recorder), n)
           case _:
             assert 0, f'{ord} @ {n}'
 
       # transform w*2 and w^2 so they can be indexed
       def transform(node: Ord) -> Ord:
         if node.right.is_limit_ordinal():
-          # todo 1: record inside, record FS type
+          # todo 2: record inside, record FS type
           try:
             old, recorder.rec_limit = recorder.rec_limit, 0
+            # todo 1: refactor, FS as Ord subtree
+            # recorder.clear_pre()
             return Ord(node.token,
                        node.left,
                        impl(node.right, n))
@@ -558,16 +632,12 @@ class FdmtSeq:
       match ord.token.v:
         case '+':
           recorder.skip_next()
-          new_pre = ord.left \
-                    if rec_pre is None \
-                    else Ord('+', rec_pre, ord.left)
-          return Ord(ord.token,
-                     ord.left,
-                     impl(ord.right, n, new_pre))
+          with recorder.PreCombineContext(recorder, Ord('+', ord.left, None)):
+            return Ord(ord.token, ord.left, impl(ord.right, n))
         case '*':
-          return impl(transform(ord), n, rec_pre)
+          return impl(transform(ord), n)
         case '^':
-          return impl(transform(ord), n, rec_pre)
+          return impl(transform(ord), n)
         case _:
           assert 0, ord
 
@@ -581,9 +651,10 @@ class FdmtSeq:
 
     def display(obj : FdmtSeq | Ord):
       if isinstance(obj, Ord):
-        # todo 1: for w^(w[3])
+        # todo 1: show idx if first; hide idx if has fs inside Ord
+        # return obj.to_latex()
         obj = FdmtSeq(obj, self.n)
-      #   return obj.to_latex()
+      # todo: rm maybe
       nonlocal first
       ret = obj.to_latex(always_show_idx=first)
       first = False
@@ -637,7 +708,7 @@ class FGH:
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fs_at(
-        self.x, Recorder(0, Ord.fs_cal_limit_default)), self.x)
+        self.x, FSRecorder(0, Ord.fs_cal_limit_default)), self.x)
     elif self.ord == Ord('0'):
       return True, self.x + self.exp
     elif self.ord == Ord('1'):
@@ -664,7 +735,7 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  def expand(self, recorder : Recorder):
+  def expand(self, recorder : FSRecorder):
     ret : FGH | int = self
 
     recorder.record(ret)
