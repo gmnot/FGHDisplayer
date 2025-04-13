@@ -123,13 +123,15 @@ if __name__ == '__main__':
     test_f_s('v(1,0)'             , 0, 0),                  # R2
     test_f_s('v(2,0)'             , 0, 0, test_only=True),  # R2
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R2
+    test_f_s('v(1,0)'             , 1, 1),                  # R5
+    test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5
+    test_f_s('v(1,0)'             , 3, test_only=True),     # R5
     # todo 2: more v tests
-    test_f_s('v(1,0)'             , 3, show_step=True),     # R8
     # todo 2: w^w^w return if calc to the end. and assert, so limit isn't too small
-    test_f_s('e'                  , 3, show_step=True),
+    test_f_s('e'                  , 3, 'w^2*2+w*2+3', show_step=True),
     FGH(Ord.from_str('w^(w^w)'), 2).expand_display(show_steps=True),
     # todo: smarter length ctrl based on terms
-    FGH(Ord.from_str('e'), 3).expand_display(limit=4, show_steps=True),
+    FGH(Ord.from_str('w^(w^w)'), 3).expand_display(limit=4, show_steps=True),
     test_f_s('e*w'                , 3),
     test_f_s('e^w'                , 3),
     # test_f_s('e^e'                , 3),

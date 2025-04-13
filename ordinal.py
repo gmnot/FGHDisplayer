@@ -623,7 +623,7 @@ class FdmtSeq:
           case 'w':
             return Ord(n)
           case 'e':
-            return impl(Ord.from_str('w^('*(n-1) + 'w' + ')'*(n-1)), n)
+            return impl(Ord.from_any(Veblen(1, 0)), n)
           case Veblen():
             return impl(ord.token.v.index(n, recorder), n)
           case _:

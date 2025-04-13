@@ -81,86 +81,109 @@
   <br>
 
   <h2> Examples </h2>
-  <h2> $ f_c(n) $ </h2>
-  <p>$$ f_{0}(3)=4 $$</p>
-  <p>$$ f_{1}(3)=6 $$</p>
-  <p>$$ f_{2}(3)=24 $$</p>
-  <p>$$ f_{3}(2)=2048 $$</p>
-  <p>$$ f_{3}(3)=f_{2}(402653184) $$</p>
-  <h2> $ \omega^\alpha $ </h2>
-  <p>$$ f_{\omega}(3)=f_{2}(402653184) $$</p>
-  <p>$$ f_{\omega+1}(3)=f_{\omega}^2(f_{2}(402653184)) $$</p>
-  <div>$$  \begin{align*}
-  \omega\cdot2[3]  &= \omega+\omega[3] \\
-    &= \omega+3 \\
-  \end{align*} 
-   $$</p>
-  <p>$$ f_{\omega\cdot2+1}(3)=f_{\omega\cdot2}^2(f_{\omega+2}^2(f_{\omega+1}^2(f_{\omega}^2(f_{2}(402653184))))) $$</p>
-  <p>$$ \omega^{2}[4]=\omega\cdot3+4 $$</p>
-  <p>$$ \omega^{2}+\omega[3]=\omega^{2}+3 $$</p>
-  <p>$$ f_{\omega^{2}+\omega+1}(3)=f_{\omega^{2}+\omega}^2(f_{\omega^{2}+2}^2(f_{\omega^{2}+1}^2(f_{\omega^{2}}^2(f_{\omega\cdot2+2}^2(f_{\omega\cdot2+1}^2(f_{\omega\cdot2}^2(f_{\omega+2}^2(f_{\omega+1}^2(f_{\omega}^2(f_{2}(402653184))))))))))) $$</p>
-  <p>$$ \omega^{3}[4]=\omega^{2}\cdot3+\omega\cdot3+4 $$</p>
-  <p>$$ \omega^{\omega}[3]=\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
-  <p>$$ f_{\omega^{\omega}+1}(3)=f_{\omega^{\omega}}^2(f_{\omega^{2}\cdot2+\omega\cdot2+2}^2(f_{\omega^{2}\cdot2+\omega\cdot2+1}^2(f_{\omega^{2}\cdot2+\omega\cdot2}^2(f_{\omega^{2}\cdot2+\omega+2}^2(f_{\omega^{2}\cdot2+\omega+1}^2(f_{\omega^{2}\cdot2+\omega}^2(f_{\omega^{2}\cdot2+2}^2(f_{\omega^{2}\cdot2+1}^2(f_{\omega^{2}\cdot2}^2(f_{\omega^{2}+\omega\cdot2+2}^2(f_{\omega^{2}+\omega\cdot2+1}^2(f_{\omega^{2}+\omega\cdot2}^2(f_{\omega^{2}+\omega+2}^2(f_{\omega^{2}+\omega+1}^2(f_{\omega^{2}+\omega}^2(f_{\omega^{2}+2}^2(f_{\omega^{2}+1}^2(f_{\omega^{2}}^2(f_{\omega\cdot2+2}^2(f_{\omega\cdot2+1}^2(f_{\omega\cdot2}^2(f_{\omega+2}^2(f_{\omega+1}^2(f_{\omega}^2(f_{2}(402653184)))))))))))))))))))))))))) $$</p>
-  <div>$$  \begin{align*}
-  \omega^{\omega+1}[3]  &= \omega^{\omega}\cdot\omega[3] \\
-    &= \omega^{\omega}\cdot3[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{\omega}[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{3}[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot\omega[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot3[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega^{2}[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot\omega[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot3[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+\omega[3] \\
-    &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 \\
-  \end{align*} 
-   $$</p>
-  <h2> $ \varepsilon_0 $ </h2>
-  <div>$$  \begin{align*}
-  \varepsilon_{0}[3]  &= \omega^{\omega^{\omega}}[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+3}[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot\omega[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot3[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+2}[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot\omega[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot3[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot\omega[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot3[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}[3] \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+3}[3] \\
-    &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{after 76 more steps}} \\
-    &= \omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 \\
-  \end{align*} 
-   $$</p>
-  <p>$$  \begin{align*}
-  f_{\omega^{\omega^{\omega}}}(2)  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+2}(2) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(2)) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(2))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+2}(2))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(2)))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega^{\omega}}(2))))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+2}(2))))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega+1}(2)))))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+\omega}(2))))))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+2}(2))))))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+1}(f_{\omega^{\omega+1}+1}(2)))))))) \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+1}(f_{\omega^{\omega+1}}(f_{\omega^{\omega+1}}(2))))))))) \\
-    &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{after 18 more steps}} \\
-    &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+1}(f_{\omega^{\omega+1}}(f_{\omega^{\omega}+\omega+1}(f_{\omega^{\omega}+\omega}(f_{\omega^{\omega}+1}(f_{\omega^{\omega}}(f_{\omega+1}(f_{7}^7(f_{6}^7(f_{5}^7(f_{4}^7(f_{3}^7(f_{2}^7(2048))))))))))))))))))) \\
-  \end{align*} 
-   $$</p>
-  <p>$$  \begin{align*}
-  f_{\omega^{\omega^{\omega}}}(3)  &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3}(3) \\
-    &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}^2(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}(3)) \\
-    &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}^2(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+1}^2(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+1}(3))) \\
-    &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}^2(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+1}^2(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2}^2(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2}(3)))) \\
-  \end{align*} 
-   $$</p>
-  <p>$$ \varepsilon_{0}\cdot\omega[3]=\varepsilon_{0}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
-  <p>$$ \varepsilon_{0}^{\omega}[3]=\varepsilon_{0}^{2}\cdot{(\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2)}+\varepsilon_{0}\cdot{(\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2)}+\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
-  
+
+<h2> $ f_c(n) $ </h2>
+<p>$$ f_{0}(3)=4 $$</p>
+<p>$$ f_{1}(3)=6 $$</p>
+<p>$$ f_{2}(3)=24 $$</p>
+<p>$$ f_{3}(2)=2048 $$</p>
+<p>$$ f_{3}(3)=f_{2}(402653184) $$</p>
+<h2> $ \omega^\alpha $ </h2>
+<p>$$ f_{\omega}(3)=f_{2}(402653184) $$</p>
+<p>$$ f_{\omega+1}(3)=f_{\omega}^{2}(f_{2}(402653184)) $$</p>
+<div>$$  \begin{align*}
+\omega\cdot2[3]  &= \omega+\omega[3] \\
+  &= \omega+3 \\
+\end{align*} 
+ $$</p>
+<p>$$ f_{\omega\cdot2+1}(3)=f_{\omega\cdot2}^{2}(f_{\omega+2}^{2}(f_{\omega+1}^{2}(f_{\omega}^{2}(f_{2}(402653184))))) $$</p>
+<div>$$  \begin{align*}
+\varphi(0, 2)[3]  &= \omega^{2}[3] \\
+  &= \omega\cdot\omega[3] \\
+  &= \omega\cdot3[3] \\
+  &= \omega\cdot2+\omega[3] \\
+  &= \omega\cdot2+3 \\
+\end{align*} 
+ $$</p>
+<p>$$ \omega^{2}[4]=\omega\cdot3+4 $$</p>
+<p>$$ \omega^{2}+\omega[3]=\omega^{2}+3 $$</p>
+<p>$$ f_{\omega^{2}+\omega+1}(3)=f_{\omega^{2}+\omega}^{2}(f_{\omega^{2}+2}^{2}(f_{\omega^{2}+1}^{2}(f_{\omega^{2}}^{2}(f_{\omega\cdot2+2}^{2}(f_{\omega\cdot2+1}^{2}(f_{\omega\cdot2}^{2}(f_{\omega+2}^{2}(f_{\omega+1}^{2}(f_{\omega}^{2}(f_{2}(402653184))))))))))) $$</p>
+<p>$$ \omega^{3}[4]=\omega^{2}\cdot3+\omega\cdot3+4 $$</p>
+<p>$$ \omega^{\omega}[3]=\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
+<p>$$ f_{\omega^{\omega}+1}(3)=f_{\omega^{\omega}}^{2}(f_{\omega^{2}\cdot2+\omega\cdot2+2}^{2}(f_{\omega^{2}\cdot2+\omega\cdot2+1}^{2}(f_{\omega^{2}\cdot2+\omega\cdot2}^{2}(f_{\omega^{2}\cdot2+\omega+2}^{2}(f_{\omega^{2}\cdot2+\omega+1}^{2}(f_{\omega^{2}\cdot2+\omega}^{2}(f_{\omega^{2}\cdot2+2}^{2}(f_{\omega^{2}\cdot2+1}^{2}(f_{\omega^{2}\cdot2}^{2}(f_{\omega^{2}+\omega\cdot2+2}^{2}(f_{\omega^{2}+\omega\cdot2+1}^{2}(f_{\omega^{2}+\omega\cdot2}^{2}(f_{\omega^{2}+\omega+2}^{2}(f_{\omega^{2}+\omega+1}^{2}(f_{\omega^{2}+\omega}^{2}(f_{\omega^{2}+2}^{2}(f_{\omega^{2}+1}^{2}(f_{\omega^{2}}^{2}(f_{\omega\cdot2+2}^{2}(f_{\omega\cdot2+1}^{2}(f_{\omega\cdot2}^{2}(f_{\omega+2}^{2}(f_{\omega+1}^{2}(f_{\omega}^{2}(f_{2}(402653184)))))))))))))))))))))))))) $$</p>
+<div>$$  \begin{align*}
+\omega^{\omega+1}[3]  &= \omega^{\omega}\cdot\omega[3] \\
+  &= \omega^{\omega}\cdot3[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{\omega}[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{\omega[3]} \\
+  &= \omega^{\omega}\cdot2+\omega^{3}[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot\omega[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot3[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega^{2}[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot\omega[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot3[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+\omega[3] \\
+  &= \omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 \\
+\end{align*} 
+ $$</p>
+<h2> $ \varepsilon_0 $ </h2>
+<p>$$ \varphi(1, 0)[0]=0 $$</p>
+<p>$$ \varphi(1, 0)[1]=1 $$</p>
+<div>$$  \begin{align*}
+\varphi(1, 0)[2]  &= \varphi(0, \varphi(0, 0))[2] \\
+  &= \omega^{\varphi(0, 0)}[2] \\
+  &= \omega^{\varphi(0, 0)[2]} \\
+  &= \omega^{\omega^{0}[2]} \\
+  &= \omega^{1} \\
+  &= \omega^{1}[2] \\
+  &= \omega[2] \\
+  &= 2 \\
+\end{align*} 
+ $$</p>
+<div>$$  \begin{align*}
+\varepsilon_{0}[3]  &= \varphi(1, 0)[3] \\
+  &= \varphi(0, \varphi(0, \varphi(0, 0)))[3] \\
+  &= \omega^{\varphi(0, \varphi(0, 0))}[3] \\
+  &= \omega^{\varphi(0, \varphi(0, 0))[3]} \\
+  &= \omega^{\omega^{\varphi(0, 0)}[3]} \\
+  &= \omega^{\omega^{\varphi(0, 0)[3]}} \\
+  &= \omega^{\omega^{\omega^{0}[3]}} \\
+  &= \omega^{\omega^{1}} \\
+  &= \omega^{\omega^{1}[3]} \\
+  &= \omega^{\omega[3]} \\
+  &= \omega^{3}[3] \\
+  &= \omega^{2}\cdot\omega[3] \\
+  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{after 14 more steps}} \\
+  &= \omega^{2}\cdot2+\omega\cdot2+3 \\
+\end{align*} 
+ $$</p>
+<p>$$  \begin{align*}
+f_{\omega^{\omega^{\omega}}}(2)  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+2}(2) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(2)) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(2))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+2}(2))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(2)))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega^{\omega}}(2))))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+2}(2))))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega+1}(2)))))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+\omega}(2))))))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+2}(2))))))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+1}(f_{\omega^{\omega+1}+1}(2)))))))) \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+1}(f_{\omega^{\omega+1}}(f_{\omega^{\omega+1}}(2))))))))) \\
+  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{after 39 more steps}} \\
+  &= f_{\omega^{\omega+1}+\omega^{\omega}+\omega+1}(f_{\omega^{\omega+1}+\omega^{\omega}+\omega}(f_{\omega^{\omega+1}+\omega^{\omega}+1}(f_{\omega^{\omega+1}+\omega^{\omega}}(f_{\omega^{\omega+1}+\omega+1}(f_{\omega^{\omega+1}+\omega}(f_{\omega^{\omega+1}+1}(f_{\omega^{\omega+1}}(f_{\omega^{\omega}+\omega+1}(f_{\omega^{\omega}+\omega}(f_{\omega^{\omega}+1}(f_{\omega^{\omega}}(f_{\omega+1}(f_{7}^{7}(f_{6}^{7}(f_{5}^{7}(f_{4}^{7}(f_{3}^{7}(f_{2}^{6}(66185228434044942951864067458396061614989522267577311297802947435570493724401440549267868490798926773634494383968047143923956857140205406402740536087446083831052036848232439995904404992798007514718326043410570379830870463780085260619444417205199197123751210704970352727833755425876102776028267313405809429548880554782040765277562828362884238325465448520348307574943345990309941642666926723379729598185834735054732500415409883868361423159913770812218772711901772249553153402287759789517121744336755350465901655205184917370974202405586941211065395540765567663193297173367254230313612244182941999500402388195450053080383488))))))))))))))))))) \\
+\end{align*} 
+ $$</p>
+<p>$$  \begin{align*}
+f_{\omega^{\omega^{\omega}}}(3)  &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3}(3) \\
+  &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}^{2}(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}(3)) \\
+  &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}^{2}(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+1}^{2}(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+1}(3))) \\
+  &= f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+2}^{2}(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+1}^{2}(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2}^{2}(f_{\omega^{\omega^{2}\cdot2+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega\cdot2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+2}\cdot2+\omega^{\omega^{2}\cdot2+\omega+1}\cdot2+\omega^{\omega^{2}\cdot2+\omega}\cdot2+\omega^{\omega^{2}\cdot2+2}\cdot2+\omega^{\omega^{2}\cdot2+1}\cdot2+\omega^{\omega^{2}\cdot2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2}(3)))) \\
+\end{align*} 
+ $$</p>
+<p>$$ \varepsilon_{0}\cdot\omega[3]=\varepsilon_{0}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
+<p>$$ \varepsilon_{0}^{\omega}[3]=\varepsilon_{0}^{2}\cdot{(\omega^{2}\cdot2+\omega\cdot2+2)}+\varepsilon_{0}\cdot{(\omega^{2}\cdot2+\omega\cdot2+2)}+\omega^{2}\cdot2+\omega\cdot2+3 $$</p>
+
   <h2> Contact </h2>
   <p>For any questions and feedbacks, please feel free to reach out to me!</p>
   <p>Project email: fghdisplayer@gmail.com</p>
