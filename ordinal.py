@@ -73,7 +73,6 @@ class Veblen:
     return self.arity() == 2
 
   def index(self, n : int, rec: FSRecorder) -> Ord:
-    # todo 1: separate cnt for steps discarded before '...'
     if rec.inc_discard_check_limit():
       return Ord(self)
 
@@ -161,13 +160,16 @@ class Token:
     return cast(int, self.v)
 
   def to_latex(self):
-    if self.is_natural():
-      return str(self.v)
-    if isinstance(self.v, Veblen):
-      return self.v.to_latex()
-    elif self.v in Token.latex_maps.keys():
-      return Token.latex_maps[self.v]
-    assert 0, self
+    match self.v:
+      case int():
+        return str(self.v)
+      case Veblen() | FdmtSeq():
+        return self.v.to_latex()
+      case str():
+        assert self.v in Token.latex_maps.keys()
+        return Token.latex_maps[self.v]
+      case _:
+        assert 0, self
 
 class Recorder:
   rec_limit : int
@@ -495,7 +497,7 @@ class Ord(Node):
         return Ord.from_str(expression)
       case int():
         return Ord.from_str(str(expression))
-      case Veblen():
+      case Veblen() | FdmtSeq():
         return Ord(expression)
       case _:
         assert 0, expression
@@ -587,8 +589,8 @@ class FdmtSeq:
   def calc(self, recorder : FSRecorder) -> Ord:
 
     def impl(ord : Ord, n) -> Ord:
-
-      recorder.record(ord)
+      fs = FdmtSeq(ord, n)
+      recorder.record(fs)
       if recorder.cal_limit_reached():
         return ord
 
@@ -611,7 +613,7 @@ class FdmtSeq:
           # todo 2: record inside, record FS type
           try:
             old, recorder.rec_limit = recorder.rec_limit, 0
-            # todo 1: refactor, FS as Ord subtree
+            # ! todo 1: refactor, FS as Ord subtree
             # recorder.clear_pre()
             return Ord(node.token,
                        node.left,
@@ -642,23 +644,15 @@ class FdmtSeq:
           assert 0, ord
 
     res = impl(self.ord, self.n)
-    recorder.record(res, res=True)
+    recorder.record(FdmtSeq(res, self.n), res=True)
     return res
 
   def calc_display(self, expected=None, test_only=False, show_steps=False):
 
     first = True
 
-    def display(obj : FdmtSeq | Ord):
-      if isinstance(obj, Ord):
-        # todo 1: show idx if first; hide idx if has fs inside Ord
-        # return obj.to_latex()
-        obj = FdmtSeq(obj, self.n)
-      # todo: rm maybe
-      nonlocal first
-      ret = obj.to_latex(always_show_idx=first)
-      first = False
-      return ret
+    def display(obj: Ord):
+      return obj.to_latex()
 
     def calc(fs: FdmtSeq, recorder):
       return FdmtSeq(fs.calc(recorder), self.n)
