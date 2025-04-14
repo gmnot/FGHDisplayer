@@ -3,6 +3,7 @@ from copy import copy, deepcopy
 from enum import Enum
 from typing import List, Dict, Tuple, cast
 import re
+import utils
 
 from html_utils import contact_request
 
@@ -104,7 +105,7 @@ class Veblen:
       # todo 1: record expansion, pass in rec
       return Ord(Veblen(ax, gx.fs_at(n, rec)))
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
-      if gx == Ord(0):  # R8 v(a, 0)
+      if gx == 0:  # R8 v(a, 0)
         # todo 1: record
         return Ord(Veblen(ax.fs_at(n, rec), 0))
       else:  # R9 v(a, g+1)
@@ -357,7 +358,8 @@ class Ord(Node):
     if Ord.rotate_at_init:
       self.rotate()
 
-  def rotate_op(self, op: str) -> None:
+  def rotate_op(self, op: str, to_right) -> None:
+    # for example, if to right:
     #          +                    +
     #        /   \                 / \
     #      +      +    ===>      ll    +
@@ -365,10 +367,18 @@ class Ord(Node):
     #   ...  ....   ...              rl  +
     #                                   / \
     #                                 ... ...
-    def can_rotate(node) -> bool:
-      return not self.is_atomic() and node.token == op
+
+    def should_recur(node):
+        return not node.is_atomic() and node.token == op
+
+    def can_rotate(node):
+      return should_recur(node) and \
+        (to_right     and node.left.token  == op or
+         not to_right and node.right.token == op)
 
     if not can_rotate(self):
+      self.left.rotate()
+      self.right.rotate()
       return
 
     global rotate_counter
@@ -376,7 +386,7 @@ class Ord(Node):
     terms = []
 
     def gather(node: Ord):
-      if not can_rotate(node):
+      if not should_recur(node):
         terms.append(Ord.rotated(node))
       else:  # left + right
         gather(node.left)
@@ -385,16 +395,23 @@ class Ord(Node):
     gather(self)
     rotate_counter += len(terms)
 
-    ret = terms[-1]
-    for t in terms[-2::-1]:
-      ret = Ord(op, t, ret)
+    if to_right:
+      res = terms[-1]
+      for t in terms[-2::-1]:
+        res = Ord(op, t, res)
+      self.__dict__.update(res.__dict__)
+    else:
+      res = terms[0]
+      for t in terms[1:]:
+        res = Ord(op, res, t)
+      self.__dict__.update(res.__dict__)
 
-    self.__dict__.update(ret.__dict__)
-
-  # rotate right is better
+  @utils.track_total_time()
   def rotate(self) -> None:
-    for op in '+*':  # associative
-      self.rotate_op(op)
+    if self.is_atomic():
+      return
+    self.rotate_op('+', to_right=True)
+    self.rotate_op('*', to_right=False)
 
   @staticmethod
   def rotated(ord : Ord) -> Ord:
@@ -403,14 +420,14 @@ class Ord(Node):
     ord.rotate()
     return ord
 
-  def __eq__(self, other):
-    if isinstance(other, int):
-      return self.token.v == other
+  def __eq__(self, other_):
+    other = Ord.from_any(other_)
+    if self.token != other.token:
+      return False
     if not Ord.rotate_at_init:
       self.rotate()
       other.rotate()
-    return self.token == other.token and \
-           self.left.__eq__(other.left) and \
+    return self.left.__eq__(other.left) and \
            self.right.__eq__(other.right)
 
   def to_infix(self):
@@ -603,12 +620,12 @@ class Ord(Node):
       return Ord(i - 1)
     else:
       assert self.token.v == '+', self
-      if self.right == Ord(1):
+      if self.right == 1:
         return self.left
       return Ord(self.token, self.left, self.right.dec())
 
   def simplify(self):
-    if self.token.v in '*^' and self.right == Ord(1):
+    if self.token.v in '*^' and self.right == 1:
       self.token, self.left, self.right = \
         self.left.token, self.left.left, self.left.right
 
@@ -763,13 +780,13 @@ class FGH:
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fs_at(
         self.x, FSRecorder(0, Ord.fs_cal_limit_default)), self.x)
-    elif self.ord == Ord('0'):
+    elif self.ord == 0:
       return True, self.x + self.exp
-    elif self.ord == Ord('1'):
+    elif self.ord == 1:
       if self.exp > digit_limit * 3:
         return False, self
       return True, self.x * (2 ** self.exp)
-    elif self.ord == Ord('2'):
+    elif self.ord == 2:
       if self.x > digit_limit * 3:
         return False, self
       new_x = (2 ** self.x) * self.x

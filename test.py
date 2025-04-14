@@ -1,5 +1,6 @@
 from enum import Enum
 from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter, WIPError
+import utils
 
 latex_html_headers = r"""<!DOCTYPE html>
 <html lang="zh-CN">
@@ -177,4 +178,5 @@ if __name__ == '__main__':
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
-  print(f' rotated {get_rotate_counter()} terms\n')
+  utils.print_total_time(Ord.rotate)
+  print(f'  rotated {get_rotate_counter()} terms\n')
