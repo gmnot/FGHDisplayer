@@ -67,7 +67,26 @@ class Veblen:
     return Ord('+', self, rhs)
 
   def __str__(self):
-    return 'v({})'.format(', '.join(map(str, self.param)))
+    return 'v({})'.format(', '.join(
+      (str(o) if o is not None else '.' for o in self.param)
+    ))
+
+  def __repr__(self):
+    return self.__str__()
+
+  def idxs_missing(self):
+    return [i for i, val in enumerate(self.param) if val is None]
+
+  def is_missing_one(self):
+    return len(self.idxs_missing()) == 1
+
+  def make_combined(self, other) -> Ord:
+    idxs = self.idxs_missing()
+    assert len(idxs) == 1, self
+    idx = idxs[0]
+    ret = Veblen(*self.param)
+    ret.param[idx] = other
+    return Ord(ret)
 
   def to_latex(self):
     if self.is_binary() and not self.latex_force_veblen:
@@ -87,42 +106,50 @@ class Veblen:
   def is_binary(self):
     return self.arity() == 2
 
-  def index(self, n : int, rec: FSRecorder) -> Ord:
-    # !! simplify record at fs, unify here
-    if rec.inc_discard_check_limit():
-      return Ord(self)
+  def recurse_at(self, idx, func):
+    sub_node = self.param[idx]
+    remain   = copy(self)
+    self.param[idx] = None
+    return func(sub_node, remain)
+
+  def index(self, n : int, rec: FSRecorder) -> Tuple[bool, Ord | None, Ord]:
 
     WIPError.raise_if(not self.is_binary(),
                       f"WIP: multi-var Veblen will be available soon. {self}")
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
 
+    def succ_v(v: Tuple | Ord, nxt):
+      return (True, (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)), nxt)
+
     if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
-      return Ord(0)
+      return (True, None, Ord(0))
     if ax == 0:  # R2: v(0, gx) = w^gx, no matter what gx is
-      return Ord('^', 'w', gx)
+      # rec.skip_next()
+      return (True, None, Ord('^', 'w', gx))
     if gx.is_limit_ordinal():  # R3, g is LO
       # todo 1: record expansion, pass in rec
-      return Ord(Veblen(ax, gx.fs_at(n, rec)))
+      return succ_v((ax, None), gx.fs_at(n, rec))
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
       if gx == 0:  # R8 v(a, 0)
         # todo 1: record
-        return Ord(Veblen(ax.fs_at(n, rec), 0))
+        return succ_v((None, 0), ax.fs_at(n, rec))
       else:  # R9 v(a, g+1)
-        return Ord(Veblen(ax.fs_at(n, rec),
-                          Veblen(ax, gx.dec()) + 1))
+        return succ_v((None, Veblen(ax, gx.dec()) + 1), ax.fs_at(n, rec))
     else:  # R5-7 v(a+1, .)
       a = ax.dec()
       if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
-        # todo 1: record
-        return Ord(Veblen(a, Veblen(ax, Ord(0)).index(n-1, rec)))
+        return (True, None, Ord(Veblen(a, Veblen(ax, Ord(0)).index(n-1, rec)[2])))
+        # todo 1: handle inner index
+        return succ_v((a, None), Veblen(ax, Ord(0)).index(n-1, rec)[2])
       else:
         if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
           # e.g. e1[0] = e0 + 1
-          return Veblen(ax, gx.dec()) + 1
+          # todo 1: show dec
+          return (True, None, Veblen(ax, gx.dec()) + 1)
         else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
-          return Ord(Veblen(a, self.index(n-1, rec)))
+          return succ_v((a, None), self.index(n-1, rec)[2])
 
 # number, w, e, operators, Veblen
 class Token:
@@ -447,6 +474,8 @@ class Ord(Node):
   #       like adding more half node. Returned Ord need to stay the same
   def make_combined(self, other: Ord, child_only=False) -> Ord | None:
     if self.n_child() == 0:
+      if isinstance(self.token.v, Veblen) and self.token.v.is_missing_one():
+        return self.token.v.make_combined(other)
       return None
     if self.left is None:
       assert self.right is not None
@@ -466,9 +495,9 @@ class Ord(Node):
   @classmethod
   def combine_list(cls, list: List[Ord]) -> Ord:
     assert len(list) != 0
-    ret = list[0]
-    for o in list[1:]:
-      ret = utils.not_none(ret.make_combined(o))
+    ret = list[-1]
+    for o in list[-2::-1]:
+      ret = utils.not_none(o.make_combined(ret))
     return ret
 
   # * named c'tors
@@ -668,9 +697,10 @@ class FdmtSeq:
           case 'w':
             return (True, None, Ord(n))
           case 'e':
+            recorder.skip_next()
             return (True, None, Ord(Veblen(1, 0)))
           case Veblen():
-            return (True, None, ord.token.v.index(n, recorder))
+            return ord.token.v.index(n, recorder)
           case _:
             assert 0, f'{ord} @ {n}'
 

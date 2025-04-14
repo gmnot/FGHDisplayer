@@ -50,6 +50,7 @@ def latex_to_html(latex_str_list, path):
             assert 0, s[0]
     file.write('\n')
     file.write(latex_html_ends)
+  print(f'update: {utils.get_file_mtime_str(path)}')
 
 def test_f_s(ord1 : str | int, n : int, ord2=None, *, limit=Ord.fs_cal_limit_default,
              test_only=False, show_step=False, print_str=False):
@@ -157,7 +158,7 @@ if __name__ == '__main__':
     test_f_s('v(2,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(1,0)'             , 1, 1),                  # R5
-    # ! todo 1: v(0,) to w has repeating display
+    # !! todo 1: v(0,) to w has repeating display; and missing index [2]
     test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5
     test_f_s('v(1,0)'             , 3,    test_only=True),  # R5
     # todo 2: more v tests

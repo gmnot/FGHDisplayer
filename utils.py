@@ -1,5 +1,7 @@
+from datetime import datetime
 import time
 from functools import wraps
+import os
 
 def track_total_time():
   total_time = {"value": 0}
@@ -24,3 +26,8 @@ def print_total_time(func):
 def not_none(a):
   assert a is not None
   return a
+
+def get_file_mtime_str(path):
+  ts = os.path.getmtime(path)
+  dt = datetime.fromtimestamp(ts)
+  return dt.strftime('%H:%M:%S + %Y-%m-%d')
