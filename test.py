@@ -77,7 +77,7 @@ def test_associative():
   for s1, s2 in [('(w*2+w)+1', 'w*2+(w+1)'),
                  ('((w^2+w*2)+w)+1', 'w^2+(w*2+(w+1))'),
                  ('(((w^w+w^2)+w*2)+w)+1', 'w^w+(w^2+(w*2+(w+1)))'),
-                #  ('(w^2*w)*2', 'w^2*(w*2)'),
+                 ('(w^2*w)*2', 'w^2*(w*2)'),
                  ]:
     ord1, ord2 = Ord.from_any(s1), Ord.from_any(s2)
     assert ord1 == ord2, f'\n{ord1}\n{ord2}'
