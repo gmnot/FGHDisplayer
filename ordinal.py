@@ -357,25 +357,41 @@ class Ord(Node):
     if Ord.rotate_at_init:
       self.rotate()
 
+  # rotate right is better
   def rotate(self) -> None:
-    if self.is_atomic():
-      return
+    #          +                    +
+    #        /   \                 / \
+    #      +      +    ===>      ll    +
+    #     / \    / \                  / \
+    #   ...  ....   ...              rl  +
+    #                                   / \
+    #                                 ... ...
+    for op in '+':  # associative
+      def can_rotate(node) -> bool:
+        return not self.is_atomic() and node.token == op
 
-    global rotate_counter
-    rotate_counter += 1
+      if not can_rotate(self):
+        return
 
-    while self.token.v == '+' and self.left.token.v == '+':
-      #          +                     +
-      #        /   \                 /   \
-      #      +      r    ===>      ll      +
-      #     / \                           / \
-      #   ll   lr                       lr    r
-      self.left, self.right = \
-        Ord.rotated(self.left.left), \
-        Ord('+', Ord.rotated(self.left.right), Ord.rotated(self.right))
-    else:
-      self.left.rotate()
-      self.right.rotate()
+      global rotate_counter
+
+      terms = []
+
+      def gather(node: Ord):
+        if not can_rotate(node):
+          terms.append(Ord.rotated(node))
+        else:  # left + right
+          gather(node.left)
+          gather(node.right)
+
+      gather(self)
+      rotate_counter += len(terms)
+
+      ret = terms[-1]
+      for t in terms[-2::-1]:
+        ret = Ord(op, t, ret)
+
+      self.__dict__.update(ret.__dict__)
 
   @staticmethod
   def rotated(ord : Ord) -> Ord:

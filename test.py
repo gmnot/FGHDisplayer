@@ -77,6 +77,7 @@ def test_associative():
   for s1, s2 in [('(w*2+w)+1', 'w*2+(w+1)'),
                  ('((w^2+w*2)+w)+1', 'w^2+(w*2+(w+1))'),
                  ('(((w^w+w^2)+w*2)+w)+1', 'w^w+(w^2+(w*2+(w+1)))'),
+                #  ('(w^2*w)*2', 'w^2*(w*2)'),
                  ]:
     ord1, ord2 = Ord.from_any(s1), Ord.from_any(s2)
     assert ord1 == ord2, f'\n{ord1}\n{ord2}'
@@ -176,4 +177,4 @@ if __name__ == '__main__':
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
-  print(f' rotated {get_rotate_counter()} times\n')
+  print(f' rotated {get_rotate_counter()} terms\n')
