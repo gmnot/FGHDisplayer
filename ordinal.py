@@ -266,46 +266,18 @@ class Recorder:
     return ret
 
 class FSRecorder(Recorder):
-  pre : Ord | None  # todo: rm
 
-  def __init__(self, rec_limit, cal_limit, pre=None):
+  def __init__(self, rec_limit, cal_limit):
     super().__init__(rec_limit, cal_limit)
-    self.pre = pre
-
-  def __repr__(self):
-    return f'{self.pre}'
-
-  def clear_pre(self):
-    self.pre = None
 
   def record_fs(self, pres : List[Ord], curr : Ord, res=False):
     ord_list = pres + [curr]
     return super().record(Ord.combine_list(ord_list), res)
 
-  def pre_combine_with(self, other: Ord):
-    if self.pre is None:
-      self.pre = other
-    else:
-      self.pre = self.pre.make_combined(other)
-
   def get_result(self):
     assert len(self.data) > 0
     return self.data[-1]
 
-  class PreCombineContext:
-    def __init__(self, recorder, ord):
-      self.recorder = recorder
-      self.ord = ord
-      self.original_pre = None
-
-    def __enter__(self):
-      # todo 2: perf: no need to store, just point to the subtree for deletion at exit
-      self.original_pre = self.recorder.pre
-      self.recorder.pre_combine_with(self.ord)
-      return self
-
-    def __exit__(self, exc_type, exc_val, exc_tb):
-      self.recorder.pre = self.original_pre
 
 def test_display(obj, f_calc, f_display, expected=None, *,
                  limit=100, test_only=False , show_steps=False, print_str=False):
@@ -358,6 +330,14 @@ class Ord(Node):
     if Ord.rotate_at_init:
       self.rotate()
 
+  # left-hand tree join elems with op
+  @classmethod
+  def from_list(cls, op: str, li: List[Ord]) -> Ord:
+    res = li[-1]
+    for t in li[-2::-1]:
+      res = Ord(op, t, res)
+    return res
+
   def rotate_op(self, op: str, to_right) -> None:
     # for example, if to right:
     #          +                    +
@@ -396,9 +376,7 @@ class Ord(Node):
     rotate_counter += len(terms)
 
     if to_right:
-      res = terms[-1]
-      for t in terms[-2::-1]:
-        res = Ord(op, t, res)
+      res = Ord.from_list(op, terms)
       self.__dict__.update(res.__dict__)
     else:
       res = terms[0]
@@ -674,68 +652,7 @@ class FdmtSeq:
     return ret
 
   cal_limit_default = 500
-  # todo: return FdmtSeq if not end
   def calc(self, recorder : FSRecorder) -> Ord:
-
-    def impl(ord : Ord, n: int) -> Ord:
-
-      fs = FdmtSeq(ord, n)
-
-      def record_impl(sub_node: Ord, remain: Ord):
-        with recorder.PreCombineContext(recorder, remain):
-          return remain.make_combined(impl(sub_node, n), child_only=True)
-
-      recorder.record(fs)
-      if recorder.cal_limit_reached():
-        return ord
-
-      if ord.is_atomic():
-        if ord.is_natural():
-          return ord
-        match ord.token.v:
-          case 'w':
-            return Ord(n)
-          case 'e':
-            return impl(Ord.from_any(Veblen(1, 0)), n)
-          case Veblen():
-            return impl(ord.token.v.index(n, recorder), n)
-          case _:
-            assert 0, f'{ord} @ {n}'
-
-      def transform(node: Ord) -> Ord:
-        # (w^a)[3] = w^(a[3])
-        if node.right.is_limit_ordinal():
-          if node.token == '*':  # (w*w)[3] = w*(w[3]) looks the same
-            recorder.skip_next()
-          return ord.recurse_node("right", record_impl)
-
-        else:
-          if node.right == 0:
-            return Ord(1)
-          if node.right == 1:
-            return node.left
-          # w^(a+1)[3] = w^a * w[3]
-          return Ord('+' if node.token.v == '*' else '*',
-                      Ord.simplified(Ord(node.token, node.left, node.right.dec())),
-                      node.left
-                     )
-
-      match ord.token.v:
-        case '+':
-          recorder.skip_next()
-          return ord.recurse_node("right", record_impl)
-        case '*':
-          return impl(transform(ord), n)
-        case '^':
-          return impl(transform(ord), n)
-        case _:
-          assert 0, ord
-
-    res = impl(self.ord, self.n)
-    recorder.record(FdmtSeq(res, self.n), res=True)
-    return res
-
-  def calc2(self, recorder : FSRecorder) -> Ord:
 
     def impl(ord : Ord, n: int) -> Tuple[bool, Ord | None, Ord]:
 
@@ -743,8 +660,6 @@ class FdmtSeq:
 
       def succ(sub_node: Ord, remain: Ord):
         return [True, remain, sub_node]
-        # with recorder.PreCombineContext(recorder, remain):
-        #   return remain.make_combined(impl(sub_node, n), child_only=True)
 
       if ord.is_atomic():
         if ord.is_natural():
@@ -784,44 +699,37 @@ class FdmtSeq:
           assert 0, ord
 
     pre_stack : List[Ord] = []
-    #  w+.
-    #   +
-    #  ...+
-    #   +
-    #   *     <--- n_locked: num of + at the bottom
-    #  ...any
-    #   *     <--- n_non_plus: idx(last non '+' op)
-    #   +
-    #  ...+
-    #   +
-    n_locked = 0  # locked elem in stack can't be pop. Will lock (a+.)
-    idx_non_plus = -1
     curr : Ord = self.ord
 
     # record orignal FS, and every time eval success
-    recorder.record_fs([], curr, res=True)
+    recorder.record_fs([], Ord(FdmtSeq(curr, self.n)), res=True)
     for _ in range(recorder.cal_limit):
       succ, pre, next = impl(curr, self.n)
       if succ:  # curr expands to next
         if pre is not None:
-          assert pre.token != '+'  # !! todo: '+' never in stack
-          if n_locked == len(pre_stack) and pre.token == '+':
-            n_locked += 1
-          if pre.token != '+':
-            idx_non_plus = max(idx_non_plus, len(pre_stack))
           pre_stack.append(pre)
-        recorder.record_fs(copy(pre_stack), next, res=True)
+        recorder.record_fs(copy(pre_stack), Ord(FdmtSeq(next, self.n)), res=True)
         curr = next
       else:  # can't eval curr
         assert pre is None
-        if len(pre_stack) <= n_locked:
-          break  # curr is done and nothing other than + in stack. done
-        else:
-          # try combine and continue
-          assert idx_non_plus >= 0
-          while len(pre_stack) > idx_non_plus:
-            next = utils.not_none(pre_stack.pop().make_combined(next))
-          curr = next
+        # try combine and continue
+        adds_reversed : List[Ord] = []
+        non_add = None
+        while len(pre_stack) > 0:
+          lhs = pre_stack.pop()
+          if lhs.token == '+':
+            assert lhs.right is None
+            adds_reversed.append(lhs.left)
+          else:
+            non_add = lhs
+            break
+        # add all
+        if len(adds_reversed) > 0:
+          curr = Ord.from_list('+', adds_reversed[::-1] + [next])
+        if non_add:
+          curr = utils.not_none(non_add.make_combined(curr))
+        else:  # a+b+c+... and last can't eval, end.
+          return curr
 
     return recorder.get_result()
 

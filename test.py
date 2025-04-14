@@ -157,6 +157,7 @@ if __name__ == '__main__':
     test_f_s('v(2,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(1,0)'             , 1, 1),                  # R5
+    # ! todo 1: v(0,) to w has repeating display
     test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5
     test_f_s('v(1,0)'             , 3,    test_only=True),  # R5
     # todo 2: more v tests
