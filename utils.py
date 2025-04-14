@@ -20,3 +20,7 @@ def track_total_time():
 
 def print_total_time(func):
   print(f"{func.__name__}: {func.get_total_time():.2f} sec in total")
+
+def not_none(a):
+  assert a is not None
+  return a

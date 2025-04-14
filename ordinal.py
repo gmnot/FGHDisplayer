@@ -194,23 +194,24 @@ class Recorder:
   rec_limit : int
   cal_limit : int
   data      : List  # allow extra elem for result
-  full      : bool
   n_discard : int
   n_pre_discard : int  # discarded before reach limit
   will_skip_next : bool  # skip the next record
 
   def __init__(self, rec_limit, cal_limit):
-    assert rec_limit >= 2 or rec_limit == 0  # 0 for inactive
+    assert rec_limit >= 0
     self.rec_limit = rec_limit
     self.cal_limit = cal_limit
     self.data      = []
-    self.full      = False
     self.n_discard = 0
     self.n_pre_discard = 0
     self.will_skip_next = False
 
   def active(self):
     return self.rec_limit != 0
+
+  def cnt(self) -> int:
+    return len(self.data)
 
   def tot_discard(self):
     return self.n_discard + self.n_pre_discard
@@ -229,15 +230,12 @@ class Recorder:
 
       if self.will_skip_next:
         pass
-      elif self.full:
+      elif self.cnt() >= self.rec_limit:
         self.n_discard += 1
         if res:  # force replace
           self.data[-1] = entry
       else:
         self.data.append(entry)
-        assert len(self.data) <= self.rec_limit
-        if len(self.data) == self.rec_limit - 1:  # save 1 for result
-          self.full = True
 
       return self.inc_discard_check_limit()
     finally:
@@ -245,7 +243,7 @@ class Recorder:
 
   # return True if cal_limit reached
   def inc_discard_check_limit(self) -> bool:
-    if self.full:
+    if self.cnt() >= self.rec_limit:
       self.n_discard += 1
     else:
       self.n_pre_discard += 1
@@ -268,7 +266,7 @@ class Recorder:
     return ret
 
 class FSRecorder(Recorder):
-  pre : Ord | None
+  pre : Ord | None  # todo: rm
 
   def __init__(self, rec_limit, cal_limit, pre=None):
     super().__init__(rec_limit, cal_limit)
@@ -280,16 +278,19 @@ class FSRecorder(Recorder):
   def clear_pre(self):
     self.pre = None
 
-  def record(self, entry, res=False):
-    if self.pre is not None:
-      entry = self.pre.make_combined(entry)
-    return super().record(entry, res)
+  def record_fs(self, pres : List[Ord], curr : Ord, res=False):
+    ord_list = pres + [curr]
+    return super().record(Ord.combine_list(ord_list), res)
 
   def pre_combine_with(self, other: Ord):
     if self.pre is None:
       self.pre = other
     else:
       self.pre = self.pre.make_combined(other)
+
+  def get_result(self):
+    assert len(self.data) > 0
+    return self.data[-1]
 
   class PreCombineContext:
     def __init__(self, recorder, ord):
@@ -308,7 +309,7 @@ class FSRecorder(Recorder):
 
 def test_display(obj, f_calc, f_display, expected=None, *,
                  limit=100, test_only=False , show_steps=False, print_str=False):
-  recorder = FSRecorder((15 if show_steps else 0), limit)
+  recorder = FSRecorder((15 if show_steps else 1), limit)
   res = f_calc(obj, recorder)
 
   if expected is not None:
@@ -409,7 +410,7 @@ class Ord(Node):
   def rotate(self) -> None:
     if self.is_atomic():
       return
-    self.rotate_op('+', to_right=True)
+    self.rotate_op('+', to_right=False)
     self.rotate_op('*', to_right=False)
 
   @staticmethod
@@ -483,6 +484,14 @@ class Ord(Node):
     if r is not None:
       return Ord(self.token, self.left, r)
     return None
+
+  @classmethod
+  def combine_list(cls, list: List[Ord]) -> Ord:
+    assert len(list) != 0
+    ret = list[0]
+    for o in list[1:]:
+      ret = utils.not_none(ret.make_combined(o))
+    return ret
 
   # * named c'tors
   @staticmethod
@@ -726,6 +735,96 @@ class FdmtSeq:
     recorder.record(FdmtSeq(res, self.n), res=True)
     return res
 
+  def calc2(self, recorder : FSRecorder) -> Ord:
+
+    def impl(ord : Ord, n: int) -> Tuple[bool, Ord | None, Ord]:
+
+      ret_failed = (False, None, ord)
+
+      def succ(sub_node: Ord, remain: Ord):
+        return [True, remain, sub_node]
+        # with recorder.PreCombineContext(recorder, remain):
+        #   return remain.make_combined(impl(sub_node, n), child_only=True)
+
+      if ord.is_atomic():
+        if ord.is_natural():
+          return ret_failed
+        match ord.token.v:
+          case 'w':
+            return (True, None, Ord(n))
+          case 'e':
+            return (True, None, Ord(Veblen(1, 0)))
+          case Veblen():
+            return (True, None, ord.token.v.index(n, recorder))
+          case _:
+            assert 0, f'{ord} @ {n}'
+
+      match ord.token.v:
+        case '+':
+          recorder.skip_next()
+          return ord.recurse_node("right", succ)
+        case '*' | '^':
+          if ord.right.is_limit_ordinal():
+            # (w^a)[3] = w^(a[3])
+            if ord.token == '*':  # (w*w)[3] = w*(w[3]) looks the same
+              recorder.skip_next()
+            return ord.recurse_node("right", succ)
+          else:
+            if ord.right == 0:
+              return (True, None, Ord(1))
+            if ord.right == 1:
+              return (True, None, ord.left)
+            # w^(a+1)[3] = w^a * w[3]
+            # todo 2: dec not recorded. combine w/ is_limit_ordinal case then go inside
+            return (True, None, Ord('+' if ord.token.v == '*' else '*',
+                                Ord.simplified(Ord(ord.token, ord.left, ord.right.dec())),
+                                ord.left
+                                    ))
+        case _:
+          assert 0, ord
+
+    pre_stack : List[Ord] = []
+    #  w+.
+    #   +
+    #  ...+
+    #   +
+    #   *     <--- n_locked: num of + at the bottom
+    #  ...any
+    #   *     <--- n_non_plus: idx(last non '+' op)
+    #   +
+    #  ...+
+    #   +
+    n_locked = 0  # locked elem in stack can't be pop. Will lock (a+.)
+    idx_non_plus = -1
+    curr : Ord = self.ord
+
+    # record orignal FS, and every time eval success
+    recorder.record_fs([], curr, res=True)
+    for _ in range(recorder.cal_limit):
+      succ, pre, next = impl(curr, self.n)
+      if succ:  # curr expands to next
+        if pre is not None:
+          assert pre.token != '+'  # !! todo: '+' never in stack
+          if n_locked == len(pre_stack) and pre.token == '+':
+            n_locked += 1
+          if pre.token != '+':
+            idx_non_plus = max(idx_non_plus, len(pre_stack))
+          pre_stack.append(pre)
+        recorder.record_fs(copy(pre_stack), next, res=True)
+        curr = next
+      else:  # can't eval curr
+        assert pre is None
+        if len(pre_stack) <= n_locked:
+          break  # curr is done and nothing other than + in stack. done
+        else:
+          # try combine and continue
+          assert idx_non_plus >= 0
+          while len(pre_stack) > idx_non_plus:
+            next = utils.not_none(pre_stack.pop().make_combined(next))
+          curr = next
+
+    return recorder.get_result()
+
   def calc_display(self, expected=None, *, limit=Ord.fs_cal_limit_default,
                    test_only=False, show_steps=False, print_str=False):
 
@@ -781,7 +880,7 @@ class FGH:
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fs_at(
-        self.x, FSRecorder(0, Ord.fs_cal_limit_default)), self.x)
+        self.x, FSRecorder(1, Ord.fs_cal_limit_default)), self.x)
     elif self.ord == 0:
       return True, self.x + self.exp
     elif self.ord == 1:
