@@ -124,8 +124,6 @@ class Veblen:
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
           return Ord(Veblen(a, self.index(n-1, rec)))
 
-
-
 # number, w, e, operators, Veblen
 class Token:
   v: int | str | Veblen | FdmtSeq
@@ -351,8 +349,9 @@ class Node:
 
 # Ordinal
 class Ord(Node):
-
   rotate_at_init = False
+
+  # * structual
   def __init__(self, token, left=None, right=None, *, latex_force_veblen=False):
     super().__init__(token, left, right, latex_force_veblen=latex_force_veblen)
     if Ord.rotate_at_init:
@@ -485,6 +484,7 @@ class Ord(Node):
       return Ord(self.token, self.left, r)
     return None
 
+  # * named c'tors
   @staticmethod
   def from_str(expression: str, *, latex_force_veblen=False):
     """
@@ -604,6 +604,7 @@ class Ord(Node):
                self.token.to_latex() + \
                '{' + self.right.to_latex() + '}'
 
+  # * math
   def is_limit_ordinal(self):
     if self.is_atomic():
       return not self.is_natural()
@@ -635,6 +636,7 @@ class Ord(Node):
     return node
 
   fs_cal_limit_default = 500
+  # just a shortcut for FdmtSeq Func
   def fs_at(self, n, recorder : FSRecorder) -> Ord:
     return FdmtSeq(self, n).calc(recorder)
 
