@@ -50,13 +50,12 @@ def latex_to_html(latex_str_list, path):
     file.write('\n')
     file.write(latex_html_ends)
 
-def test_f_s(ord1 : str | int, n : int, ord2=None, *,
+def test_f_s(ord1 : str | int, n : int, ord2=None, *, limit=Ord.fs_cal_limit_default,
              test_only=False, show_step=False, print_str=False):
   formula = FdmtSeq(ord1, n, latex_force_veblen=True).calc_display(
               expected=FdmtSeq(ord2, n) if ord2 is not None else None,
-              test_only=test_only,
-              show_steps=show_step,
-              print_str=print_str)
+              limit=limit, test_only=test_only,
+              show_steps=show_step, print_str=print_str)
   if show_step:
     return (OutType.DIV, formula)
   else:
@@ -168,7 +167,10 @@ if __name__ == '__main__':
     # test_f_s('e^e'              , 3),
 
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha,\gamma) $ </h2>'+'\n'),
-    test_f_s('v(1,1)'      , 0),  # R6
+    test_f_s('v(1,1)'      , 0, 'e+1'    ),    # R6
+    # todo: sml limit after fix
+    test_f_s('v(1,1)'      , 1, limit=100, show_step=True),  # R6
+    # test_f_s('v(1,1)'      , 1, 'w^(e+1)'),  # R7
 
 
   ]

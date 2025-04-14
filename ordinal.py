@@ -87,6 +87,7 @@ class Veblen:
     return self.arity() == 2
 
   def index(self, n : int, rec: FSRecorder) -> Ord:
+    # !! simplify record at fs, unify here
     if rec.inc_discard_check_limit():
       return Ord(self)
 
@@ -152,8 +153,12 @@ class Token:
           self.v = int(v)
         elif v[0] == 'v':
           self.v = Veblen.from_str(v, latex_force_veblen=latex_force_veblen)
-        else:
+        elif v in 'exh':
+          self.v = Veblen('exh'.index(v)+1, 0)
+        elif v in 'w+*^':
           self.v = v
+        else:
+          assert 0, self.v
       case _:
         assert 0, v
 
@@ -683,7 +688,7 @@ class FdmtSeq:
     recorder.record(FdmtSeq(res, self.n), res=True)
     return res
 
-  def calc_display(self, expected=None, *,
+  def calc_display(self, expected=None, *, limit=Ord.fs_cal_limit_default,
                    test_only=False, show_steps=False, print_str=False):
 
     def display(obj: Ord):
@@ -693,7 +698,7 @@ class FdmtSeq:
       return FdmtSeq(fs.calc(recorder), self.n)
 
     return test_display(self, calc, display, expected,
-                        limit=Ord.fs_cal_limit_default, test_only=test_only,
+                        limit=limit, test_only=test_only,
                         show_steps=show_steps, print_str=print_str)
 
 
@@ -757,7 +762,7 @@ class FGH:
   def expand_once_display(self, expected=None, test_only=False):
     succ, res = self.expand_once()
     if expected is not None:
-      assert expected == res, f'{expected} != {res}'
+      assert res == expected, f'{res} != {expected}'
     if test_only:
       return None
     res_str = res.to_latex() if isinstance(res, FGH) else str(res)
