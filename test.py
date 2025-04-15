@@ -1,4 +1,5 @@
 from enum import Enum
+import ordinal
 from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter, WIPError, ord_set_debug_mode
 import utils
 
@@ -55,10 +56,23 @@ def latex_to_html(latex_str_list, path):
 def test_f_s(ord1 : str | int, n : int, ord2=None, *,
              limit=Ord.fs_cal_limit_default, till_expected=False,
              test_only=False, show_step=False, print_str=False):
-  formula = FdmtSeq(ord1, n, latex_force_veblen=True).calc_display(
-              expected=ord2,
-              limit=limit, till_expected=till_expected,
-              test_only=test_only, show_steps=show_step, print_str=print_str)
+
+  def display(obj: Ord):
+    return obj.to_latex()
+
+  def calc(fs: FdmtSeq, recorder : ordinal.FSRecorder) -> Ord:
+    res = fs.calc(recorder)
+    if ordinal.debug_mode:
+      assert res == recorder.get_result()
+    return res
+
+  formula = ordinal.test_display(
+    FdmtSeq(ord1, n, latex_force_veblen=True),
+    calc, display, ord2,
+    limit=limit, test_only=test_only,
+    show_steps=show_step, print_str=print_str
+  )
+
   if show_step:
     return (OutType.DIV, formula)
   else:
@@ -67,10 +81,21 @@ def test_f_s(ord1 : str | int, n : int, ord2=None, *,
 def test_fgh(ord1 : str | int, n : int, ex=None, *,
              limit=FGH.expand_limit_default, test_only=False,
              show_step=False, print_str=False):
-  formula = FGH(ord1, n, latex_force_veblen=True).expand_display(
-              expected=ex,
-              limit=limit, test_only=test_only,
-              show_steps=show_step, print_str=print_str)
+
+  def fgh_to_latex(fgh : FGH | int):
+    if isinstance(fgh, FGH):
+      return fgh.to_latex()
+    return str(fgh)
+
+  def calc(fgh : FGH, recorder):
+    return fgh.expand(recorder)
+
+  formula = ordinal.test_display(
+    FGH(ord1, n, latex_force_veblen=True), calc, fgh_to_latex, ex,
+    limit=limit, test_only=test_only,
+    show_steps=show_step, print_str=print_str
+  )
+
   if show_step:
     return (OutType.DIV, formula)
   else:

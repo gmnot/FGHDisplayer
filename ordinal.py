@@ -799,24 +799,6 @@ class FdmtSeq:
 
     return recorder.get_result()
 
-  def calc_display(self, expected=None, *,
-                   limit=Ord.fs_cal_limit_default, till_expected=False,
-                   test_only=False, show_steps=False, print_str=False):
-
-    def display(obj: Ord):
-      return obj.to_latex()
-
-    def calc(fs: FdmtSeq, recorder : FSRecorder) -> Ord:
-      res = fs.calc(recorder)
-      if debug_mode:
-        assert res == recorder.get_result()
-      return res
-
-    return test_display(self, calc, display, expected,
-                        limit=limit, test_only=test_only,
-                        show_steps=show_steps, print_str=print_str)
-
-
 class FGH:
   ord: Ord
   x: int | FGH
@@ -899,17 +881,3 @@ class FGH:
     return ret
 
   expand_limit_default = 100
-  def expand_display(self, expected=None, *, limit=expand_limit_default,
-    test_only=False, show_steps=False, print_str=False):
-
-    def fgh_to_latex(fgh : FGH | int):
-      if isinstance(fgh, FGH):
-        return fgh.to_latex()
-      return str(fgh)
-
-    def calc(fgh : FGH, recorder):
-      return fgh.expand(recorder)
-
-    return test_display(self, calc, fgh_to_latex, expected,
-                        limit=limit, test_only=test_only,
-                        show_steps=show_steps, print_str=print_str)
