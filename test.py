@@ -2,7 +2,7 @@ from enum import Enum
 from html_utils import OutType
 import ordinal
 from ordinal import calc_display, get_rotate_counter, FdmtSeq, FGH, \
-                    ord_set_debug_mode, Ord, WIPError
+                    ord_set_debug_mode, Ord, Veblen, WIPError
 import utils
 
 latex_html_headers = r"""<!DOCTYPE html>
@@ -126,6 +126,7 @@ def test_main():
     test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
     test_fgh('w*2+1'              , 3),
     test_f_s('w*w'                , 4, 'w*3+4'  , test_only=True),
+    test_f_s('v(0,0)'             , 0,  0,        test_only=True),  # R4
     test_f_s('v(0,1)'             , 3, '3'      , test_only=True),  # R2 v(0,g) = w^g
     test_f_s('v(0,2)'             , 3, 'w*2+3'  , show_step=True),  # R2 v(0,g) = w^g
     test_f_s('v(0,3)'             , 2, 'w^2+w+2', test_only=True),  # R2 v(0,g) = w^g
@@ -147,14 +148,13 @@ def test_main():
     test_f_s('w^((w^2)*2+w*2+2)'  , 3, test_only=True),
 
     (OutType.PLAIN, r'<h2> $ \varepsilon_0 $ </h2>'+'\n'),
-    test_f_s('v(0,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(1,0)'             , 0, 0),                  # R4
     test_f_s('v(2,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R4
-    test_f_s('v(1,0)'             , 1, 1),                  # R5
-    test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5
-    test_f_s('v(1,0)'             , 3,    test_only=True),  # R5
-    # todo 2: more v tests
+    test_f_s('v(1,0)'             , 1, 1),                  # R5 v(a+1,0)
+    test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5 v(a+1,0)
+    test_f_s('v(1,0)'             , 3,    test_only=True),  # R5 v(a+1,0)
+    # todo 1: more v tests
     test_f_s('e'                  , 3, 'w^2*2+w*2+3', show_step=True),
     # todo 2: w^w^w return if calc to the end. and assert, so limit isn't too small
     test_fgh('w^(w^w)'            , 2, show_step=True),
@@ -164,11 +164,21 @@ def test_main():
     # test_f_s('e^e'              , 3),
 
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha,\gamma) $ </h2>'+'\n'),
-    test_f_s('v(1,1)'      , 0, 'e+1'    ),    # R6
+    test_f_s('v(1,1)'      , 0, 'e+1'),                  # R6
     # todo: give a expected mid value for stop
-    test_f_s('v(1,1)'      , 1, until=FdmtSeq('w^(v(1,0)+1)', 1), show_step=True),  # R7 R6
-    # test_f_s('v(1,1)'      , 1, 'w^(e+1)'),  # R7
-
+    test_f_s('v(1,1)'      , 1, until=FdmtSeq('w^(e+1)', 1),
+                                show_step=True),         # R7 R6 v(a+1,g+1)[n+1 to 0]
+    test_f_s('v(1,1)'      , 2, until=Veblen(0, FdmtSeq('w^(v(1, 0)+1)', 2)),
+                                show_step=True),         # R7 R6
+    test_f_s('v(1,w)'      , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
+                                show_step=True),         # R3 R7 R6, g is LO
+    # todo 1: show {e_0}[3] instead of e_{0[0]}, move skip_next
+    # todo 1: parse FS, nested Veblen
+    test_f_s('v(2,0)'      , 3, until=Veblen.from_nested(1, (1, (0, FdmtSeq(Veblen(1, 0), 2)))),
+                                show_step=True),         # R5 v(a+1,0)
+    # v(1, v(0, (w^(v(1, v(2, 1))+1))[2]))
+    test_f_s('v(2,w)'      , 2, until=Veblen.from_nested(1, (0, FdmtSeq(Ord('^', 'w', Ord('+', Veblen.from_nested(1, (2, 1)), 1)), 2))),
+                                show_step=True),         # R3 R7 R6, g is LO
 
   ]
 

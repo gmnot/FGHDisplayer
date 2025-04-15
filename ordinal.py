@@ -69,6 +69,17 @@ class Veblen:
     ords = (Ord.from_str(s, latex_force_veblen=latex_force_veblen) for s in s.split(','))
     return Veblen(*ords, latex_force_veblen=latex_force_veblen)
 
+  @classmethod
+  def from_nested(cls, *args, latex_force_veblen=False) -> Veblen:
+    param = []
+    for a in args:
+      match a:
+        case tuple():
+          param.append(Ord(cls.from_nested(*a, latex_force_veblen=latex_force_veblen)))
+        case _:
+          param.append(Ord.from_any(a, latex_force_veblen=latex_force_veblen))
+    return Veblen(*param, latex_force_veblen=latex_force_veblen)
+
   def __eq__(self, other):
     # todo: consider complex Veblen
     return isinstance(other, Veblen) and \
