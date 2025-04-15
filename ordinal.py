@@ -147,7 +147,6 @@ class Veblen:
       return succ_v((ax, None), gx)
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
       if gx == 0:  # R8 v(a, 0)
-        # todo 1: record
         return succ_v((None, 0), ax)
       else:  # R9 v(a, g+1)
         return succ_v((None, Veblen(ax, gx.dec()) + 1), ax)
@@ -318,7 +317,7 @@ class Recorder:
   def skip_next(self):
     self.will_skip_next = True
 
-  # todo 1: one line mode; based on number of terms
+  # todo 2: one line mode; based on number of terms
   def to_latex(self, entry_to_latex):
     ret = r' \begin{align*}' + '\n'
     ret += entry_to_latex(self.data[0])
