@@ -61,6 +61,8 @@ def test_display(obj, expected=None, *,
                                 limit if limit else obj.cal_limit_default,
                                 until=until)
   res = obj.calc(recorder)
+  if recorder.until is not None:
+    assert recorder.until_met, f'{recorder.until}, {recorder}'
 
   if expected is not None:
     assert res == expected, f'{res} != {expected}'
@@ -169,6 +171,8 @@ def test_main():
     test_f_s('w^w'                , 3, 'w^2*2+w*2+3'),
     test_f_s('v(0,w)'             , 3, 'w^2*2+w*2+3', test_only=True),  # R2 v(0,g) = w^g
     FGH('w^w'  , 3).expand_once_display(FGH('w^2*2+w*2+3', 3), test_only=True),
+    # !! todo: support until for FGH
+    # test_fgh('w^w'                , 3, until=FGH('w^2*2+w*2+3', 3)),
     test_fgh('w^w'                , 3, test_only=True),
     test_f_s('w^(w+1)'            , 3, 'w^w*2 + w^2*2 + w*2 + 3', test_only=True),
     test_f_s('v(0,w+1)'           , 3, 'w^w*2 + w^2*2 + w*2 + 3', show_step=True),
@@ -184,7 +188,6 @@ def test_main():
     test_f_s('v(2,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(w,0)'             , 0, 0, test_only=True),  # R4
     test_f_s('v(1,0)'             , 1, 1),                  # R5
-    # !! todo 1: v(0,) to w has repeating display; and missing index [2]
     test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5
     test_f_s('v(1,0)'             , 3,    test_only=True),  # R5
     # todo 2: more v tests
@@ -199,7 +202,7 @@ def test_main():
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha,\gamma) $ </h2>'+'\n'),
     test_f_s('v(1,1)'      , 0, 'e+1'    ),    # R6
     # todo: give a expected mid value for stop
-    test_f_s('v(1,1)'      , 1, limit=4, show_step=True),  # R7 R6
+    test_f_s('v(1,1)'      , 1, until=FdmtSeq('w^(v(1,0)+1)', 1), show_step=True),  # R7 R6
     # test_f_s('v(1,1)'      , 1, 'w^(e+1)'),  # R7
 
 

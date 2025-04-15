@@ -269,21 +269,29 @@ class Recorder:
   def no_mid_steps(self):
     return self.rec_limit == 2
 
-  # return: True if cal_limit_reached
+  def _record(self, entry, res=False):
+    if self.cnt() >= self.rec_limit:
+      self.n_discard += 1
+      if res:  # force replace
+        self.data[-1] = entry
+    else:
+      self.data.append(entry)
+
+  # return: True if cal_limit_reached or until met
   def record(self, entry, res=False) -> bool:
+    assert entry is not None
     try:
       if not self.active():
         return False
-      if self.will_skip_next:
+      if self.until is not None and entry == self.until:
+        self.until_met = True
+        self._record(entry, res)
+      elif self.will_skip_next:
         pass
-      elif self.cnt() >= self.rec_limit:
-        self.n_discard += 1
-        if res:  # force replace
-          self.data[-1] = entry
       else:
-        self.data.append(entry)
+        self._record(entry, res)
+      return self.inc_discard_check_end()
 
-      return self.inc_discard_check_limit()
     finally:
       self.will_skip_next = False
 
@@ -296,12 +304,12 @@ class Recorder:
     return self.data[-1]
 
   # return True if cal_limit reached
-  def inc_discard_check_limit(self) -> bool:
+  def inc_discard_check_end(self) -> bool:
     if self.cnt() >= self.rec_limit:
       self.n_discard += 1
     else:
       self.n_pre_discard += 1
-    return self.cal_limit_reached()
+    return self.cal_limit_reached() or self.until_met
 
   def skip_next(self):
     self.will_skip_next = True
@@ -315,7 +323,10 @@ class Recorder:
     if self.n_discard > 1:  # 1 step could be (a+b)[x] = a+b[x]
       ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
              f'after {self.n_discard} more steps' r'}} \\' + '\n'
-    ret += f'  &= {entry_to_latex(self.data[-1])} \\\\\n'
+    ret += f'  &= {entry_to_latex(self.data[-1])} '
+    if self.until_met:
+      ret += r' = \dots'
+    ret += '\\\\\n'
     ret += r'\end{align*} ' + '\n'
     return ret
 
@@ -756,7 +767,7 @@ class FdmtSeq:
     if recorder.record_fs([], Ord.from_any(curr), res=True):
       return recorder.get_result()
     while True:
-      succ, pre, next = impl(curr)  # ! idx could change! like R5
+      succ, pre, next = impl(curr)  # * idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
