@@ -53,9 +53,7 @@ def latex_to_html(latex_str_list, path):
     file.write(latex_html_ends)
   print(f'update: {utils.get_file_mtime_str(path)}')
 
-def test_f_s(ord1 : str | int, n : int, ord2=None, *,
-             limit=Ord.fs_cal_limit_default, till_expected=False,
-             test_only=False, show_step=False, print_str=False):
+def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
 
   def display(obj: Ord):
     return obj.to_latex()
@@ -68,19 +66,16 @@ def test_f_s(ord1 : str | int, n : int, ord2=None, *,
 
   formula = ordinal.test_display(
     FdmtSeq(ord1, n, latex_force_veblen=True),
-    calc, display, ord2,
-    limit=limit, test_only=test_only,
-    show_steps=show_step, print_str=print_str
+    calc, display, expected,
+    **kwargs
   )
 
-  if show_step:
+  if kwargs.get('show_step', False):
     return (OutType.DIV, formula)
   else:
     return formula
 
-def test_fgh(ord1 : str | int, n : int, ex=None, *,
-             limit=FGH.expand_limit_default, test_only=False,
-             show_step=False, print_str=False):
+def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
 
   def fgh_to_latex(fgh : FGH | int):
     if isinstance(fgh, FGH):
@@ -91,12 +86,12 @@ def test_fgh(ord1 : str | int, n : int, ex=None, *,
     return fgh.expand(recorder)
 
   formula = ordinal.test_display(
-    FGH(ord1, n, latex_force_veblen=True), calc, fgh_to_latex, ex,
-    limit=limit, test_only=test_only,
-    show_steps=show_step, print_str=print_str
+    FGH(ord1, n, latex_force_veblen=True),
+    calc, fgh_to_latex, expected,
+    **kwargs
   )
 
-  if show_step:
+  if kwargs.get('show_step', False):
     return (OutType.DIV, formula)
   else:
     return formula

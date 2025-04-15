@@ -313,8 +313,8 @@ class FSRecorder(Recorder):
 
 
 def test_display(obj, f_calc, f_display, expected=None, *,
-                 limit=100, test_only=False , show_steps=False, print_str=False):
-  recorder = FSRecorder((15 if show_steps else 1), limit)
+                 limit=100, test_only=False , show_step=False, print_str=False):
+  recorder = FSRecorder((15 if show_step else 1), limit)
   res = f_calc(obj, recorder)
 
   if expected is not None:
@@ -323,7 +323,7 @@ def test_display(obj, f_calc, f_display, expected=None, *,
   if test_only:
     return None
 
-  if not show_steps:
+  if not show_step:
     return f'{f_display(obj)}={f_display(res)}'
 
   if print_str:
