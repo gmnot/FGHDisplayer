@@ -54,10 +54,12 @@ def latex_to_html(latex_str_list, path):
   print(f'update: {utils.get_file_mtime_str(path)}')
 
 def test_display(obj, expected=None, *,
-                 limit=100, test_only=False,
+                 limit=None, until=None, test_only=False,
                  show_step=False, print_str=False):
 
-  recorder = ordinal.FSRecorder((15 if show_step else 1), limit)
+  recorder = ordinal.FSRecorder((15 if show_step else 1),
+                                limit if limit else obj.cal_limit_default,
+                                until=until)
   res = obj.calc(recorder)
 
   if expected is not None:

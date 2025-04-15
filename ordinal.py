@@ -1,7 +1,7 @@
 from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
-from typing import List, Dict, Tuple, cast
+from typing import Any, List, Dict, Tuple, cast
 import re
 import utils
 
@@ -237,7 +237,10 @@ class Recorder:
   n_pre_discard : int  # discarded before reach limit
   will_skip_next : bool  # skip the next record
 
-  def __init__(self, rec_limit, cal_limit):
+  until     : Any
+  until_met : bool
+
+  def __init__(self, rec_limit, cal_limit, until=None):
     assert rec_limit >= 0
     self.rec_limit = rec_limit
     self.cal_limit = cal_limit
@@ -245,6 +248,8 @@ class Recorder:
     self.n_discard = 0
     self.n_pre_discard = 0
     self.will_skip_next = False
+    self.until = until
+    self.until_met = False
 
   def __repr__(self):
     return f'{self.data}'
@@ -309,8 +314,8 @@ class Recorder:
 
 class FSRecorder(Recorder):
 
-  def __init__(self, rec_limit, cal_limit):
-    super().__init__(rec_limit, cal_limit)
+  def __init__(self, *args, **kwargs):
+    super().__init__(*args, **kwargs)
 
   def record_fs(self, pres : List[Ord], curr : Ord, res=False):
     ord_list = pres + [curr]
@@ -702,7 +707,7 @@ class FdmtSeq:
   # But with Ord, outside know it's done if Ord.token isn't FS
   @utils.validate_return_based_on_arg(
       'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
-  def calc(self, recorder : FSRecorder) -> Ord:
+  def calc(self, recorder : FSRecorder, *, until=None) -> Ord:
 
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
@@ -857,7 +862,8 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  def calc(self, recorder : FSRecorder):
+  cal_limit_default = 100
+  def calc(self, recorder : FSRecorder, until=None):
     ret : FGH | int = self
 
     recorder.record(ret)
@@ -869,5 +875,3 @@ class FGH:
       if not succ or not isinstance(ret, FGH):
         return ret
     return ret
-
-  expand_limit_default = 100
