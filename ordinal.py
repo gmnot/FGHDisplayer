@@ -251,8 +251,11 @@ class Recorder:
     self.until = until
     self.until_met = False
 
-  def __repr__(self):
+  def __str__(self):
     return f'{self.data}'
+
+  def __repr__(self):
+    return self.__str__()
 
   def active(self):
     return self.rec_limit != 0
@@ -828,6 +831,9 @@ class FGH:
   def __str__(self):
     return f'f{self.exp_str()}({self.ord}, {self.x})'
 
+  def __repr__(self):
+    return self.__str__()
+
   def to_latex(self):
     x_latex = self.x if isinstance(self.x, int) else self.x.to_latex()
     return f'f_{{{self.ord.to_latex()}}}{self.exp_str()}({x_latex})'
@@ -868,15 +874,16 @@ class FGH:
            ('=...' if maybe_unfinished else '')
 
   cal_limit_default = 100
-  def calc(self, recorder : Recorder, until=None):
+  def calc(self, recorder : Recorder):
     ret : FGH | int = self
 
-    recorder.record(ret)
+    if recorder.record(ret):
+      return ret
 
-    for _ in range(recorder.cal_limit):
+    while True:
       succ, ret = cast(FGH, ret).expand_once()
       if succ:
-        recorder.record(ret, res=True)
+        if recorder.record(ret, res=True):
+          return ret
       if not succ or not isinstance(ret, FGH):
         return ret
-    return ret

@@ -60,29 +60,30 @@ def test_display(obj, expected=None, *,
   recorder = ordinal.Recorder((15 if show_step else 1),
                                 limit if limit else obj.cal_limit_default,
                                 until=until)
+  assert recorder is not None
+
   res = obj.calc(recorder)
   if recorder.until is not None:
-    assert recorder.until_met, f'{recorder.until}, {recorder}'
+    assert recorder.until_met, f'never reached {recorder.until}\n{recorder}'
 
   if expected is not None:
     assert res == expected, f'{res} != {expected}'
+
+  if print_str:
+    print(res)
 
   if test_only:
     return None
 
   if not show_step:
-    return f'{ordinal.to_latex(obj)}={ordinal.to_latex(res)}'
-
-  if print_str:
-    print(res)
-
-  assert recorder is not None
+    ret = f'{ordinal.to_latex(obj)}={ordinal.to_latex(res)}'
+    if recorder.until_met:
+      ret += r'=\dots'
+    return ret
 
   formula = recorder.to_latex(ordinal.to_latex)
-  if show_step:
-    return (OutType.DIV, formula)
-  else:
-    return formula
+  return (OutType.DIV, formula)
+
 
 def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
 
@@ -170,9 +171,7 @@ def test_main():
     test_f_s('w^3'                , 4, 'w^2*3+w*3+4'),
     test_f_s('w^w'                , 3, 'w^2*2+w*2+3'),
     test_f_s('v(0,w)'             , 3, 'w^2*2+w*2+3', test_only=True),  # R2 v(0,g) = w^g
-    FGH('w^w'  , 3).expand_once_display(FGH('w^2*2+w*2+3', 3), test_only=True),
-    # !! todo: support until for FGH
-    # test_fgh('w^w'                , 3, until=FGH('w^2*2+w*2+3', 3)),
+    test_fgh('w^w'                , 3, until=FGH('w^2*2+w*2+3', 3)),
     test_fgh('w^w'                , 3, test_only=True),
     test_f_s('w^(w+1)'            , 3, 'w^w*2 + w^2*2 + w*2 + 3', test_only=True),
     test_f_s('v(0,w+1)'           , 3, 'w^w*2 + w^2*2 + w*2 + 3', show_step=True),
