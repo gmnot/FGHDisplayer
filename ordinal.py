@@ -595,6 +595,18 @@ class Ord(Node):
             tokens.append(s[start:i])
           else:
             raise KnownError("Unmatched parentheses in v(...) expression")
+        elif s[i] == '[':
+          # Handle [number] form
+          j = i + 1
+          while j < len(s) and s[j].isdigit():
+            j += 1
+          if j < len(s) and s[j] == ']':
+            number = s[i+1:j]
+            tokens.append(Operator.FS_AT)
+            tokens.append(number)
+            i = j + 1
+          else:
+            raise KnownError(f"Invalid bracket expression starting at: {s[i:]}")
         elif s[i].isdigit():
           m = re.match(r'\d+', s[i:])
           tokens.append(m.group(0))
@@ -615,6 +627,8 @@ class Ord(Node):
       return tokens
 
     def precedence(op):
+      if op == Operator.FS_AT:
+        return 9
       if op == "+":
         return 1
       if op == "*":
@@ -623,9 +637,10 @@ class Ord(Node):
         return 3
       return 0
 
-    def is_operand(tok : str):
-      return tok.isdigit() or tok in Token.ord_maps or \
-             len(tok) > 3 and tok.startswith('v(')
+    def is_operand(tok : str | Operator):
+      return not isinstance(tok, Operator) and \
+             (tok.isdigit() or tok in Token.ord_maps or
+             len(tok) > 3 and tok.startswith('v('))
 
     def to_postfix(tokens):
       """
@@ -651,18 +666,24 @@ class Ord(Node):
         out.append(stack.pop())
       return out
 
-    def build_tree(postfix) -> Ord:
+    def build_tree(postfix : List[str | Operator]) -> Ord | FdmtSeq:
       """
       Build a binary tree from the postfix expression.
       """
-      stack = []
+      stack : List[Ord | FdmtSeq] = []
       for tok in postfix:
-        if is_operand(tok):
-          stack.append(Ord(tok, latex_force_veblen=latex_force_veblen))
-        else:  # Operator
-          right = stack.pop()
-          left = stack.pop()
-          stack.append(Ord(tok, left, right))
+        match tok:
+          case Operator():
+            right = stack.pop()
+            left  = stack.pop()
+            stack.append(FdmtSeq(left, cast(int, cast(Ord, right).token.v)))
+          case _:
+            if is_operand(tok):
+              stack.append(Ord(tok, latex_force_veblen=latex_force_veblen))
+            else:  # Operator
+              right = stack.pop()
+              left = stack.pop()
+              stack.append(Ord(tok, left, right))
 
       kraise(len(stack) != 1,
              f"Can't read ordinal from {expression}: " +
