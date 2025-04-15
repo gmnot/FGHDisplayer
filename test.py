@@ -53,11 +53,12 @@ def latex_to_html(latex_str_list, path):
     file.write(latex_html_ends)
   print(f'update: {utils.get_file_mtime_str(path)}')
 
-def test_display(obj, f_calc, expected=None, *,
-                 limit=100, test_only=False , show_step=False, print_str=False):
+def test_display(obj, expected=None, *,
+                 limit=100, test_only=False,
+                 show_step=False, print_str=False):
 
   recorder = ordinal.FSRecorder((15 if show_step else 1), limit)
-  res = f_calc(obj, recorder)
+  res = obj.calc(recorder)
 
   if expected is not None:
     assert res == expected, f'{res} != {expected}'
@@ -81,22 +82,16 @@ def test_display(obj, f_calc, expected=None, *,
 
 def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
 
-  def calc(fs: FdmtSeq, recorder : ordinal.FSRecorder) -> Ord:
-    return fs.calc(recorder)
-
   return test_display(
     FdmtSeq(ord1, n, latex_force_veblen=True),
-    calc, expected, **kwargs
+    expected, **kwargs
   )
 
 def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
 
-  def calc(fgh : FGH, recorder):
-    return fgh.expand(recorder)
-
   return test_display(
     FGH(ord1, n, latex_force_veblen=True),
-    calc, expected, **kwargs
+    expected, **kwargs
   )
 
 

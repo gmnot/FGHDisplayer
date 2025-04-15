@@ -857,7 +857,7 @@ class FGH:
     return f'{self.to_latex()}={res_str}' + \
            ('=...' if maybe_unfinished else '')
 
-  def expand(self, recorder : FSRecorder):
+  def calc(self, recorder : FSRecorder):
     ret : FGH | int = self
 
     recorder.record(ret)
