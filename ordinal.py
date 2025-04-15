@@ -122,7 +122,7 @@ class Veblen:
     self.param[idx] = None
     return func(sub_node, remain)
 
-  def index(self, n : int, rec: FSRecorder) -> Tuple[bool, Ord | None, FdmtSeq]:
+  def index(self, n : int, rec: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
 
     WIPError.raise_if(not self.is_binary(),
                       f"WIP: multi-var Veblen will be available soon. {self}")
@@ -288,6 +288,14 @@ class Recorder:
     finally:
       self.will_skip_next = False
 
+  def record_fs(self, pres : List[Ord], curr : Ord, res=False):
+    ord_list = pres + [curr]
+    return self.record(Ord.combine_list(ord_list), res)
+
+  def get_result(self):
+    assert len(self.data) > 0
+    return self.data[-1]
+
   # return True if cal_limit reached
   def inc_discard_check_limit(self) -> bool:
     if self.cnt() >= self.rec_limit:
@@ -311,19 +319,6 @@ class Recorder:
     ret += f'  &= {entry_to_latex(self.data[-1])} \\\\\n'
     ret += r'\end{align*} ' + '\n'
     return ret
-
-class FSRecorder(Recorder):
-
-  def __init__(self, *args, **kwargs):
-    super().__init__(*args, **kwargs)
-
-  def record_fs(self, pres : List[Ord], curr : Ord, res=False):
-    ord_list = pres + [curr]
-    return super().record(Ord.combine_list(ord_list), res)
-
-  def get_result(self):
-    assert len(self.data) > 0
-    return self.data[-1]
 
 # Binary Tree Node
 class Node:
@@ -674,7 +669,7 @@ class Ord(Node):
 
   fs_cal_limit_default = 500
   # just a shortcut for FdmtSeq Func
-  def fs_at(self, n, recorder : FSRecorder) -> Ord:
+  def fs_at(self, n, recorder : Recorder) -> Ord:
     return FdmtSeq(self, n).calc(recorder)
 
 # Fundamental Sequence
@@ -707,7 +702,7 @@ class FdmtSeq:
   # But with Ord, outside know it's done if Ord.token isn't FS
   @utils.validate_return_based_on_arg(
       'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
-  def calc(self, recorder : FSRecorder, *, until=None) -> Ord:
+  def calc(self, recorder : Recorder, *, until=None) -> Ord:
 
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
@@ -835,7 +830,7 @@ class FGH:
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fs_at(
-        self.x, FSRecorder(1, Ord.fs_cal_limit_default)), self.x)
+        self.x, Recorder(1, Ord.fs_cal_limit_default)), self.x)
     elif self.ord == 0:
       return True, self.x + self.exp
     elif self.ord == 1:
@@ -863,7 +858,7 @@ class FGH:
            ('=...' if maybe_unfinished else '')
 
   cal_limit_default = 100
-  def calc(self, recorder : FSRecorder, until=None):
+  def calc(self, recorder : Recorder, until=None):
     ret : FGH | int = self
 
     recorder.record(ret)

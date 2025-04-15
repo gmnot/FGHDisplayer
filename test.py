@@ -57,7 +57,7 @@ def test_display(obj, expected=None, *,
                  limit=None, until=None, test_only=False,
                  show_step=False, print_str=False):
 
-  recorder = ordinal.FSRecorder((15 if show_step else 1),
+  recorder = ordinal.Recorder((15 if show_step else 1),
                                 limit if limit else obj.cal_limit_default,
                                 until=until)
   res = obj.calc(recorder)
