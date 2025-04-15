@@ -96,3 +96,30 @@ def trace_calls(enabled=True):
 
     return wrapper
   return decorator
+
+def validate_return_based_on_arg(arg_name, check_fn):
+  def decorator(func):
+    sig = inspect.signature(func)
+
+    @functools.wraps(func)
+    def wrapper(*args, **kwargs):
+      bound = sig.bind(*args, **kwargs)
+      bound.apply_defaults()
+      arg_value = bound.arguments.get(arg_name)
+
+      result = func(*args, **kwargs)
+
+      values = result if isinstance(result, tuple) else (result,)
+      for val in values:
+        if not check_fn(val, arg_value):
+          raise ValueError(f"Invalid return value: {val} (arg {arg_name}={arg_value})")
+
+      return result
+    return wrapper
+  return decorator
+# example:
+# @validate_return_based_on_arg('mode', lambda ret, mode: ret > 0 if mode == 'strict' else True)
+# def get_score(data, mode='relaxed'):
+#   if not data:
+#     return -1
+#   return len(data)

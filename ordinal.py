@@ -43,6 +43,15 @@ def strip_pre_post(pre: str, s: str, post: str) -> str:
   assert s.startswith(pre) and s.endswith(post), f'{s} {pre} {post}'
   return s[l1:-l2]
 
+def to_latex(obj) -> str:
+  match obj:
+    case int():
+      return str(obj)
+    case str():
+      return obj
+    case _:
+      return obj.to_latex()
+
 class Veblen:
   param: List[Ord]  # v:       v(1, 0, 0)
                     # index:     0  1  2
@@ -310,27 +319,6 @@ class FSRecorder(Recorder):
   def get_result(self):
     assert len(self.data) > 0
     return self.data[-1]
-
-
-def test_display(obj, f_calc, f_display, expected=None, *,
-                 limit=100, test_only=False , show_step=False, print_str=False):
-  recorder = FSRecorder((15 if show_step else 1), limit)
-  res = f_calc(obj, recorder)
-
-  if expected is not None:
-    assert res == expected, f'{res} != {expected}'
-
-  if test_only:
-    return None
-
-  if not show_step:
-    return f'{f_display(obj)}={f_display(res)}'
-
-  if print_str:
-    print(res)
-
-  assert recorder is not None
-  return recorder.to_latex(f_display)
 
 # Binary Tree Node
 class Node:
@@ -712,6 +700,8 @@ class FdmtSeq:
   # must return Ord.
   # If return FS, outside can't know if expand has completed
   # But with Ord, outside know it's done if Ord.token isn't FS
+  @utils.validate_return_based_on_arg(
+      'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
   def calc(self, recorder : FSRecorder) -> Ord:
 
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:

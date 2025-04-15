@@ -53,48 +53,52 @@ def latex_to_html(latex_str_list, path):
     file.write(latex_html_ends)
   print(f'update: {utils.get_file_mtime_str(path)}')
 
-def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
+def test_display(obj, f_calc, expected=None, *,
+                 limit=100, test_only=False , show_step=False, print_str=False):
 
-  def display(obj: Ord):
-    return obj.to_latex()
+  recorder = ordinal.FSRecorder((15 if show_step else 1), limit)
+  res = f_calc(obj, recorder)
 
-  def calc(fs: FdmtSeq, recorder : ordinal.FSRecorder) -> Ord:
-    res = fs.calc(recorder)
-    if ordinal.debug_mode:
-      assert res == recorder.get_result()
-    return res
+  if expected is not None:
+    assert res == expected, f'{res} != {expected}'
 
-  formula = ordinal.test_display(
-    FdmtSeq(ord1, n, latex_force_veblen=True),
-    calc, display, expected,
-    **kwargs
-  )
+  if test_only:
+    return None
 
-  if kwargs.get('show_step', False):
+  if not show_step:
+    return f'{ordinal.to_latex(obj)}={ordinal.to_latex(res)}'
+
+  if print_str:
+    print(res)
+
+  assert recorder is not None
+
+  formula = recorder.to_latex(ordinal.to_latex)
+  if show_step:
     return (OutType.DIV, formula)
   else:
     return formula
 
-def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
+def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
 
-  def fgh_to_latex(fgh : FGH | int):
-    if isinstance(fgh, FGH):
-      return fgh.to_latex()
-    return str(fgh)
+  def calc(fs: FdmtSeq, recorder : ordinal.FSRecorder) -> Ord:
+    return fs.calc(recorder)
+
+  return test_display(
+    FdmtSeq(ord1, n, latex_force_veblen=True),
+    calc, expected, **kwargs
+  )
+
+def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
 
   def calc(fgh : FGH, recorder):
     return fgh.expand(recorder)
 
-  formula = ordinal.test_display(
+  return test_display(
     FGH(ord1, n, latex_force_veblen=True),
-    calc, fgh_to_latex, expected,
-    **kwargs
+    calc, expected, **kwargs
   )
 
-  if kwargs.get('show_step', False):
-    return (OutType.DIV, formula)
-  else:
-    return formula
 
 def test_associative():
   for s1, s2 in [('(w*2+w)+1', 'w*2+(w+1)'),
