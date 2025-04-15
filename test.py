@@ -1,6 +1,8 @@
 from enum import Enum
+from html_utils import OutType
 import ordinal
-from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter, WIPError, ord_set_debug_mode
+from ordinal import calc_display, get_rotate_counter, FdmtSeq, FGH, \
+                    ord_set_debug_mode, Ord, WIPError
 import utils
 
 latex_html_headers = r"""<!DOCTYPE html>
@@ -30,10 +32,6 @@ latex_html_ends = r"""</body>
 </html>
 """
 
-class OutType(Enum):
-  DIV    = 1
-  PLAIN  = 2
-
 def latex_to_html(latex_str_list, path):
   with open(path, "w") as file:
     file.write(latex_html_headers)
@@ -53,48 +51,16 @@ def latex_to_html(latex_str_list, path):
     file.write(latex_html_ends)
   print(f'update: {utils.get_file_mtime_str(path)}')
 
-def test_display(obj, expected=None, *,
-                 limit=None, until=None, test_only=False,
-                 show_step=False, print_str=False):
-
-  recorder = ordinal.Recorder((15 if show_step else 1),
-                                limit if limit else obj.cal_limit_default,
-                                until=until)
-  assert recorder is not None
-
-  res = obj.calc(recorder)
-  if recorder.until is not None:
-    assert recorder.until_met, f'never reached {recorder.until}\n{recorder}'
-
-  if expected is not None:
-    assert res == expected, f'{res} != {expected}'
-
-  if print_str:
-    print(res)
-
-  if test_only:
-    return None
-
-  if not show_step:
-    ret = f'{ordinal.to_latex(obj)}={ordinal.to_latex(res)}'
-    if recorder.until_met:
-      ret += r'=\dots'
-    return ret
-
-  formula = recorder.to_latex(ordinal.to_latex)
-  return (OutType.DIV, formula)
-
-
 def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
 
-  return test_display(
+  return calc_display(
     FdmtSeq(ord1, n, latex_force_veblen=True),
     expected, **kwargs
   )
 
 def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
 
-  return test_display(
+  return calc_display(
     FGH(ord1, n, latex_force_veblen=True),
     expected, **kwargs
   )
@@ -177,8 +143,7 @@ def test_main():
     test_f_s('v(0,w+1)'           , 3, 'w^w*2 + w^2*2 + w*2 + 3', show_step=True),
     test_fgh('w^w+1'              , 3),
     test_f_s('v(0,w*2)'           , 3,
-             '(((w^(w+2))*2)+(((w^(w+1))*2)+(((w^w)*2)+(((w^2)*2)+((w*2)+3)))))',
-                                       print_str=True),
+             '(((w^(w+2))*2)+(((w^(w+1))*2)+(((w^w)*2)+(((w^2)*2)+((w*2)+3)))))'),
     test_f_s('w^((w^2)*2+w*2+2)'  , 3, test_only=True),
 
     (OutType.PLAIN, r'<h2> $ \varepsilon_0 $ </h2>'+'\n'),

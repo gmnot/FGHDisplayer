@@ -1,6 +1,7 @@
 from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
+from html_utils import OutType
 from typing import Any, List, Dict, Tuple, cast
 import re
 import utils
@@ -887,3 +888,34 @@ class FGH:
           return ret
       if not succ or not isinstance(ret, FGH):
         return ret
+
+def calc_display(obj, expected=None, *,
+                 limit=None, until=None, test_only=False,
+                 show_step=False, print_str=False):
+
+  recorder = Recorder((15 if show_step else 1),
+                                limit if limit else obj.cal_limit_default,
+                                until=until)
+  assert recorder is not None
+
+  res = obj.calc(recorder)
+  if recorder.until is not None:
+    assert recorder.until_met, f'never reached {recorder.until}\n{recorder}'
+
+  if expected is not None:
+    assert res == expected, f'{res} != {expected}'
+
+  if print_str:
+    print(res)
+
+  if test_only:
+    return None
+
+  if not show_step:
+    ret = f'{to_latex(obj)}={to_latex(res)}'
+    if recorder.until_met:
+      ret += r'=\dots'
+    return ret
+
+  formula = recorder.to_latex(to_latex)
+  return (OutType.DIV, formula)
