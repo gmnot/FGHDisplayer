@@ -52,12 +52,13 @@ def latex_to_html(latex_str_list, path):
     file.write(latex_html_ends)
   print(f'update: {utils.get_file_mtime_str(path)}')
 
-def test_f_s(ord1 : str | int, n : int, ord2=None, *, limit=Ord.fs_cal_limit_default,
+def test_f_s(ord1 : str | int, n : int, ord2=None, *,
+             limit=Ord.fs_cal_limit_default, till_expected=False,
              test_only=False, show_step=False, print_str=False):
   formula = FdmtSeq(ord1, n, latex_force_veblen=True).calc_display(
               expected=ord2,
-              limit=limit, test_only=test_only,
-              show_steps=show_step, print_str=print_str)
+              limit=limit, till_expected=till_expected,
+              test_only=test_only, show_steps=show_step, print_str=print_str)
   if show_step:
     return (OutType.DIV, formula)
   else:
@@ -134,16 +135,18 @@ def test_main():
     test_f_s('w+w'                , 4, 'w+4'  , test_only=True),
     test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
     test_fgh('w*2+1'              , 3),
-    test_f_s('w*w'                , 4, 'w*3+4', test_only=True),
-    test_f_s('v(0,2)'             , 3, 'w*2+3', show_step=True),  # R2
-    test_f_s('w^2'                , 3, 'w*2+3', test_only=True),
+    test_f_s('w*w'                , 4, 'w*3+4'  , test_only=True),
+    test_f_s('v(0,1)'             , 3, '3'      , test_only=True),  # R2 v(0,g) = w^g
+    test_f_s('v(0,2)'             , 3, 'w*2+3'  , show_step=True),  # R2 v(0,g) = w^g
+    test_f_s('v(0,3)'             , 2, 'w^2+w+2', test_only=True),  # R2 v(0,g) = w^g
+    test_f_s('w^2'                , 3, 'w*2+3'  , test_only=True),
     test_f_s('w^2'                , 4, 'w*3+4'),
     test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),
     test_f_s('w^2+w'              , 3, 'w^2+3'),
     test_fgh('w^2+w+1'            , 3),
     test_f_s('w^3'                , 4, 'w^2*3+w*3+4'),
     test_f_s('w^w'                , 3, 'w^2*2+w*2+3'),
-    test_f_s('v(0,w)'             , 3, 'w^2*2+w*2+3', test_only=True),
+    test_f_s('v(0,w)'             , 3, 'w^2*2+w*2+3', test_only=True),  # R2 v(0,g) = w^g
     FGH('w^w'  , 3).expand_once_display(FGH('w^2*2+w*2+3', 3), test_only=True),
     test_fgh('w^w'                , 3, test_only=True),
     test_f_s('w^(w+1)'            , 3, 'w^w*2 + w^2*2 + w*2 + 3', test_only=True),

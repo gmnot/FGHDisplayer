@@ -130,11 +130,10 @@ class Veblen:
 
     if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
       return succ(Ord(0))
-    if ax == 0:  # R2: v(0, gx) = w^gx, no matter what gx is
+    if ax == 0:  # R2: v(0,g) = w^g (for any g)
       # rec.skip_next()
       return succ(Ord('^', 'w', gx))
     if gx.is_limit_ordinal():  # R3, g is LO
-      # todo 1: record expansion, pass in rec
       return succ_v((ax, None), gx)
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
       if gx == 0:  # R8 v(a, 0)
@@ -146,8 +145,6 @@ class Veblen:
       a = ax.dec()
       if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
         return succ_v((a, None), Veblen(ax, 0), n_nxt=n-1)
-        # todo 1: handle inner index
-        return succ_v((a, None), Veblen(ax, Ord(0)).index(n-1, rec)[2])
       else:
         if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
           # e.g. e1[0] = e0 + 1
@@ -802,7 +799,8 @@ class FdmtSeq:
 
     return recorder.get_result()
 
-  def calc_display(self, expected=None, *, limit=Ord.fs_cal_limit_default,
+  def calc_display(self, expected=None, *,
+                   limit=Ord.fs_cal_limit_default, till_expected=False,
                    test_only=False, show_steps=False, print_str=False):
 
     def display(obj: Ord):
