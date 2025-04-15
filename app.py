@@ -1,7 +1,8 @@
 # app.py
 from flask import Flask, request, render_template
-from ordinal import Ord, FGH, FdmtSeq, KnownError, kraise, ord_set_debug_mode
 from html_utils import latex_to_block, contact_request
+from ordinal import Ord, FGH, FdmtSeq, KnownError, kraise, ord_set_debug_mode
+from test import test_f_s, test_fgh
 
 app = Flask(__name__)
 
@@ -19,9 +20,9 @@ def index():
       n = int(n_str)
 
       if action == 'fund_seq':
-        result = latex_to_block(FdmtSeq(ord_str, n).calc_display(show_steps=True))
+        result = latex_to_block(test_f_s(ord_str, n, show_step=True))
       elif action == 'fgh':
-        result = latex_to_block(FGH(ord_str, n).expand_display(show_steps=True))
+        result = latex_to_block(test_fgh(ord_str, n, show_step=True))
 
     except KnownError as e:
       result = f'{e}'

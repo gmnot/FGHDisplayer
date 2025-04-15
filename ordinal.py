@@ -917,5 +917,4 @@ def calc_display(obj, expected=None, *,
       ret += r'=\dots'
     return ret
 
-  formula = recorder.to_latex(to_latex)
-  return (OutType.DIV, formula)
+  return recorder.to_latex(to_latex)
