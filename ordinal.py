@@ -240,6 +240,9 @@ class Recorder:
     self.n_pre_discard = 0
     self.will_skip_next = False
 
+  def __repr__(self):
+    return f'{self.data}'
+
   def active(self):
     return self.rec_limit != 0
 
@@ -787,7 +790,7 @@ class FdmtSeq:
             break
         # add all
         if len(adds_reversed) > 0:
-          curr.ord = Ord.from_list('+', adds_reversed[::-1] + [next.ord])
+          curr = FdmtSeq(Ord.from_list('+', adds_reversed[::-1] + [next.ord]), self.n)
         if non_add:
           # * when can't eval, restore with n of *self*
           # e.g. e[1] = w^e[0] = w^(0[0]) = (w^0)[1]

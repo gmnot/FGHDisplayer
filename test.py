@@ -174,8 +174,8 @@ def test_main():
 
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha,\gamma) $ </h2>'+'\n'),
     test_f_s('v(1,1)'      , 0, 'e+1'    ),    # R6
-    # todo: sml limit after fix
-    test_f_s('v(1,1)'      , 1, limit=100, show_step=True),  # R7 R6
+    # todo: give a expected mid value for stop
+    test_f_s('v(1,1)'      , 1, limit=4, show_step=True),  # R7 R6
     # test_f_s('v(1,1)'      , 1, 'w^(e+1)'),  # R7
 
 
