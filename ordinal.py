@@ -13,6 +13,7 @@ todo:
 
 # * globals
 debug_mode = False
+debug_rotate = False
 rotate_counter : int = 0
 
 def ord_set_debug_mode(new : bool):
@@ -112,44 +113,49 @@ class Veblen:
     self.param[idx] = None
     return func(sub_node, remain)
 
-  def index(self, n : int, rec: FSRecorder) -> Tuple[bool, Ord | None, Ord]:
+  def index(self, n : int, rec: FSRecorder) -> Tuple[bool, Ord | None, FdmtSeq]:
 
     WIPError.raise_if(not self.is_binary(),
                       f"WIP: multi-var Veblen will be available soon. {self}")
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
 
-    def succ_v(v: Tuple | Ord, nxt):
-      return (True, (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)), nxt)
+    def succ(nxt, remain=None):
+      return (True, remain, FdmtSeq(nxt, n))
+
+    def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
+      return (True,
+              (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)),
+              FdmtSeq(nxt, n_nxt))
 
     if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
-      return (True, None, Ord(0))
+      return succ(Ord(0))
     if ax == 0:  # R2: v(0, gx) = w^gx, no matter what gx is
       # rec.skip_next()
-      return (True, None, Ord('^', 'w', gx))
+      return succ(Ord('^', 'w', gx))
     if gx.is_limit_ordinal():  # R3, g is LO
       # todo 1: record expansion, pass in rec
-      return succ_v((ax, None), gx.fs_at(n, rec))
+      return succ_v((ax, None), gx)
     if ax.is_limit_ordinal():  # R8-9 v(a, .)
       if gx == 0:  # R8 v(a, 0)
         # todo 1: record
-        return succ_v((None, 0), ax.fs_at(n, rec))
+        return succ_v((None, 0), ax)
       else:  # R9 v(a, g+1)
-        return succ_v((None, Veblen(ax, gx.dec()) + 1), ax.fs_at(n, rec))
+        return succ_v((None, Veblen(ax, gx.dec()) + 1), ax)
     else:  # R5-7 v(a+1, .)
       a = ax.dec()
       if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
-        return (True, None, Ord(Veblen(a, Veblen(ax, Ord(0)).index(n-1, rec)[2])))
+        return succ_v((a, None), Veblen(ax, 0), n_nxt=n-1)
         # todo 1: handle inner index
         return succ_v((a, None), Veblen(ax, Ord(0)).index(n-1, rec)[2])
       else:
         if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
           # e.g. e1[0] = e0 + 1
           # todo 1: show dec
-          return (True, None, Veblen(ax, gx.dec()) + 1)
+          return succ(Veblen(ax, gx.dec()) + 1)
         else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
-          return succ_v((a, None), self.index(n-1, rec)[2])
+          return succ_v((a, None), self, n_nxt=n-1)
 
 # number, w, e, operators, Veblen
 class Token:
@@ -365,6 +371,7 @@ class Ord(Node):
       res = Ord(op, t, res)
     return res
 
+  @utils.trace_calls(enabled=debug_rotate)
   def rotate_op(self, op: str, to_right) -> None:
     # for example, if to right:
     #          +                    +
@@ -425,6 +432,16 @@ class Ord(Node):
     ord.rotate()
     return ord
 
+  @classmethod
+  def struct_eq(cls, a : Ord | None, b : Ord | None) -> bool:
+    if a is None:
+      return b is None
+    if b is None:
+      return False
+    return a.token == b.token and \
+           cls.struct_eq(a.left, b.left) and \
+           cls.struct_eq(a.right, b.right)
+
   def __eq__(self, other_):
     other = Ord.from_any(other_)
     if self.token != other.token:
@@ -432,8 +449,7 @@ class Ord(Node):
     if not Ord.rotate_at_init:
       self.rotate()
       other.rotate()
-    return self.left.__eq__(other.left) and \
-           self.right.__eq__(other.right)
+    return Ord.struct_eq(self, other)
 
   def to_infix(self):
     if self.n_child() == 0:
@@ -681,28 +697,33 @@ class FdmtSeq:
     return ret
 
   cal_limit_default = 500
+  # must return Ord.
+  # If return FS, outside can't know if expand has completed
+  # But with Ord, outside know it's done if Ord.token isn't FS
   def calc(self, recorder : FSRecorder) -> Ord:
 
-    def impl(ord : Ord, n: int) -> Tuple[bool, Ord | None, Ord]:
+    def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
-      ret_failed = (False, None, ord)
+      ord = fs.ord
+      ret_failed = (False, None, fs)
 
-      def succ(sub_node: Ord, remain: Ord):
-        return [True, remain, sub_node]
+      # * note: sub_node first
+      def succ(sub_node: Ord, remain: Ord | None = None):
+        return (True, remain, FdmtSeq(sub_node, fs.n))
 
       if ord.is_atomic():
         if ord.is_natural():
           return ret_failed
         match ord.token.v:
+          case Veblen():
+            return ord.token.v.index(fs.n, recorder)
           case 'w':
-            return (True, None, Ord(n))
+            return succ(Ord(fs.n))
           case 'e':
             recorder.skip_next()
-            return (True, None, Ord(Veblen(1, 0)))
-          case Veblen():
-            return ord.token.v.index(n, recorder)
+            return succ(Ord(Veblen(1, 0)))
           case _:
-            assert 0, f'{ord} @ {n}'
+            assert 0, f'{fs}'
 
       match ord.token.v:
         case '+':
@@ -716,29 +737,28 @@ class FdmtSeq:
             return ord.recurse_node("right", succ)
           else:
             if ord.right == 0:
-              return (True, None, Ord(1))
+              return succ(Ord(1))
             if ord.right == 1:
-              return (True, None, ord.left)
+              return succ(ord.left)
             # w^(a+1)[3] = w^a * w[3]
             # todo 2: dec not recorded. combine w/ is_limit_ordinal case then go inside
-            return (True, None, Ord('+' if ord.token.v == '*' else '*',
-                                Ord.simplified(Ord(ord.token, ord.left, ord.right.dec())),
-                                ord.left
-                                    ))
+            return succ(Ord('+' if ord.token.v == '*' else '*',
+                        Ord.simplified(Ord(ord.token, ord.left, ord.right.dec())),
+                        ord.left))
         case _:
           assert 0, ord
 
     pre_stack : List[Ord] = []
-    curr : Ord = self.ord
+    curr : FdmtSeq = self
 
     # record orignal FS, and every time eval success
-    recorder.record_fs([], Ord(FdmtSeq(curr, self.n)), res=True)
+    recorder.record_fs([], Ord.from_any(curr), res=True)
     for _ in range(recorder.cal_limit):
-      succ, pre, next = impl(curr, self.n)
+      succ, pre, next = impl(curr)  # ! idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
-        recorder.record_fs(copy(pre_stack), Ord(FdmtSeq(next, self.n)), res=True)
+        recorder.record_fs(copy(pre_stack), Ord.from_any(next), res=True)
         curr = next
       else:  # can't eval curr
         assert pre is None
@@ -755,11 +775,15 @@ class FdmtSeq:
             break
         # add all
         if len(adds_reversed) > 0:
-          curr = Ord.from_list('+', adds_reversed[::-1] + [next])
+          curr.ord = Ord.from_list('+', adds_reversed[::-1] + [next.ord])
         if non_add:
-          curr = utils.not_none(non_add.make_combined(curr))
+          # * when can't eval, restore with n of *self*
+          # e.g. e[1] = w^e[0] = w^(0[0]) = (w^0)[1]
+          curr = FdmtSeq(utils.not_none(non_add.make_combined(curr.ord)), self.n)
         else:  # a+b+c+... and last can't eval, end.
-          return curr
+          assert curr.n == self.n
+          recorder.record_fs(copy(pre_stack), curr.ord, res=True)
+          return curr.ord
 
     return recorder.get_result()
 
@@ -769,8 +793,11 @@ class FdmtSeq:
     def display(obj: Ord):
       return obj.to_latex()
 
-    def calc(fs: FdmtSeq, recorder):
-      return FdmtSeq(fs.calc(recorder), self.n)
+    def calc(fs: FdmtSeq, recorder : FSRecorder) -> Ord:
+      res = fs.calc(recorder)
+      # if debug_mode:
+      #   assert res == recorder.get_result()
+      return res
 
     return test_display(self, calc, display, expected,
                         limit=limit, test_only=test_only,

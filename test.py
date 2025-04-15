@@ -1,5 +1,5 @@
 from enum import Enum
-from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter, WIPError
+from ordinal import Ord, FdmtSeq, FGH, get_rotate_counter, WIPError, ord_set_debug_mode
 import utils
 
 latex_html_headers = r"""<!DOCTYPE html>
@@ -55,7 +55,7 @@ def latex_to_html(latex_str_list, path):
 def test_f_s(ord1 : str | int, n : int, ord2=None, *, limit=Ord.fs_cal_limit_default,
              test_only=False, show_step=False, print_str=False):
   formula = FdmtSeq(ord1, n, latex_force_veblen=True).calc_display(
-              expected=FdmtSeq(ord2, n) if ord2 is not None else None,
+              expected=ord2,
               limit=limit, test_only=test_only,
               show_steps=show_step, print_str=print_str)
   if show_step:
@@ -97,6 +97,7 @@ def test_exceptions():
   print(f'Test Exceptions: {cnt}/{len(cases)} cases passed')
 
 if __name__ == '__main__':
+  ord_set_debug_mode(True)
   # Example: w * 2 + 3
   expr_tree = Ord('+',
                    Ord('*', Ord('w'), Ord('2')),
@@ -173,7 +174,7 @@ if __name__ == '__main__':
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha,\gamma) $ </h2>'+'\n'),
     test_f_s('v(1,1)'      , 0, 'e+1'    ),    # R6
     # todo: sml limit after fix
-    test_f_s('v(1,1)'      , 1, limit=100, show_step=True),  # R6
+    test_f_s('v(1,1)'      , 1, limit=100, show_step=True),  # R7 R6
     # test_f_s('v(1,1)'      , 1, 'w^(e+1)'),  # R7
 
 
