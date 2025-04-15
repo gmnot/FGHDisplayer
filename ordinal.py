@@ -274,7 +274,6 @@ class Recorder:
     try:
       if not self.active():
         return False
-
       if self.will_skip_next:
         pass
       elif self.cnt() >= self.rec_limit:
@@ -288,7 +287,7 @@ class Recorder:
     finally:
       self.will_skip_next = False
 
-  def record_fs(self, pres : List[Ord], curr : Ord, res=False):
+  def record_fs(self, pres : List[Ord], curr : Ord, res=False) -> bool:
     ord_list = pres + [curr]
     return self.record(Ord.combine_list(ord_list), res)
 
@@ -754,13 +753,15 @@ class FdmtSeq:
     curr : FdmtSeq = self
 
     # record orignal FS, and every time eval success
-    recorder.record_fs([], Ord.from_any(curr), res=True)
-    for _ in range(recorder.cal_limit):
+    if recorder.record_fs([], Ord.from_any(curr), res=True):
+      return recorder.get_result()
+    while True:
       succ, pre, next = impl(curr)  # ! idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
-        recorder.record_fs(copy(pre_stack), Ord.from_any(next), res=True)
+        if recorder.record_fs(copy(pre_stack), Ord.from_any(next), res=True):
+          return recorder.get_result()
         curr = next
       else:  # can't eval curr
         assert pre is None
@@ -786,8 +787,6 @@ class FdmtSeq:
           assert curr.n == self.n
           recorder.record_fs(copy(pre_stack), curr.ord, res=True)
           return curr.ord
-
-    return recorder.get_result()
 
 class FGH:
   ord: Ord
