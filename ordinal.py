@@ -355,7 +355,7 @@ class Node:
 
 # Ordinal
 class Ord(Node):
-  rotate_at_init = False
+  rotate_at_init = True  # retire the other mode
 
   # * structual
   def __init__(self, token, left=None, right=None, *, latex_force_veblen=False):
@@ -390,23 +390,35 @@ class Ord(Node):
         (to_right     and node.left.token  == op or
          not to_right and node.right.token == op)
 
-    if not can_rotate(self):
-      self.left.rotate()
-      self.right.rotate()
-      return
-
-    global rotate_counter
-
     terms = []
 
     def gather(node: Ord):
       if not should_recur(node):
-        terms.append(Ord.rotated(node))
+        if not Ord.rotate_at_init:
+          node.rotate()
+        terms.append(node)
       else:  # left + right
         gather(node.left)
         gather(node.right)
 
-    gather(self)
+    if not can_rotate(self):
+      if not Ord.rotate_at_init:
+        self.left.rotate()
+        self.right.rotate()
+      return
+
+    if Ord.rotate_at_init:
+      use_simple = True  # idk why, but this records more rotated terms
+      if use_simple:
+        if to_right:
+          terms = [self.left.left, self.left.right, self.right]
+        else:
+          terms = [self.left, self.right.left, self.right.right]
+      else:
+        gather(self)
+    else:
+      gather(self)
+    global rotate_counter
     rotate_counter += len(terms)
 
     if to_right:
@@ -795,8 +807,8 @@ class FdmtSeq:
 
     def calc(fs: FdmtSeq, recorder : FSRecorder) -> Ord:
       res = fs.calc(recorder)
-      # if debug_mode:
-      #   assert res == recorder.get_result()
+      if debug_mode:
+        assert res == recorder.get_result()
       return res
 
     return test_display(self, calc, display, expected,

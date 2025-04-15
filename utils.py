@@ -6,6 +6,11 @@ import inspect
 import os
 import time
 
+def timed(f, *args, **kwargs):
+  start = time.perf_counter()
+  ret = f(*args, **kwargs)
+  duration = time.perf_counter() - start
+  return [duration, ret]
 
 def track_total_time():
   total_time = {"value": 0}
@@ -13,9 +18,7 @@ def track_total_time():
   def decorator(func):
     @wraps(func)
     def wrapper(*args, **kwargs):
-      start = time.perf_counter()
-      result = func(*args, **kwargs)
-      duration = time.perf_counter() - start
+      duration, result = timed(func, *args, **kwargs)
       total_time["value"] += duration
       return result
 

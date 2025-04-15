@@ -96,7 +96,8 @@ def test_exceptions():
       raise f'Exception of unexpected type {e}'
   print(f'Test Exceptions: {cnt}/{len(cases)} cases passed')
 
-if __name__ == '__main__':
+@utils.track_total_time()
+def test_main():
   ord_set_debug_mode(True)
   # Example: w * 2 + 3
   expr_tree = Ord('+',
@@ -183,3 +184,7 @@ if __name__ == '__main__':
   latex_to_html([s for s in tests if s is not None], './local_test.html')
   utils.print_total_time(Ord.rotate)
   print(f'  rotated {get_rotate_counter()} terms\n')
+
+if __name__ == '__main__':
+  res, _ = utils.timed(test_main)
+  print(f"Tests done in {res:.2f} sec")
