@@ -705,7 +705,7 @@ class FdmtSeq:
   def __repr__(self):
     return self.__str__()
 
-  def to_latex(self, always_show_idx=False):
+  def to_latex(self, always_show_idx=True):
     ret = f'{self.ord.to_latex()}'
     if always_show_idx or self.ord.is_limit_ordinal():
       ret += f'[{self.n}]'
