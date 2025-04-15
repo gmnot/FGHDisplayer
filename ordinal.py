@@ -53,6 +53,9 @@ def to_latex(obj) -> str:
     case _:
       return obj.to_latex()
 
+class Operator(Enum):
+  FS_AT = 11
+
 class Veblen:
   param: List[Ord]  # v:       v(1, 0, 0)
                     # index:     0  1  2
@@ -64,9 +67,29 @@ class Veblen:
     self.latex_force_veblen = latex_force_veblen
 
   @staticmethod
-  def from_str(s_ : str, *, latex_force_veblen=False) -> Veblen:
-    s = strip_pre_post('v(', s_, ')').strip()
-    ords = (Ord.from_str(s, latex_force_veblen=latex_force_veblen) for s in s.split(','))
+  def from_str(s_: str, *, latex_force_veblen=False) -> Veblen:
+    s = strip_pre_post('v(', s_.replace(' ', ''), ')')
+
+    parts = []
+    depth = 0
+    last = 0
+    for i, c in enumerate(s):
+      if c == '(':
+        depth += 1
+      elif c == ')':
+        depth -= 1
+      elif c == ',' and depth == 0:
+        parts.append(s[last:i])
+        last = i + 1
+    parts.append(s[last:])
+
+    ords = []
+    for part in parts:
+      if part.startswith('v(') and part.endswith(')'):
+        ords.append(Veblen.from_str(part, latex_force_veblen=latex_force_veblen))
+      else:
+        ords.append(Ord.from_str(part, latex_force_veblen=latex_force_veblen))
+
     return Veblen(*ords, latex_force_veblen=latex_force_veblen)
 
   @classmethod
@@ -548,6 +571,49 @@ class Ord(Node):
     """
     kraise(len(expression) == 0, "Can't read Ordinal from empty string")
 
+    def tokenize(exp):
+
+      # old: don't consider nested v
+      # re.findall(r'\d+|[+*^()]|v\(.*?\)|' + '|'.join(Token.ord_maps), s)
+
+      s = exp.replace(' ', '')
+      tokens = []
+      i = 0
+      while i < len(s):
+        if s[i] == 'v' and i + 1 < len(s) and s[i + 1] == '(':
+          # Parse full v(...) expression with nested parentheses
+          start = i
+          i += 2
+          depth = 1
+          while i < len(s) and depth > 0:
+            if s[i] == '(':
+              depth += 1
+            elif s[i] == ')':
+              depth -= 1
+            i += 1
+          if depth == 0:
+            tokens.append(s[start:i])
+          else:
+            raise KnownError("Unmatched parentheses in v(...) expression")
+        elif s[i].isdigit():
+          m = re.match(r'\d+', s[i:])
+          tokens.append(m.group(0))
+          i += len(m.group(0))
+        elif s[i] in '+*^()':
+          tokens.append(s[i])
+          i += 1
+        else:
+          matched = False
+          for sym in Token.ord_maps:
+            if s.startswith(sym, i):
+              tokens.append(sym)
+              i += len(sym)
+              matched = True
+              break
+          if not matched:
+            raise KnownError(f"Unrecognized token starting at: {s[i:]}")
+      return tokens
+
     def precedence(op):
       if op == "+":
         return 1
@@ -607,7 +673,7 @@ class Ord(Node):
       return stack[0]
 
     try:
-      tokens = re.findall(r'\d+|[+*^()]|v\(.*?\)|' + '|'.join(Token.ord_maps), expression)
+      tokens = tokenize(expression)
       # Convert infix to postfix (RPN)
       postfix = to_postfix(tokens)
       return build_tree(postfix)

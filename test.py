@@ -171,7 +171,9 @@ def test_main():
     test_f_s('v(1,1)'      , 2, until=Veblen(0, FdmtSeq('w^(v(1, 0)+1)', 2)),
                                 show_step=True),         # R7 R6
     test_f_s('v(1,w)'      , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
-                                show_step=True),         # R3 R7 R6, g is LO
+                                test_only=True),         # R3 R7 R6, g is LO
+    test_f_s('v(1,v(0,1))' , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
+                                show_step=True),
     # todo 1: show {e_0}[3] instead of e_{0[0]}, move skip_next
     # todo 1: parse FS, nested Veblen
     test_f_s('v(2,0)'      , 3, until=Veblen.from_nested(1, (1, (0, FdmtSeq(Veblen(1, 0), 2)))),
