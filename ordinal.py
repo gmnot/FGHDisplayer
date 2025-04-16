@@ -988,11 +988,11 @@ class FGH:
 
 def calc_display(obj, expected=None, *,
                  limit=None, until=None, test_only=False,
-                 show_step=False, print_str=False):
+                 show_step=False, n_steps=15, print_str=False):
 
-  recorder = Recorder((15 if show_step else 1),
-                                limit if limit else obj.cal_limit_default,
-                                until=until)
+  recorder = Recorder((n_steps if show_step else 1),
+                                  limit if limit else obj.cal_limit_default,
+                                  until=until)
   assert recorder is not None
 
   res = obj.calc(recorder)

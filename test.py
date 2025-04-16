@@ -175,12 +175,27 @@ def test_main():
     test_f_s('v(1,v(0,1))' , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
                                 show_step=True),
     # todo 1: show {e_0}[3] instead of e_{0[0]}, move skip_next
-    # todo 1: parse FS, nested Veblen
     test_f_s('v(2,0)'      , 3, until="v(1, v(1, v(0, v(1,0)[2])))",
                                 show_step=True),         # R5 v(a+1,0)
     test_f_s('v(2,w)'      , 2, until="v(1, v(0, (w^(v(1, v(2,1))+1))[2]))",
                                 show_step=True),         # R3 R7 R6, g is LO
+    test_f_s('v(w,0)'      , 2, until="v(1,2[2])",
+                                show_step=True),         # R8 v(a, 0)
+    test_f_s('v(w,0)'      , 3, until="v(2, v(2, v(1, v(1, v(0, w[3])))))",
+                                show_step=True),         # R8 v(a, 0)
+    test_f_s('v(w,1)'      , 2, until="v(1, v(0, ((w^v(1, v(2, v(w, 0))))*w[2])))",
+                                show_step=True),         # R9 v(a, g+1)
+    test_f_s('v(w,w)'      , 2,
+             until="v(1, v(0, ((w^v(1, v(2, v(w, 1))))+(w^v(1, v(2, v(w, 1)[2]))))))",
+                                show_step=True),         # R9 v(a, g+1)
+    test_f_s('v(w,2)'      , 3,
+             until="v(2, v(2, v(1, v(1, v(1, v(2, (v(3, v(w, 1))+1))[0])))))",
+                                show_step=True),         # R9 v(a, g+1)
 
+    (OutType.PLAIN, r'<h2> $ \Gamma_0, \ \varphi(S,\alpha,Z,\gamma) $ </h2>'+'\n'),
+    test_f_s('v(v(v(w,0),0),0)' , 3,
+             until="v(v(v(2, v(2, v(1, v(1, v(0, w[3]))))), 0),0)",
+                                show_step=True),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
