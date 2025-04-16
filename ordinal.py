@@ -157,7 +157,7 @@ class Veblen:
     self.param[idx] = None
     return func(sub_node, remain)
 
-  def index(self, n : int, rec: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
+  def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
 
     WIPError.raise_if(not self.is_binary(),
                       f"WIP: multi-var Veblen will be available soon. {self}")
@@ -173,6 +173,7 @@ class Veblen:
               FdmtSeq(nxt, n_nxt))
 
     if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
+      recorder.skip_next()
       return succ(Ord(0))
     if ax == 0:  # R2: v(0,g) = w^g (for any g)
       # rec.skip_next()
@@ -192,6 +193,7 @@ class Veblen:
         if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
           # e.g. e1[0] = e0 + 1
           # todo 1: show dec
+          recorder.skip_next()
           return succ(Veblen(ax, gx.dec()) + 1)
         else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
@@ -269,19 +271,21 @@ class Recorder:
   data      : List  # allow extra elem for result
   n_discard : int
   n_pre_discard : int  # discarded before reach limit
-  will_skip_next : bool  # skip the next record
+  will_skip_next : bool
+  can_override_last : bool  # last not important, can override
 
   until     : Any
   until_met : bool
 
   def __init__(self, rec_limit, cal_limit, until=None):
-    assert rec_limit >= 0
+    assert rec_limit > 0
     self.rec_limit = rec_limit
     self.cal_limit = cal_limit
     self.data      = []
     self.n_discard = 0
     self.n_pre_discard = 0
     self.will_skip_next = False
+    self.can_override_last = False
     self.until = until
     self.until_met = False
 
@@ -290,9 +294,6 @@ class Recorder:
 
   def __repr__(self):
     return self.__str__()
-
-  def active(self):
-    return self.rec_limit != 0
 
   def cnt(self) -> int:
     return len(self.data)
@@ -306,35 +307,34 @@ class Recorder:
   def no_mid_steps(self):
     return self.rec_limit == 2
 
-  def _record(self, entry, res=False):
-    if self.cnt() >= self.rec_limit:
+  def _record(self, entry):
+    if self.can_override_last:
+      self.data[-1] = entry
+      self.can_override_last = False
+    elif self.cnt() >= self.rec_limit:
       self.n_discard += 1
-      if res:  # force replace
-        self.data[-1] = entry
+      self.data[-1] = entry
     else:
       self.data.append(entry)
 
   # return: True if cal_limit_reached or until met
-  def record(self, entry, res=False) -> bool:
+  def record(self, entry) -> bool:
     assert entry is not None
     try:
-      if not self.active():
-        return False
-      if self.until is not None and entry == self.until:
+      if self.until is not None and \
+         entry == self.until:
         self.until_met = True
-        self._record(entry, res)
-      elif self.will_skip_next:
-        pass
-      else:
-        self._record(entry, res)
+      self._record(entry)
       return self.inc_discard_check_end()
 
     finally:
-      self.will_skip_next = False
+      if self.will_skip_next:
+        self.will_skip_next = False
+        self.can_override_last = True
 
-  def record_fs(self, pres : List[Ord], curr : Ord, res=False) -> bool:
+  def record_fs(self, pres : List[Ord], curr : Ord) -> bool:
     ord_list = pres + [curr]
-    return self.record(Ord.combine_list(ord_list), res)
+    return self.record(Ord.combine_list(ord_list))
 
   def get_result(self):
     assert len(self.data) > 0
@@ -670,13 +670,13 @@ class Ord(Node):
       """
       Build a binary tree from the postfix expression.
       """
-      stack : List[Ord | FdmtSeq] = []
+      stack : List[Ord] = []
       for tok in postfix:
         match tok:
           case Operator():
             right = stack.pop()
             left  = stack.pop()
-            stack.append(FdmtSeq(left, cast(int, cast(Ord, right).token.v)))
+            stack.append(Ord(FdmtSeq(left, cast(int, cast(Ord, right).token.v))))
           case _:
             if is_operand(tok):
               stack.append(Ord(tok, latex_force_veblen=latex_force_veblen))
@@ -778,7 +778,6 @@ class Ord(Node):
     node.simplify()
     return node
 
-  fs_cal_limit_default = 500
   # just a shortcut for FdmtSeq Func
   def fs_at(self, n, recorder : Recorder) -> Ord:
     return FdmtSeq(self, n).calc(recorder)
@@ -793,7 +792,15 @@ class FdmtSeq:
     self.n   = n
 
   def __eq__(self, other):
-    return self.ord == other.ord and self.n == other.n
+    match other:
+      case Ord():
+        return self == other.token
+      case str():
+        return self == Ord.from_any(other)
+      case FdmtSeq():
+        return self.ord == other.ord and self.n == other.n
+      case _:
+        assert 0, f'{self} {other}'
 
   def __str__(self):
     return f'{self.ord}[{self.n}]'
@@ -807,13 +814,13 @@ class FdmtSeq:
       ret += f'[{self.n}]'
     return ret
 
-  cal_limit_default = 500
+  cal_limit_default = 300
   # must return Ord.
   # If return FS, outside can't know if expand has completed
   # But with Ord, outside know it's done if Ord.token isn't FS
   @utils.validate_return_based_on_arg(
       'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
-  def calc(self, recorder : Recorder, *, until=None) -> Ord:
+  def calc(self, recorder : Recorder) -> Ord:
 
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
@@ -826,11 +833,13 @@ class FdmtSeq:
 
       if ord.is_atomic():
         if ord.is_natural():
+          recorder.skip_next()
           return ret_failed
         match ord.token.v:
           case Veblen():
             return ord.token.v.index(fs.n, recorder)
           case 'w':
+            recorder.skip_next()
             return succ(Ord(fs.n))
           case 'e':
             recorder.skip_next()
@@ -865,14 +874,14 @@ class FdmtSeq:
     curr : FdmtSeq = self
 
     # record orignal FS, and every time eval success
-    if recorder.record_fs([], Ord.from_any(curr), res=True):
+    if recorder.record_fs([], Ord.from_any(curr)):
       return recorder.get_result()
     while True:
       succ, pre, next = impl(curr)  # * idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
-        if recorder.record_fs(copy(pre_stack), Ord.from_any(next), res=True):
+        if recorder.record_fs(copy(pre_stack), Ord.from_any(next)):
           return recorder.get_result()
         curr = next
       else:  # can't eval curr
@@ -895,9 +904,10 @@ class FdmtSeq:
           # * when can't eval, restore with n of *self*
           # e.g. e[1] = w^e[0] = w^(0[0]) = (w^0)[1]
           curr = FdmtSeq(utils.not_none(non_add.make_combined(curr.ord)), self.n)
+          recorder.record_fs(copy(pre_stack), Ord.from_any(curr))
         else:  # a+b+c+... and last can't eval, end.
           assert curr.n == self.n
-          recorder.record_fs(copy(pre_stack), curr.ord, res=True)
+          recorder.record_fs(copy(pre_stack), curr.ord)
           return curr.ord
 
 class FGH:
@@ -944,7 +954,7 @@ class FGH:
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fs_at(
-        self.x, Recorder(1, Ord.fs_cal_limit_default)), self.x)
+        self.x, Recorder(1, FdmtSeq.cal_limit_default)), self.x)
     elif self.ord == 0:
       return True, self.x + self.exp
     elif self.ord == 1:
@@ -981,7 +991,7 @@ class FGH:
     while True:
       succ, ret = cast(FGH, ret).expand_once()
       if succ:
-        if recorder.record(ret, res=True):
+        if recorder.record(ret):
           return ret
       if not succ or not isinstance(ret, FGH):
         return ret

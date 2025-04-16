@@ -112,7 +112,7 @@ def validate_return_based_on_arg(arg_name, check_fn):
       values = result if isinstance(result, tuple) else (result,)
       for val in values:
         if not check_fn(val, arg_value):
-          raise ValueError(f"Invalid return value: {val} (arg {arg_name}={arg_value})")
+          raise ValueError(f"Invalid return value: {val} ({arg_name}={arg_value})")
 
       return result
     return wrapper
