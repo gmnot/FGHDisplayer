@@ -266,9 +266,14 @@ class Token:
         assert 0, self
 
 class Recorder:
+  FAIL = 0  # nothing changed, can't calc
+  SUCC = 1  # changed
+  DONE = 2  # changed (so it's a kind of SUCC), and know can't continue
+
   rec_limit : int
   cal_limit : int
   data      : List  # allow extra elem for result
+  done      : bool  # mathmatically done, can't continue
   n_discard : int
   n_pre_discard : int  # discarded before reach limit
   will_skip_next : bool
@@ -282,6 +287,7 @@ class Recorder:
     self.rec_limit = rec_limit
     self.cal_limit = cal_limit
     self.data      = []
+    self.done      = False
     self.n_discard = 0
     self.n_pre_discard = 0
     self.will_skip_next = False
@@ -908,6 +914,7 @@ class FdmtSeq:
           assert curr.n == self.n
           assert len(pre_stack) == 0, f'{pre_stack}'
           recorder.record_fs(copy(pre_stack), curr.ord)
+          recorder.done = True
           return recorder
 
 class FGH:
@@ -948,38 +955,32 @@ class FGH:
 
   # return (succ, res)
   # limit_f2: max n for f2(n) to be eval
-  def expand_once(self, digit_limit=1000) -> Tuple[bool, FGH | int]:
+  def expand_once(self, digit_limit=1000) -> Tuple[int, FGH | int]:
     if isinstance(self.x, FGH):
       succ, x2 = self.x.expand_once()
-      return succ, FGH(self.ord, x2, self.exp)
+      return (succ if succ != Recorder.DONE else Recorder.SUCC), \
+             FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
-      return True, FGH(self.ord.fs_at(
-        self.x, 1, FdmtSeq.cal_limit_default).get_result(), self.x)
+      ord_res = self.ord.fs_at(self.x, 1, FdmtSeq.cal_limit_default)
+      return (Recorder.SUCC if ord_res.done else Recorder.DONE), \
+             FGH(ord_res.get_result(), self.x)
     elif self.ord == 0:
-      return True, self.x + self.exp
+      return Recorder.DONE, self.x + self.exp
     elif self.ord == 1:
       if self.exp > digit_limit * 3:
         return False, self
-      return True, self.x * (2 ** self.exp)
+      return Recorder.DONE, self.x * (2 ** self.exp)
     elif self.ord == 2:
       if self.x > digit_limit * 3:
         return False, self
       new_x = (2 ** self.x) * self.x
-      return True, new_x if self.exp == 1 else FGH(2, new_x, self.exp - 1)
+      if self.exp == 1:
+        return Recorder.DONE, new_x
+      else:
+        return Recorder.SUCC, FGH(2, new_x, self.exp - 1)
     else:  # any ord >= 3
       dec1 = self.ord.dec()
-      return True, FGH(dec1, FGH(dec1, self.x), self.x - 1)
-
-  def expand_once_display(self, expected=None, test_only=False):
-    succ, res = self.expand_once()
-    if expected is not None:
-      assert res == expected, f'{res} != {expected}'
-    if test_only:
-      return None
-    res_str = res.to_latex() if isinstance(res, FGH) else str(res)
-    maybe_unfinished = isinstance(res, FGH) and succ
-    return f'{self.to_latex()}={res_str}' + \
-           ('=...' if maybe_unfinished else '')
+      return Recorder.SUCC, FGH(dec1, FGH(dec1, self.x), self.x - 1)
 
   cal_limit_default = 100
   def calc(self, *args, **kwargs) -> Recorder:
@@ -991,11 +992,18 @@ class FGH:
 
     while True:
       succ, curr = cast(FGH, curr).expand_once()
-      if succ:
-        if recorder.record(curr):
+      match succ:
+        case Recorder.FAIL:
+          recorder.done = True
           return recorder
-      if not succ or not isinstance(curr, FGH):
-        return recorder
+        case Recorder.SUCC:
+          if recorder.record(curr):
+            return recorder
+        case Recorder.DONE:
+          recorder.record(curr)
+          return recorder
+        case _:
+          assert 0
 
 def calc_display(obj : FdmtSeq | FGH, expected=None, *,
                  limit=None, until=None, test_only=False,

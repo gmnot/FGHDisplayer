@@ -179,6 +179,7 @@ def test_main():
                                 show_step=True),         # R5 v(a+1,0)
     test_f_s('v(2,w)'      , 2, until="v(1, v(0, (w^(v(1, v(2,1))+1))[2]))",
                                 show_step=True),         # R3 R7 R6, g is LO
+    test_fgh('v(4,1)'      , 3, test_only=True),         # R3 R7 R6, g is LO
     test_f_s('v(w,0)'      , 2, until="v(1,2)[2]",
                                 show_step=True),         # R8 v(a, 0)
     test_f_s('v(w,0)'      , 3, until="v(2, v(2, v(1, v(1, v(0, w[3])))))",
