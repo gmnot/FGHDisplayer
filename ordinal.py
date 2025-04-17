@@ -596,6 +596,15 @@ class Ord(Node):
       ret = utils.not_none(o.make_combined(ret))
     return ret
 
+  # not called in from_str, only user input need this
+  @classmethod
+  def clean_str(cls, s : str) -> str:
+    s = s.strip()
+    s = s.replace('（', '(').replace('）', ')')
+    s = s.replace('，', ',')
+    s = ''.join(c for c in s if c not in [' \n\t'])
+    return s
+
   # * named c'tors
   @staticmethod
   def from_str(expression: str, *, latex_force_veblen=False):

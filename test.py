@@ -54,14 +54,16 @@ def latex_to_html(latex_str_list, path):
 def test_f_s(ord1 : str | int, n : int, expected=None, **kwargs):
 
   return calc_display(
-    FdmtSeq(ord1, n, latex_force_veblen=True),
+    FdmtSeq(Ord.clean_str(ord1) if isinstance(ord1, str) else ord1,
+            n, latex_force_veblen=True),
     expected, **kwargs
   )
 
 def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
 
   return calc_display(
-    FGH(ord1, n, latex_force_veblen=True),
+    FGH(Ord.clean_str(ord1) if isinstance(ord1, str) else ord1,
+        n, latex_force_veblen=True),
     expected, **kwargs
   )
 
@@ -126,11 +128,11 @@ def test_main():
     test_f_s('w*2'                , 3, 'w+3'  , show_step=True),
     test_fgh('w*2+1'              , 3),
     test_f_s('w*w'                , 4, 'w*3+4'  , test_only=True),
-    test_f_s('v(0,0)'             , 0,  0,        test_only=True),  # R4
-    test_f_s('v(0,1)'             , 3, '3'      , test_only=True),  # R2 v(0,g) = w^g
-    test_f_s('v(0,2)'             , 3, 'w*2+3'  , show_step=True),  # R2 v(0,g) = w^g
-    test_f_s('v(0,3)'             , 2, 'w^2+w+2', test_only=True),  # R2 v(0,g) = w^g
-    test_f_s('w^2'                , 3, 'w*2+3'  , test_only=True),
+    test_f_s('v（0,0)'            , 0,  0,        test_only=True),  # R4
+    test_f_s('v(0，1)'            , 3, '3'      , test_only=True),  # R2 v(0,g) = w^g
+    test_f_s('v(0,2）'            , 3, 'w*2+3'  , show_step=True),  # R2 v(0,g) = w^g
+    test_f_s('v(0, 3)\n'          , 2, 'w^2+w+2', test_only=True),  # R2 v(0,g) = w^g
+    test_f_s('w^2\t'              , 3, 'w*2+3'  , test_only=True),
     test_f_s('w^2'                , 4, 'w*3+4'),
     test_f_s('w*(w+1)'            , 3, 'w*w+3', test_only=True),
     test_f_s('w^2+w'              , 3, 'w^2+3'),
