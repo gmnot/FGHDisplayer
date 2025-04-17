@@ -779,8 +779,8 @@ class Ord(Node):
     return node
 
   # just a shortcut for FdmtSeq Func
-  def fs_at(self, n, recorder : Recorder) -> Ord:
-    return FdmtSeq(self, n).calc(recorder)
+  def fs_at(self, n, *args, **kwargs) -> Recorder:
+    return FdmtSeq(self, n).calc(*args, **kwargs)
 
 # Fundamental Sequence
 class FdmtSeq:
@@ -815,12 +815,11 @@ class FdmtSeq:
     return ret
 
   cal_limit_default = 300
-  # must return Ord.
-  # If return FS, outside can't know if expand has completed
-  # But with Ord, outside know it's done if Ord.token isn't FS
-  @utils.validate_return_based_on_arg(
-      'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
-  def calc(self, recorder : Recorder) -> Ord:
+  # @utils.validate_return_based_on_arg(
+  #     'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
+  def calc(self, *args, **kwargs) -> Recorder:
+
+    recorder = Recorder(*args, **kwargs)
 
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
@@ -875,14 +874,14 @@ class FdmtSeq:
 
     # record orignal FS, and every time eval success
     if recorder.record_fs([], Ord.from_any(curr)):
-      return recorder.get_result()
+      return recorder
     while True:
       succ, pre, next = impl(curr)  # * idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
         if recorder.record_fs(copy(pre_stack), Ord.from_any(next)):
-          return recorder.get_result()
+          return recorder
         curr = next
       else:  # can't eval curr
         assert pre is None
@@ -907,8 +906,9 @@ class FdmtSeq:
           recorder.record_fs(copy(pre_stack), Ord.from_any(curr))
         else:  # a+b+c+... and last can't eval, end.
           assert curr.n == self.n
+          assert len(pre_stack) == 0, f'{pre_stack}'
           recorder.record_fs(copy(pre_stack), curr.ord)
-          return curr.ord
+          return recorder
 
 class FGH:
   ord: Ord
@@ -954,7 +954,7 @@ class FGH:
       return succ, FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       return True, FGH(self.ord.fs_at(
-        self.x, Recorder(1, FdmtSeq.cal_limit_default)), self.x)
+        self.x, 1, FdmtSeq.cal_limit_default).get_result(), self.x)
     elif self.ord == 0:
       return True, self.x + self.exp
     elif self.ord == 1:
@@ -982,30 +982,30 @@ class FGH:
            ('=...' if maybe_unfinished else '')
 
   cal_limit_default = 100
-  def calc(self, recorder : Recorder):
-    ret : FGH | int = self
+  def calc(self, *args, **kwargs) -> Recorder:
+    recorder = Recorder(*args, **kwargs)
+    curr : FGH | int = self
 
-    if recorder.record(ret):
-      return ret
+    if recorder.record(curr):
+      return recorder
 
     while True:
-      succ, ret = cast(FGH, ret).expand_once()
+      succ, curr = cast(FGH, curr).expand_once()
       if succ:
-        if recorder.record(ret):
-          return ret
-      if not succ or not isinstance(ret, FGH):
-        return ret
+        if recorder.record(curr):
+          return recorder
+      if not succ or not isinstance(curr, FGH):
+        return recorder
 
-def calc_display(obj, expected=None, *,
+def calc_display(obj : FdmtSeq | FGH, expected=None, *,
                  limit=None, until=None, test_only=False,
                  show_step=False, n_steps=15, print_str=False):
 
-  recorder = Recorder((n_steps if show_step else 1),
-                                  limit if limit else obj.cal_limit_default,
-                                  until=until)
-  assert recorder is not None
+  recorder = obj.calc((n_steps if show_step else 1),
+                      limit if limit else obj.cal_limit_default,
+                      until=until)
+  res = recorder.get_result()
 
-  res = obj.calc(recorder)
   if recorder.until is not None:
     assert recorder.until_met, f'never reached {recorder.until}\n{recorder}'
 

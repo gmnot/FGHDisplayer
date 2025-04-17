@@ -196,6 +196,10 @@ def test_main():
     test_f_s('v(v(v(w,0),0),0)' , 3,
              until="v(v(v(2, v(2, v(1, v(1, v(0, w[3]))))), 0),0)",
                                 show_step=True),
+    # todo 1: rearrange power and sub
+    test_f_s('v(w+1,w^3)' , 3,
+             print_str=True, limit=70,
+                                show_step=True),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
