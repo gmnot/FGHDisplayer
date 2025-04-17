@@ -8,12 +8,12 @@ app = Flask(__name__)
 
 @app.route('/', methods=['GET', 'POST'])
 def index():
-  result = ''
+  result, ord_str, n_str = '', '', ''
   if request.method == 'POST':
     try:
-      ord_str = request.form['large_text']
-      n_str = request.form['small_text']
-      action = request.form['action']
+      ord_str = request.form['ord_text']
+      n_str   = request.form['idx_text']
+      action  = request.form['action']
 
       kraise(len(n_str) == 0, "Can't read index from empty string")
       kraise(not n_str.isdigit(), f"index {n_str} is not a number")
@@ -32,7 +32,7 @@ def index():
       else:
         result = f"Unknown error, {contact_request}."
 
-  return render_template('index.html', result=result)
+  return render_template('index.html', result=result, ord_text=ord_str, idx_text=n_str)
 
 if __name__ == '__main__':
   debug = True

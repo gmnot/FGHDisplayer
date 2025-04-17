@@ -38,17 +38,18 @@
 
 <body>
   <h2>FGH Displayer</h2>
-  <form method="POST" action="/">
+
+  <form method="POST" action="/"> 
     <label for="large_input">Ordinal:</label><br>
-    <textarea id="large_input" name="large_text" rows="5" cols="50"></textarea><br><br>
-
+    <textarea id="large_input" name="ord_text" rows="5" cols="50">{{ ord_text }}</textarea><br><br>
+  
     <label for="small_input">Index:</label><br>
-    <input type="text" id="small_input" name="small_text"><br><br>
-
-    <button type="submit" name="action" value="fgh">show FGH</button>
-    <br><br>
+    <input type="text" id="small_input" name="idx_text" value="{{ idx_text }}"><br><br>
+  
     <button type="submit" name="action" value="fund_seq">show Fundamental Sequence</button>
-</form>
+    <br><br>
+    <button type="submit" name="action" value="fgh">show FGH</button>
+  </form>
 
   {% if result %}
     <h3>Results:</h3>
