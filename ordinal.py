@@ -53,6 +53,34 @@ def to_latex(obj) -> str:
     case _:
       return obj.to_latex()
 
+latex_colors = [
+  "black", "red", "purple",
+  "brown", "orange", "green", "blue",
+]
+latex_last_color_used = 0
+def latex_add_parentheses(s):
+  global latex_last_color_used
+  if len(s) < 100:
+    return f'{{{s}}}'
+  if latex_last_color_used == len(latex_colors) - 1:
+    latex_last_color_used = 0
+  else:
+    latex_last_color_used += 1
+  return f'{{\\color{{{latex_colors[latex_last_color_used]}}}{{{s}}}}}'
+  ret = s
+  enlarger = ''
+  if len(s) > 600:
+    enlarger = r'\Bigg'
+  elif len(s) > 400:
+    enlarger = r'\bigg'
+  elif len(s) > 200:
+    enlarger = r'\Big'
+  elif len(s) > 100:
+    enlarger = r'\big'
+  if enlarger != '':
+    ret = f'{enlarger}({ret}{enlarger})'
+  return f'{{{ret}}}'
+
 class Operator(Enum):
   FS_AT = 11
 
@@ -104,7 +132,6 @@ class Veblen:
     return Veblen(*param, latex_force_veblen=latex_force_veblen)
 
   def __eq__(self, other):
-    # todo: consider complex Veblen
     return isinstance(other, Veblen) and \
            all(v == o for v, o in zip(self.param, other.param))
 
@@ -140,7 +167,7 @@ class Veblen:
         ax = [r'\omega', r'\varepsilon', r'\xi', r'\eta'][a]
         gx = self.param[1].to_latex()
         if a == 0:
-          return f'{ax}^{{{gx}}}'
+          return f'{ax}^{{{gx}}}'  # latex_add_parentheses(gx)
         return f'{ax}_{{{gx}}}'
 
     return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
@@ -729,29 +756,33 @@ class Ord(Node):
       case _:
         assert 0, expression
 
-  def to_latex(self):
+  def to_latex(self, **kwargs):
     if self.is_atomic():
-      return self.token.to_latex()
+      return self.token.to_latex(**kwargs)
 
     def parentheses_on_demand(node: Ord, out_op: str):
       if node.is_atomic() or \
          (out_op == '*' and node.token.v == '^'):
-        return node.to_latex()
-      return '{(' + node.to_latex() + ')}'
+        return node.to_latex(**kwargs)
+      return '{(' + node.to_latex(**kwargs) + ')}'
 
     match self.token.v:
       case '+':
-        return self.left.to_latex()  + \
-               self.token.to_latex() + \
-               self.right.to_latex()
+        return self.left.to_latex(**kwargs)  + \
+               self.token.to_latex(**kwargs) + \
+               self.right.to_latex(**kwargs)
       case '*':
         return parentheses_on_demand(self.left, '*') + \
-               self.token.to_latex() + \
+               self.token.to_latex(**kwargs) + \
                parentheses_on_demand(self.right, '*')
       case '^':
+        rhs = self.right.to_latex(**kwargs)
+        if kwargs.get("parentheses_for_long", True):
+          rhs = latex_add_parentheses(rhs)
         return parentheses_on_demand(self.left, '^') + \
-               self.token.to_latex() + \
-               '{' + self.right.to_latex() + '}'
+               self.token.to_latex(**kwargs) + \
+               rhs
+
 
   # * math
   def is_limit_ordinal(self):

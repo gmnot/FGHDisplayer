@@ -154,9 +154,7 @@ def test_main():
     test_f_s('v(1,0)'             , 1, 1),                  # R5 v(a+1,0)
     test_f_s('v(1,0)'             , 2, 2, show_step=True),  # R5 v(a+1,0)
     test_f_s('v(1,0)'             , 3,    test_only=True),  # R5 v(a+1,0)
-    # todo 1: more v tests
     test_f_s('e'                  , 3, 'w^2*2+w*2+3', show_step=True),
-    # todo 2: w^w^w return if calc to the end. and assert, so limit isn't too small
     test_fgh('w^(w^w)'            , 2, show_step=True),
     # todo: smarter length ctrl based on terms
     test_fgh('w^(w^w)'            , 3, limit=4, show_step=True),
@@ -174,12 +172,11 @@ def test_main():
                                 test_only=True),         # R3 R7 R6, g is LO
     test_f_s('v(1,v(0,1))' , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
                                 show_step=True),
-    # todo 1: show {e_0}[3] instead of e_{0[0]}, move skip_next
     test_f_s('v(2,0)'      , 3, until="v(1, v(1, v(0, v(1,0)[2])))",
                                 show_step=True),         # R5 v(a+1,0)
     test_f_s('v(2,w)'      , 2, until="v(1, v(0, (w^(v(1, v(2,1))+1))[2]))",
                                 show_step=True),         # R3 R7 R6, g is LO
-    test_fgh('v(4,1)'      , 3, test_only=True),         # R3 R7 R6, g is LO
+    test_fgh('v(4,1)'      , 3, show_step=True),         # R3 R7 R6, g is LO
     test_f_s('v(w,0)'      , 2, until="v(1,2)[2]",
                                 show_step=True),         # R8 v(a, 0)
     test_f_s('v(w,0)'      , 3, until="v(2, v(2, v(1, v(1, v(0, w[3])))))",
