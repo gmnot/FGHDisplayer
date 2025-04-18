@@ -199,6 +199,13 @@ def test_main():
                                 show_step=True),
     test_f_s('v(3)'        , 2, until="(w^3)[2]"),       # R1 v(g+1)
     test_f_s('v(w)'        , 3, until="(w^3)[3]"),       # R2 v(g)
+    test_f_s('v(1,0,0)'    , 0, expected=0,
+                                test_only=True),         # R3-1 v(S,a+1,Z,0)[0] = 0
+    test_f_s('v(4,0,0)'    , 0, expected=0),             # R3-1 v(S,a+1,Z,0)[0] = 0
+    # R3-2 v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
+    # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
+    test_f_s('v(1,0,0)'    , 3,
+                                show_step=True),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')

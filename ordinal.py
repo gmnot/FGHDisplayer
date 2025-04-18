@@ -169,6 +169,9 @@ class Veblen:
         if a == 0:
           return f'{ax}^{{{gx}}}'  # latex_add_parentheses(gx)
         return f'{ax}_{{{gx}}}'
+    elif self.arity() == 3 and self.param[0] == 1 and self.param[1] == 0:
+      # v(1,0,a) = G_{a}
+      return f'\\Gamma_{{{self.param[-1]}}}'
 
     return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
 
@@ -211,7 +214,7 @@ class Veblen:
 
     def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
       return (True,
-              (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)),
+              (Ord(Veblen(*v)) if isinstance(v, tuple) else v),
               FdmtSeq(nxt, n_nxt))
 
     S, ax, Z, gx = self.partition()
@@ -220,8 +223,21 @@ class Veblen:
       return succ(Ord('^', 'w', gx))
     if ax.is_succ_ordinal():  # R3-5
       if gx == 0:  # R3
+        # v(S,a+1,Z,0)[0] = 0
         if n == 0:
           return succ(Ord(0))
+        # v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
+        a = ax.dec()
+        a_opt = [] if a == 0 else [a]
+        return succ_v((*S, *a_opt, None                 , *Z),
+                                   Veblen(*S, ax, *Z, 0),
+                      n_nxt=n-1)
+      assert 0
+    # R6-8: ax is LO
+    if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
+      return succ_v((*S, None, *Z, 0),
+                         ax)
+
 
     assert 0, f'{self} [{n}]'
     # !!
