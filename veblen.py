@@ -186,8 +186,6 @@ class Veblen:
         return succ_v((*S, ax, *Z, None),
                                    gx)
 
-      assert 0
-
     # R6-8: ax is LO
     if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
       return succ_v((*S, None, *Z, 0),
