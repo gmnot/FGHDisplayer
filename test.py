@@ -2,7 +2,8 @@ from enum import Enum
 from html_utils import OutType
 import ordinal
 from ordinal import calc_display, get_rotate_counter, FdmtSeq, FGH, \
-                    ord_set_debug_mode, Ord, Veblen, WIPError
+                    ord_set_debug_mode, Ord, WIPError
+from veblen import Veblen
 import utils
 
 latex_html_headers = r"""<!DOCTYPE html>

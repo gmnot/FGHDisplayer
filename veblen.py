@@ -2,13 +2,16 @@ from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
-from typing import Any, List, Dict, Tuple, cast
+from typing import Any, List, Dict, Tuple, cast, TYPE_CHECKING
 import re
 import utils
 from utils import Recorder
 
 from html_utils import contact_request
-from ordinal import Ord, FdmtSeq
+import ordinal
+
+if TYPE_CHECKING:
+  from ordinal import Ord, FdmtSeq
 
 def strip_pre_post(pre: str, s: str, post: str) -> str:
   l1, l2 = len(pre), len(post)
@@ -25,11 +28,13 @@ class Veblen:
     assert len(args) > 0
     while len(args) > 2 and args[0] == 0:  # drop 0 at beginning
       args = args[1:]
+    from ordinal import Ord
     self.param = [Ord.from_any(o) for o in args]
     self.latex_force_veblen = latex_force_veblen
 
   @staticmethod
   def from_str(s_: str, *, latex_force_veblen=False) -> Veblen:
+    from ordinal import Ord
     s = strip_pre_post('v(', s_.replace(' ', ''), ')')
 
     parts = []
@@ -70,6 +75,7 @@ class Veblen:
            all(v == o for v, o in zip(self.param, other.param))
 
   def __add__(self, rhs):
+    from ordinal import Ord
     return Ord('+', self, rhs)
 
   def __str__(self):
@@ -92,6 +98,7 @@ class Veblen:
     idx = idxs[0]
     ret = Veblen(*self.param)
     ret.param[idx] = other
+    from ordinal import Ord
     return Ord(ret)
 
   def to_latex(self):
@@ -142,9 +149,10 @@ class Veblen:
 
 
   def index_multi(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
+    from ordinal import Ord, FdmtSeq
 
     def succ(nxt, remain=None):
-      return (True, remain, FdmtSeq(nxt, n))
+      return (True, remain, ordinal.FdmtSeq(nxt, n))
 
     def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
       return (True,
@@ -184,43 +192,16 @@ class Veblen:
     if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
       return succ_v((*S, None, *Z, 0),
                          ax)
-
-
-    assert 0, f'{self} [{n}]'
-    # !!
-
-    ax = self.param[0]   # first non-zero term except last term. a or a+1
-    gx = self.param[-1]  # last term, g or g+1
-
-
-
-    if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
-      recorder.skip_next()
-      return succ(Ord(0))
-    if ax == 0:  # R2: v(0,g) = w^g (for any g)
-      # rec.skip_next()
-      return succ(Ord('^', 'w', gx))
-    if gx.is_limit_ordinal():  # R3, g is LO
-      return succ_v((ax, None), gx)
-    if ax.is_limit_ordinal():  # R8-9 v(a, .)
-      if gx == 0:  # R8 v(a, 0)
-        return succ_v((None, 0), ax)
-      else:  # R9 v(a, g+1)
-        return succ_v((None, Veblen(ax, gx.dec()) + 1), ax)
-    else:  # R5-7 v(a+1, .)
-      a = ax.dec()
-      if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
-        return succ_v((a, None), Veblen(ax, 0), n_nxt=n-1)
-      else:
-        if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
-          # e.g. e1[0] = e0 + 1
-          recorder.skip_next()
-          return succ(Veblen(ax, gx.dec()) + 1)
-        else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
-          # e.g. e2 = {e1+1, w^(...), w^w^(...), }
-          return succ_v((a, None), self, n_nxt=n-1)
+    # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
+    elif gx.is_succ_ordinal():
+      return succ_v((*S, None, *Z, Veblen(*S, ax, *Z, gx.dec()) + 1),
+                         ax)
+    # R8 (binary R5) v(S,a,Z,g[n])
+    return succ_v((*S, ax, *Z, None),
+                               gx)
 
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
+    from ordinal import Ord, FdmtSeq
 
     if not self.is_binary():
       return self.index_multi(n, recorder)

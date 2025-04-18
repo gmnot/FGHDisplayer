@@ -2,13 +2,15 @@ from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
-from typing import Any, List, Dict, Tuple, cast
+from typing import Any, List, Dict, Tuple, cast, TYPE_CHECKING
 import re
 
 from html_utils import contact_request
 import utils
 from utils import Recorder
-from veblen import Veblen
+
+if TYPE_CHECKING:
+  from veblen import Veblen
 
 """
 todo:
@@ -97,6 +99,7 @@ class Token:
   }
 
   def __init__(self, v, *, latex_force_veblen=False):
+    from veblen import Veblen
     match v:
       case Token():
         self.v = v.v
@@ -135,6 +138,7 @@ class Token:
     return cast(int, self.v)
 
   def to_latex(self):
+    from veblen import Veblen
     match self.v:
       case int():
         return str(self.v)
@@ -323,6 +327,7 @@ class Ord(Node):
   # note: must copy from the top. self can be changed later,
   #       like adding more half node. Returned Ord need to stay the same
   def make_combined(self, other: Ord, child_only=False) -> Ord | None:
+    from veblen import Veblen
     if self.n_child() == 0:
       if isinstance(self.token.v, Veblen) and self.token.v.is_missing_one():
         return self.token.v.make_combined(other)
@@ -505,6 +510,7 @@ class Ord(Node):
 
   @staticmethod
   def from_any(expression, *, latex_force_veblen=False) -> Ord:
+    from veblen import Veblen
     match expression:
       case None:
         return cast(Ord, None)
@@ -620,7 +626,7 @@ class FdmtSeq:
   # @utils.validate_return_based_on_arg(
   #     'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
   def calc(self, *args, **kwargs) -> Recorder:
-
+    from veblen import Veblen
     recorder = Recorder(*args, **kwargs)
 
     def record_fs(pres : List[Ord], curr : Ord) -> bool:
