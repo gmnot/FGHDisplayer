@@ -198,7 +198,8 @@ def test_main():
              until="v(v(v(2, v(2, v(1, v(1, v(0, w[3]))))), 0),0)",
                                 show_step=True),
     test_f_s('v(3)'        , 2, until="(w^3)[2]"),       # R1 v(g+1)
-    test_f_s('v(w)'        , 3, until="(w^3)[3]"),       # R2 v(g)
+    test_f_s('v(w)'        , 3, until="(w^3)[3]",
+                                test_only=True),         # R2 v(g)
     test_f_s('v(1,0,0)'    , 0, expected=0,
                                 test_only=True),         # R3-1 v(S,a+1,Z,0)[0] = 0
     test_f_s('v(4,0,0)'    , 0, expected=0),             # R3-1 v(S,a+1,Z,0)[0] = 0
@@ -208,6 +209,11 @@ def test_main():
                                 test_only=True),
     test_f_s('v(1,0,0)'    , 3, limit=65,
                                 show_step=True),
+    # R4 v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
+    test_f_s('v(1,0,1)'    , 3, until="v(v(v(v(1,0,0),v(v(1,0,0),v(v(v(1,0,0)[2],0),"
+                                      "(v(v(1,0,0),v((v(1,0,0)+1),0))+1)))),1),1)",
+                                show_step=True),
+    # R3 R6
     test_f_s('v(2,0,0)'    , 3, until="v(1, v(1, v(v(1, 0, 0)[2], 0), 0), 0)",
                                 test_only=True),
     test_f_s('v(w,0,0)'    , 3, until="v(2,v(2,v(1,v(1,v(v(v(1,0,0)[1],0),0),0),0),0),0)",

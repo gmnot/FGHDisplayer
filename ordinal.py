@@ -91,6 +91,8 @@ class Veblen:
 
   def __init__(self, *args, latex_force_veblen=False):
     assert len(args) > 0
+    while len(args) > 2 and args[0] == 0:  # drop 0 at beginning
+      args = args[1:]
     self.param = [Ord.from_any(o) for o in args]
     self.latex_force_veblen = latex_force_veblen
 
@@ -222,17 +224,25 @@ class Veblen:
     if ax is None:  # R1 R2
       return succ(Ord('^', 'w', gx))
     if ax.is_succ_ordinal():  # R3-5
-      if gx == 0:  # R3
+      if gx == 0:  # R3: v(S,a+1,Z,0) : b -> v(S,a,b,Z)
         # v(S,a+1,Z,0)[0] = 0
         if n == 0:
           return succ(Ord(0))
         # v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
-        a = ax.dec()
-        a_opt = [] if a == 0 else [a]
-        return succ_v((*S, *a_opt, None                 , *Z),
-                                   Veblen(*S, ax, *Z, 0),
+        return succ_v((*S, ax.dec(), None, *Z),
+                                     self,
                       n_nxt=n-1)
+      if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
+        # R4-1 (binary R6) v(S,a+1,Z,g+1)[0]   = v(S,a+1,Z,g) + 1
+        if n == 0:
+          return succ(Veblen(*S, ax, *Z, gx.dec()) + 1)
+        # R4-2 (binary R7) v(S,a+1,Z,g+1)[n+1] = v(S,a,v(S,a+1,Z,g+1)[n],Z)
+        return succ_v((*S, ax.dec(), None, gx),
+                                     self,
+                      n_nxt=n-1)
+
       assert 0
+
     # R6-8: ax is LO
     if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
       return succ_v((*S, None, *Z, 0),
@@ -1173,7 +1183,8 @@ def calc_display(obj : FdmtSeq | FGH, expected=None, *,
     assert res == expected, f'{res} != {expected}'
 
   if print_str:
-    print(res)
+    for o in recorder.data:
+      print(o)
 
   if test_only:
     return None
