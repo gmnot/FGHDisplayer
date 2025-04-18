@@ -485,7 +485,7 @@ class Recorder:
       ret += r'  &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{' + \
              f'after {self.n_discard} more steps' r'}} \\' + '\n'
     ret += f'  &= {entry_to_latex(self.data[-1])} '
-    if self.until_met:
+    if not self.done:
       ret += r' = \dots'
     ret += '\\\\\n'
     ret += r'\end{align*} ' + '\n'
@@ -1108,9 +1108,9 @@ class FGH:
              FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       ord_res = self.ord.fs_at(self.x, 1, FdmtSeq.cal_limit_default)
+      # todo 3: assert fs_at changed ord. Otherwise should return FAIL
       recorder.inc_discard_check_end(n_steps=ord_res.tot_calc())
-      return (Recorder.SUCC if ord_res.done else Recorder.DONE), \
-             FGH(ord_res.get_result(), self.x)
+      return Recorder.SUCC, FGH(ord_res.get_result(), self.x)
     elif self.ord == 0:
       return Recorder.DONE, self.x + self.exp
     elif self.ord == 1:
@@ -1141,12 +1141,12 @@ class FGH:
       succ, curr = cast(FGH, curr).expand_once(recorder)
       match succ:
         case Recorder.FAIL:
-          recorder.done = True
           return recorder
         case Recorder.SUCC:
           if recorder.record(curr):
             return recorder
         case Recorder.DONE:
+          recorder.done = True
           recorder.record(curr)
           return recorder
         case _:
@@ -1175,7 +1175,7 @@ def calc_display(obj : FdmtSeq | FGH, expected=None, *,
 
   if not show_step:
     ret = f'{to_latex(obj)}={to_latex(res)}'
-    if recorder.until_met:
+    if not recorder.done:
       ret += r'=\dots'
     return ret
 

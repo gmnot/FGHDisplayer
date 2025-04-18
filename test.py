@@ -108,7 +108,7 @@ def test_main():
   tests = [
     expr_tree.to_latex(),
     (OutType.PLAIN, r'<h2> $ f_c(n) $ </h2>'+'\n'),
-    test_fgh(0,     3, 4),
+    test_fgh(0, 3  , 4),
     test_fgh(1, 3  , 6),
     test_fgh(2, 3  , 24),
     test_fgh(2, 256, f2_256, test_only=True),
@@ -204,7 +204,7 @@ def test_main():
     test_f_s('v(4,0,0)'    , 0, expected=0),             # R3-1 v(S,a+1,Z,0)[0] = 0
     # R3-2 v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
     # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
-    test_f_s('v(1,0,0)'    , 3,
+    test_f_s('v(1,0,0)'    , 3, limit=65,
                                 show_step=True),
   ]
 
