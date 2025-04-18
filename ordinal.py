@@ -403,13 +403,13 @@ class Recorder:
 # Binary Tree Node
 class Node:
   token: Token  # operator +,*,^ ; natural number str; w,e ; Veblen
-  left : Ord
-  right: Ord
+  left : Node
+  right: Node
 
   def __init__(self, token, left=None, right=None, *, latex_force_veblen=False):
     self.token = Token(token, latex_force_veblen=latex_force_veblen)
-    self.left  = Ord.from_any(left, latex_force_veblen=latex_force_veblen)
-    self.right = Ord.from_any(right, latex_force_veblen=latex_force_veblen)
+    self.left  = left
+    self.right = right
 
   def n_child(self):
     return (self.left is not None) + (self.right is not None)
@@ -424,10 +424,17 @@ class Node:
 # Ordinal
 class Ord(Node):
   rotate_at_init = True  # retire the other mode
+  left : Ord
+  right: Ord
 
   # * structual
   def __init__(self, token, left=None, right=None, *, latex_force_veblen=False):
-    super().__init__(token, left, right, latex_force_veblen=latex_force_veblen)
+    super().__init__(
+      token,
+      Ord.from_any(left , latex_force_veblen=latex_force_veblen),
+      Ord.from_any(right, latex_force_veblen=latex_force_veblen),
+      latex_force_veblen=latex_force_veblen
+    )
     if Ord.rotate_at_init:
       self.rotate()
 
@@ -562,6 +569,7 @@ class Ord(Node):
       self.left = other
     assert self.right is None
     self.right = other
+    self.rotate()
 
   # search and combine <other> to missing node of self/subtree.
   # child_only: no recurse, fail if n_child != 1
