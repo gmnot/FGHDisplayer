@@ -205,6 +205,8 @@ class Recorder:
       if self.will_skip_next:
         self.will_skip_next = False
         self.can_override_last = True
+      else:
+        self.can_override_last = False
 
   def get_result(self):
     assert len(self.data) > 0

@@ -162,12 +162,14 @@ class Veblen:
     S, ax, Z, gx = self.partition()
 
     if ax is None:  # R1 R2
+      if self.is_binary():
+        recorder.skip_next()  # already shown like this
       return succ(Ord('^', 'w', gx))
     if ax.is_succ_ordinal():  # R3-5
       if gx == 0:  # R3: v(S,a+1,Z,0) : b -> v(S,a,b,Z)
         # v(S,a+1,Z,0)[0] = 0
         if n == 0:
-          # recorder.skip_next()
+          recorder.skip_next()
           return succ(Ord(0))
         # v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
         return succ_v((*S, ax.dec(), None, *Z),
@@ -176,10 +178,10 @@ class Veblen:
       if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
         # R4-1 (binary R6) v(S,a+1,Z,g+1)[0]   = v(S,a+1,Z,g) + 1
         if n == 0:
-          # recorder.skip_next()
+          recorder.skip_next()
           return succ(Veblen(*S, ax, *Z, gx.dec()) + 1)
         # R4-2 (binary R7) v(S,a+1,Z,g+1)[n+1] = v(S,a,v(S,a+1,Z,g+1)[n],Z)
-        return succ_v((*S, ax.dec(), None, gx),
+        return succ_v((*S, ax.dec(), None, *Z),
                                      self,
                       n_nxt=n-1)
       else:  # R5 (binary R3) v(S,a+1,Z,g[n])
@@ -192,6 +194,7 @@ class Veblen:
                          ax)
     # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
     elif gx.is_succ_ordinal():
+      recorder.skip_next()
       return succ_v((*S, None, *Z, Veblen(*S, ax, *Z, gx.dec()) + 1),
                          ax)
     # R8 (binary R5) v(S,a,Z,g[n])
@@ -201,22 +204,24 @@ class Veblen:
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
     from ordinal import Ord, FdmtSeq
 
-    if not self.is_binary():
-      return self.index_multi(n, recorder)
-    ax = self.param[0]   # first non-zero term except last term. a or a+1
-    gx = self.param[-1]  # last term, g or g+1
-
     def succ(nxt, remain=None):
       return (True, remain, FdmtSeq(nxt, n))
+
+    gx = self.param[-1]     # last term, g or g+1
+    if self.is_binary() and \
+       gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
+      recorder.skip_next()
+      return succ(Ord(0))
+
+    return self.index_multi(n, recorder)
+
+    ax = self.param[0]   # first non-zero term except last term. a or a+1
 
     def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
       return (True,
               (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)),
               FdmtSeq(nxt, n_nxt))
 
-    if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
-      recorder.skip_next()
-      return succ(Ord(0))
     if ax == 0:  # R2: v(0,g) = w^g (for any g)
       # rec.skip_next()
       return succ(Ord('^', 'w', gx))

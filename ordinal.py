@@ -644,7 +644,6 @@ class FdmtSeq:
 
       if ord.is_atomic():
         if ord.is_natural():
-          recorder.skip_next()
           return ret_failed
         match ord.token.v:
           case Veblen():
@@ -670,7 +669,8 @@ class FdmtSeq:
             return ord.recurse_node("right", succ)
           else:
             if ord.right == 0:
-              return succ(Ord(1))
+              recorder.skip_next()
+              return succ(Ord(0) if ord.token == '*' else Ord(1))
             if ord.right == 1:
               return succ(ord.left)
             if ord.right == 2:
