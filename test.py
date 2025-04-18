@@ -213,12 +213,28 @@ def test_main():
     test_f_s('v(1,0,1)'    , 3, until="v(v(v(v(1,0,0),v(v(1,0,0),v(v(v(1,0,0)[2],0),"
                                       "(v(v(1,0,0),v((v(1,0,0)+1),0))+1)))),1),1)",
                                 show_step=True),
-    # R3 R6
-    test_f_s('v(2,0,0)'    , 3, until="v(1, v(1, v(v(1, 0, 0)[2], 0), 0), 0)",
-                                test_only=True),
-    test_f_s('v(w,0,0)'    , 3, until="v(2,v(2,v(1,v(1,v(v(v(1,0,0)[1],0),0),0),0),0),0)",
+    # R5 R4
+    test_f_s('v(1,0,w)'    , 3, until="v(v(v(v(1,0,2),v(v(1,0,2),v(v(1,0,2)[3],"
+                                      "(v(v(1,0,2),v((v(1,0,2)+1),2))+1)))),3),3)",
                                 show_step=True),
-    test_f_s('v(w+1,0,0)'  , 3, until="v(w,v(w,v(2,v(2,v(1,v(1,v(1,0,0)[3],0),0),0),0),0),0)",),
+    test_f_s('v(1,0,e)'    , 3, until="v(v(v(1,0,((((w^2)*2)+(w*2))+3))[1],"
+                                      "((((w^2)*2)+(w*2))+3)),((((w^2)*2)+(w*2))+3))",
+                                test_only=True),
+    test_f_s('v(1,0,v(1,0,0))'  , 3, until="v(1,0,v(v(0,v(1,0)[2]),0))",
+                                     show_step=True),
+    test_f_s('v(1,1,0)'         , 3, until="v(1,0,v(1,0,v(v(1,0,0)[2],0)))",
+                                     show_step=True),
+
+    # ! template
+    test_f_s('v(1,1,0)'         , 3, print_str=True,
+                                     show_step=True),
+    # R3 R6
+    test_f_s('v(2,0,0)'         , 3, until="v(1, v(1, v(v(1, 0, 0)[2], 0), 0), 0)",
+                                     test_only=True),
+    test_f_s('v(w,0,0)'         , 3, until="v(2,v(2,v(1,v(1,v(v(v(1,0,0)[1],0),0),0),0),0),0)",
+                                     show_step=True),
+    test_f_s('v(w+1,0,0)'       , 3, until="v(w,v(w,v(2,v(2,v(1,v(1,v(1,0,0)"
+                                           "[3],0),0),0),0),0),0)",),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')

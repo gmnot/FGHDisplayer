@@ -173,7 +173,7 @@ class Veblen:
         return f'{ax}_{{{gx}}}'
     elif self.arity() == 3 and self.param[0] == 1 and self.param[1] == 0:
       # v(1,0,a) = G_{a}
-      return f'\\Gamma_{{{self.param[-1]}}}'
+      return f'\\Gamma_{{{self.param[-1].to_latex()}}}'
 
     return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
 
@@ -227,6 +227,7 @@ class Veblen:
       if gx == 0:  # R3: v(S,a+1,Z,0) : b -> v(S,a,b,Z)
         # v(S,a+1,Z,0)[0] = 0
         if n == 0:
+          # recorder.skip_next()
           return succ(Ord(0))
         # v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
         return succ_v((*S, ax.dec(), None, *Z),
@@ -235,11 +236,15 @@ class Veblen:
       if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
         # R4-1 (binary R6) v(S,a+1,Z,g+1)[0]   = v(S,a+1,Z,g) + 1
         if n == 0:
+          # recorder.skip_next()
           return succ(Veblen(*S, ax, *Z, gx.dec()) + 1)
         # R4-2 (binary R7) v(S,a+1,Z,g+1)[n+1] = v(S,a,v(S,a+1,Z,g+1)[n],Z)
         return succ_v((*S, ax.dec(), None, gx),
                                      self,
                       n_nxt=n-1)
+      else:  # R5 (binary R3) v(S,a+1,Z,g[n])
+        return succ_v((*S, ax, *Z, None),
+                                   gx)
 
       assert 0
 
