@@ -144,15 +144,17 @@ class Veblen:
       return remain[:-1], remain[-1], Z, gx
     return [], None, Z, gx
 
-
-
-
-
-  def index_multi(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
+  def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
     from ordinal import Ord, FdmtSeq
 
     def succ(nxt, remain=None):
-      return (True, remain, ordinal.FdmtSeq(nxt, n))
+      return (True, remain, FdmtSeq(nxt, n))
+
+    gx = self.param[-1]     # last term, g or g+1
+    if self.is_binary() and \
+       gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
+      recorder.skip_next()
+      return succ(Ord(0))
 
     def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
       return (True,
@@ -201,26 +203,8 @@ class Veblen:
     return succ_v((*S, ax, *Z, None),
                                gx)
 
-  def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
-    from ordinal import Ord, FdmtSeq
-
-    def succ(nxt, remain=None):
-      return (True, remain, FdmtSeq(nxt, n))
-
-    gx = self.param[-1]     # last term, g or g+1
-    if self.is_binary() and \
-       gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
-      recorder.skip_next()
-      return succ(Ord(0))
-
-    return self.index_multi(n, recorder)
-
+    # old binary calc
     ax = self.param[0]   # first non-zero term except last term. a or a+1
-
-    def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
-      return (True,
-              (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)),
-              FdmtSeq(nxt, n_nxt))
 
     if ax == 0:  # R2: v(0,g) = w^g (for any g)
       # rec.skip_next()
