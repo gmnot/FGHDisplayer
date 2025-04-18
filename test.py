@@ -158,7 +158,6 @@ def test_main():
     test_f_s('v(1,0)'             , 3,    test_only=True),  # R5 v(a+1,0)
     test_f_s('e'                  , 3, 'w^2*2+w*2+3', show_step=True),
     test_fgh('w^(w^w)'            , 2, show_step=True),
-    # todo 1: smarter length ctrl: when fs close to lim, fs could be too long
     test_fgh('w^(w^w)'            , 3, limit=4, show_step=True),
     test_f_s('e*w'                , 3),
     # test_f_s('e^e'              , 3),
@@ -198,6 +197,8 @@ def test_main():
     test_f_s('v(v(v(w,0),0),0)' , 3,
              until="v(v(v(2, v(2, v(1, v(1, v(0, w[3]))))), 0),0)",
                                 show_step=True),
+    test_f_s('v(3)'        , 2, until="(w^3)[2]"),       # R1 v(g+1)
+    test_f_s('v(w)'        , 3, until="(w^3)[3]"),       # R2 v(g)
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')

@@ -90,7 +90,7 @@ class Veblen:
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
 
   def __init__(self, *args, latex_force_veblen=False):
-    assert len(args) >= 2
+    assert len(args) > 0
     self.param = [Ord.from_any(o) for o in args]
     self.latex_force_veblen = latex_force_veblen
 
@@ -184,10 +184,83 @@ class Veblen:
     self.param[idx] = None
     return func(sub_node, remain)
 
+  # to (S, ax, Z, gx)
+  def partition(self) -> Tuple[List[Ord], Ord | None, List[Ord], Ord]:
+
+    assert self.arity() > 0
+    gx = self.param[-1]
+    remain = self.param[:-1]
+
+    Z = []
+    while len(remain) > 0 and remain[-1] == 0:
+      Z.append(remain[-1])
+      remain = remain[:-1]
+
+    if len(remain) > 0:
+      return remain[:-1], remain[-1], Z, gx
+    return [], None, Z, gx
+
+
+
+
+
+  def index_multi(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
+
+    def succ(nxt, remain=None):
+      return (True, remain, FdmtSeq(nxt, n))
+
+    def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
+      return (True,
+              (Ord(Veblen(*v)) if isinstance(v, tuple) else Ord(v)),
+              FdmtSeq(nxt, n_nxt))
+
+    S, ax, Z, gx = self.partition()
+
+    if ax is None:  # R1 R2
+      return succ(Ord('^', 'w', gx))
+    if ax.is_succ_ordinal():  # R3-5
+      if gx == 0:  # R3
+        if n == 0:
+          return succ(Ord(0))
+
+    assert 0, f'{self} [{n}]'
+    # !!
+
+    ax = self.param[0]   # first non-zero term except last term. a or a+1
+    gx = self.param[-1]  # last term, g or g+1
+
+
+
+    if gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
+      recorder.skip_next()
+      return succ(Ord(0))
+    if ax == 0:  # R2: v(0,g) = w^g (for any g)
+      # rec.skip_next()
+      return succ(Ord('^', 'w', gx))
+    if gx.is_limit_ordinal():  # R3, g is LO
+      return succ_v((ax, None), gx)
+    if ax.is_limit_ordinal():  # R8-9 v(a, .)
+      if gx == 0:  # R8 v(a, 0)
+        return succ_v((None, 0), ax)
+      else:  # R9 v(a, g+1)
+        return succ_v((None, Veblen(ax, gx.dec()) + 1), ax)
+    else:  # R5-7 v(a+1, .)
+      a = ax.dec()
+      if gx == 0:  # R5 v(a+1,0) : g -> v(a, g)
+        return succ_v((a, None), Veblen(ax, 0), n_nxt=n-1)
+      else:
+        if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
+          # e.g. e1[0] = e0 + 1
+          recorder.skip_next()
+          return succ(Veblen(ax, gx.dec()) + 1)
+        else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
+          # e.g. e2 = {e1+1, w^(...), w^w^(...), }
+          return succ_v((a, None), self, n_nxt=n-1)
+
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
 
-    WIPError.raise_if(not self.is_binary(),
-                      f"WIP: multi-var Veblen will be available soon. {self}")
+    if not self.is_binary():
+      return self.index_multi(n, recorder)
     ax = self.param[0]   # first non-zero term except last term. a or a+1
     gx = self.param[-1]  # last term, g or g+1
 
