@@ -803,6 +803,8 @@ class Ord(Node):
 
   # * math
 
+  # must be a + n, where n \in N
+  # note: otherwise dec is not trivial
   def is_succ_ordinal(self):
     if self.is_atomic():
       return self.is_natural()
@@ -915,11 +917,14 @@ class FdmtSeq:
               return succ(Ord(1))
             if ord.right == 1:
               return succ(ord.left)
-            # w^(a+1)[3] = w^a * w[3]
-            # todo 1: dec not recorded. combine w/ is_limit_ordinal case then go inside
+            if ord.right == 2:
+              return succ(Ord('+' if ord.token.v == '*' else '*',
+                              ord.left,
+                              ord.left))
+            # w^(a+1) = w^a * w
             return succ(Ord('+' if ord.token.v == '*' else '*',
-                        Ord.simplified(Ord(ord.token, ord.left, ord.right.dec())),
-                        ord.left))
+                            Ord(ord.token, ord.left, ord.right.dec()),
+                            ord.left))
         case _:
           assert 0, ord
 
