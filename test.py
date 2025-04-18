@@ -224,9 +224,13 @@ def test_main():
                                      show_step=True),
     test_f_s('v(1,1,0)'         , 3, until="v(1,0,v(1,0,v(v(1,0,0)[2],0)))",
                                      show_step=True),
-
+    test_f_s('v(1,w,0)'         , 3, until="v(1,2,v(1,2,v(1,1,v(1,1,v(1,2,0)[1]))))",
+                                     show_step=True),
+    test_f_s('v(1,v(1,0,1),0)'  , 3, until="v(1,v(v(v(v(1,0,0),v(v(1,0,0),v(v(v(1,0,0)[2],0),"
+                                           "(v(v(1,0,0),v((v(1,0,0)+1),0))+1)))),1),1),0)"),
+    test_f_s('v(1,v(1,1,0),0)'  , 3, until="v(1,v(1,0,v(1,0,v(v(1,0,0)[2],0))),0)"),
     # ! template
-    test_f_s('v(1,1,0)'         , 3, print_str=True,
+    test_f_s('v(1,v(1,1,0),0)'  , 3, print_str=True,
                                      show_step=True),
     # R3 R6
     test_f_s('v(2,0,0)'         , 3, until="v(1, v(1, v(v(1, 0, 0)[2], 0), 0), 0)",
