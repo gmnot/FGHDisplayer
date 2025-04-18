@@ -794,14 +794,14 @@ class Ord(Node):
 
 
   # * math
-  def is_limit_ordinal(self):
+
+  def is_succ_ordinal(self):
     if self.is_atomic():
-      return not self.is_natural()
-    if self.token.v == '+':
-      return self.right.is_limit_ordinal()
-    # a * b and a ^ b is surely limit ordinal
-    assert not self.left.is_natural(), self
-    return True
+      return self.is_natural()
+    return self.token.v == '+' and self.right.is_succ_ordinal()
+
+  def is_limit_ordinal(self):
+    return not self.is_succ_ordinal()
 
   def dec(self) -> Ord:
     if self.is_atomic():
@@ -908,7 +908,7 @@ class FdmtSeq:
             if ord.right == 1:
               return succ(ord.left)
             # w^(a+1)[3] = w^a * w[3]
-            # todo 2: dec not recorded. combine w/ is_limit_ordinal case then go inside
+            # todo 1: dec not recorded. combine w/ is_limit_ordinal case then go inside
             return succ(Ord('+' if ord.token.v == '*' else '*',
                         Ord.simplified(Ord(ord.token, ord.left, ord.right.dec())),
                         ord.left))
