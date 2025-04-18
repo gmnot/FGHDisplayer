@@ -248,9 +248,11 @@ def test_main():
     test_f_s('v(e,w,0,w)'       , 3, until="v(v(1,0),2,v(v(1,0),3,0,(v(v(1,0),w,0,2)+1))[2],"
                                            "(v(v(1,0),w,0,2)+1))",
                                      show_step=True),
-    # ! template
-    test_f_s('v(1,w,0,1)'       , 3, print_str=True, limit=30,
+    test_f_s('v(1,0,0,0,0)'     , 3, until="v(v(v(v(1,0,0)[2],0),0,0),0,0,0)",
                                      show_step=True),
+    # ! template
+    # test_f_s('v(1,0,1)'         , 3, print_str=True,
+    #                                  show_step=True),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
