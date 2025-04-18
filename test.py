@@ -158,18 +158,19 @@ def test_main():
     test_f_s('v(1,0)'             , 3,    test_only=True),  # R5 v(a+1,0)
     test_f_s('e'                  , 3, 'w^2*2+w*2+3', show_step=True),
     test_fgh('w^(w^w)'            , 2, show_step=True),
-    # todo: smarter length ctrl based on terms
+    # todo 1: smarter length ctrl: when fs close to lim, fs could be too long
     test_fgh('w^(w^w)'            , 3, limit=4, show_step=True),
     test_f_s('e*w'                , 3),
     # test_f_s('e^e'              , 3),
 
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha,\gamma) $ </h2>'+'\n'),
     test_f_s('v(1,1)'      , 0, 'e+1'),                  # R6
-    # todo: give a expected mid value for stop
     test_f_s('v(1,1)'      , 1, until=FdmtSeq('w^(e+1)', 1),
                                 show_step=True),         # R7 R6 v(a+1,g+1)[n+1 to 0]
     test_f_s('v(1,1)'      , 2, until=Veblen(0, FdmtSeq('w^(v(1, 0)+1)', 2)),
                                 show_step=True),         # R7 R6
+    # FGH for Ord close to cal_limit. Shouldn't be too long
+    test_fgh('w^((w^2)*2)' , 3),
     test_f_s('v(1,w)'      , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
                                 test_only=True),         # R3 R7 R6, g is LO
     test_f_s('v(1,v(0,1))' , 2, until=Veblen(0, FdmtSeq('w^(v(1, 1)+1)', 2)),
@@ -178,7 +179,7 @@ def test_main():
                                 show_step=True),         # R5 v(a+1,0)
     test_f_s('v(2,w)'      , 2, until="v(1, v(0, (w^(v(1, v(2,1))+1))[2]))",
                                 show_step=True),         # R3 R7 R6, g is LO
-    # todo 2: better display for long power / sub
+    # todo 3: better display for long power / sub
     test_fgh('v(4,1)'      , 3, show_step=True),         # R3 R7 R6, g is LO
     test_f_s('v(w,0)'      , 2, until="v(1,2)[2]",
                                 show_step=True),         # R8 v(a, 0)

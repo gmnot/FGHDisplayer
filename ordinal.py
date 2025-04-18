@@ -219,7 +219,6 @@ class Veblen:
       else:
         if n == 0:  # R6 v(a+1,g+1)[0] = v(a+1,g)+1
           # e.g. e1[0] = e0 + 1
-          # todo 1: show dec
           recorder.skip_next()
           return succ(Veblen(ax, gx.dec()) + 1)
         else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
@@ -334,8 +333,11 @@ class Recorder:
   def tot_discard(self):
     return self.n_discard + self.n_pre_discard
 
+  def tot_calc(self):
+    return len(self.data) + self.tot_discard()
+
   def cal_limit_reached(self):
-    return len(self.data) + self.tot_discard() >= self.cal_limit
+    return self.tot_calc() >= self.cal_limit
 
   def no_mid_steps(self):
     return self.rec_limit == 2
@@ -374,17 +376,17 @@ class Recorder:
     return self.data[-1]
 
   # return True if cal_limit reached
-  def inc_discard_check_end(self) -> bool:
+  def inc_discard_check_end(self, *, n_steps=1) -> bool:
     if self.cnt() >= self.rec_limit:
-      self.n_discard += 1
+      self.n_discard += n_steps
     else:
-      self.n_pre_discard += 1
+      self.n_pre_discard += n_steps
     return self.cal_limit_reached() or self.until_met
 
   def skip_next(self):
     self.will_skip_next = True
 
-  # todo 2: one line mode; based on number of terms
+  # todo 3: arg for one line mode
   def to_latex(self, entry_to_latex):
     ret = r' \begin{align*}' + '\n'
     ret += entry_to_latex(self.data[0])
@@ -1008,13 +1010,16 @@ class FGH:
 
   # return (succ, res)
   # limit_f2: max n for f2(n) to be eval
-  def expand_once(self, digit_limit=1000) -> Tuple[int, FGH | int]:
+  def expand_once(self, recorder : Recorder, *, digit_limit=1000) \
+    -> Tuple[int, FGH | int]:
+
     if isinstance(self.x, FGH):
-      succ, x2 = self.x.expand_once()
+      succ, x2 = self.x.expand_once(recorder)
       return (succ if succ != Recorder.DONE else Recorder.SUCC), \
              FGH(self.ord, x2, self.exp)
     if self.ord.is_limit_ordinal():
       ord_res = self.ord.fs_at(self.x, 1, FdmtSeq.cal_limit_default)
+      recorder.inc_discard_check_end(n_steps=ord_res.tot_calc())
       return (Recorder.SUCC if ord_res.done else Recorder.DONE), \
              FGH(ord_res.get_result(), self.x)
     elif self.ord == 0:
@@ -1035,7 +1040,7 @@ class FGH:
       dec1 = self.ord.dec()
       return Recorder.SUCC, FGH(dec1, FGH(dec1, self.x), self.x - 1)
 
-  cal_limit_default = 100
+  cal_limit_default = 200
   def calc(self, *args, **kwargs) -> Recorder:
     recorder = Recorder(*args, **kwargs)
     curr : FGH | int = self
@@ -1044,7 +1049,7 @@ class FGH:
       return recorder
 
     while True:
-      succ, curr = cast(FGH, curr).expand_once()
+      succ, curr = cast(FGH, curr).expand_once(recorder)
       match succ:
         case Recorder.FAIL:
           recorder.done = True
