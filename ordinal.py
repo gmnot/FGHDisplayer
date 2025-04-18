@@ -139,7 +139,7 @@ class Veblen:
     return Ord('+', self, rhs)
 
   def __str__(self):
-    return 'v({})'.format(', '.join(
+    return 'v({})'.format(','.join(
       (str(o) if o is not None else '.' for o in self.param)
     ))
 
@@ -411,7 +411,12 @@ class Recorder:
     self.until_met = False
 
   def __str__(self):
-    return f'{self.data}'
+    if self.cnt() == 0:
+      return '[]'
+    last = f'{self.data[-1]}'
+    if len(last) > 30:
+      return last
+    return f'{self.data[::-1]}'
 
   def __repr__(self):
     return self.__str__()
