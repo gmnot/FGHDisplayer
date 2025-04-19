@@ -11,7 +11,7 @@ from utils import Recorder
 import veblen
 
 if TYPE_CHECKING:
-  from veblen import Veblen, parse_v_list
+  from veblen import parse_v_list, Veblen
 
 """
 todo:
@@ -97,6 +97,7 @@ class Token:
     '+': '+',
     '*': r'\cdot',
     '^': '^',
+    '@': r'\mathbin{\char64}',
   }
 
   def __init__(self, v, *, latex_force_veblen=False):
@@ -139,11 +140,11 @@ class Token:
     return cast(int, self.v)
 
   def to_latex(self):
-    from veblen import Veblen
+    from veblen import Veblen, VeblenTF
     match self.v:
       case int():
         return str(self.v)
-      case Veblen() | FdmtSeq():
+      case Veblen() | VeblenTF() | FdmtSeq():
         return self.v.to_latex()
       case str():
         assert self.v in Token.latex_maps.keys()
@@ -308,7 +309,7 @@ class Ord(Node):
 
   def to_pos(self) -> OrdPos:
      assert self.is_pos(), self
-     return veblen.OrdPos(self.left, self.right)
+     return OrdPos(self.left, self.right)
 
   def is_atomic(self):
     assert (self.left is None) == (self.right is None), self
@@ -420,7 +421,7 @@ class Ord(Node):
           m = re.match(r'\d+', s[i:])
           tokens.append(m.group(0))
           i += len(m.group(0))
-        elif s[i] in '+*^()':
+        elif s[i] in '+*^()@':
           tokens.append(s[i])
           i += 1
         else:
@@ -548,7 +549,7 @@ class Ord(Node):
       return '{(' + node.to_latex(**kwargs) + ')}'
 
     match self.token.v:
-      case '+':
+      case '+' | '@':
         return self.left.to_latex(**kwargs)  + \
                self.token.to_latex(**kwargs) + \
                self.right.to_latex(**kwargs)
@@ -563,6 +564,7 @@ class Ord(Node):
         return parentheses_on_demand(self.left, '^') + \
                self.token.to_latex(**kwargs) + \
                rhs
+        assert 0, self
 
 
   # * math
@@ -656,7 +658,7 @@ class FdmtSeq:
   # @utils.validate_return_based_on_arg(
   #     'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
   def calc(self, *args, **kwargs) -> Recorder:
-    from veblen import Veblen
+    from veblen import Veblen, VeblenTF
     recorder = Recorder(*args, **kwargs)
 
     def record_fs(pres : List[Ord], curr : Ord) -> bool:
@@ -676,7 +678,7 @@ class FdmtSeq:
         if ord.is_natural():
           return ret_failed
         match ord.token.v:
-          case Veblen():
+          case Veblen() | VeblenTF():
             return ord.token.v.index(fs.n, recorder)
           case 'w':
             recorder.skip_next()

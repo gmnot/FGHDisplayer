@@ -51,7 +51,7 @@ def parse_v_list(s: str, **kwargs) -> Veblen | VeblenTF:
   is_pos = (isinstance(o, Ord) and o.is_pos() for o in ords)
   if any(is_pos):
     assert all(is_pos), f'{s}\n{ords}'
-    return VeblenTF.from_ord_list(*cast(List, ord), **kwargs)
+    return VeblenTF.from_ord_list(*cast(List, ords), **kwargs)
   return Veblen(*ords, **kwargs)
 
 class VeblenBase(ABC):

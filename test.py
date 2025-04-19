@@ -194,7 +194,7 @@ def test_main():
              until="v(2, v(2, v(1, v(1, v(1, v(2, (v(3, v(w, 1))+1))[0])))))",
                                 show_step=True),         # R9 v(a, g+1)
 
-    (OutType.PLAIN, r'<h2> $ \Gamma_0, \ \varphi(S,\alpha,Z,\gamma) $ </h2>'+'\n'),
+    (OutType.PLAIN, r'<h2> $ \Gamma_0, \ \varphi(\alpha,\beta,\dots,\gamma) $ </h2>'+'\n'),
     test_f_s('v(v(v(w,0),0),0)' , 3,
              until="v(v(v(2, v(2, v(1, v(1, v(0, w[3]))))), 0),0)",
                                 show_step=True),
@@ -244,9 +244,13 @@ def test_main():
                                      show_step=True),
     test_f_s('v(1,0,0,0,0)'     , 3, until="v(v(v(v(1,0,0)[2],0),0,0),0,0,0)",
                                      show_step=True),
+
+    (OutType.PLAIN, r'<h2> $ \varphi(\alpha \mathbin{\char64} \beta) $ </h2>'+'\n'),
+    test_f_s('v(w@0)'           , 3, until='(w^w)[3]'),
     # ! template
-    # test_f_s('v(1,0,1)'         , 3, print_str=True,
-    #                                  show_step=True),
+    # R1: v(g) = w^g
+    test_f_s('v(w@0)'           , 3, print_str=True,
+                                     show_step=True),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')
