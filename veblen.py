@@ -1,4 +1,5 @@
 from __future__ import annotations
+from abc import ABC, abstractmethod
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
@@ -53,7 +54,7 @@ def parse_v_list(s: str, **kwargs) -> Veblen | VeblenTF:
     return VeblenTF.from_ord_list(*cast(List, ord), **kwargs)
   return Veblen(*ords, **kwargs)
 
-class VeblenBase:
+class VeblenBase(ABC):
   param: Tuple
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
 
@@ -72,6 +73,13 @@ class VeblenBase:
 
   def __repr__(self):
     return self.__str__()
+
+  @abstractmethod
+  def idxs_missing(self) -> List:
+    pass
+
+  def is_missing_one(self):
+    return len(self.idxs_missing()) == 1
 
 class Veblen(VeblenBase):
   param: Tuple[Ord, ...]  # v:       v(1, 0, 0)
@@ -103,9 +111,6 @@ class Veblen(VeblenBase):
   # !! copy
   def idxs_missing(self):
     return [i for i, val in enumerate(self.param) if val is None]
-
-  def is_missing_one(self):
-    return len(self.idxs_missing()) == 1
 
   def make_combined(self, other) -> Ord:
     idxs = self.idxs_missing()
@@ -276,5 +281,5 @@ class VeblenTF(VeblenBase):
 
   def __eq__(self, other):
     # todo 2: eq V and V-TF
-    return isinstance(other, Self) and \
+    return isinstance(other, VeblenTF) and \
            all(v == o for v, o in zip(self.param, other.param))
