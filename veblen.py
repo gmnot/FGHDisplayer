@@ -75,11 +75,16 @@ class VeblenBase(ABC):
     return self.__str__()
 
   @abstractmethod
-  def idxs_missing(self) -> List:
+  def idxs_missing(self) -> List[int]:
     pass
 
-  def is_missing_one(self):
+  def is_missing_one(self) -> bool:
     return len(self.idxs_missing()) == 1
+
+  def get_only_idx_missing(self) -> int:
+    idxs = self.idxs_missing()
+    assert len(idxs) == 1, self
+    return idxs[0]
 
 class Veblen(VeblenBase):
   param: Tuple[Ord, ...]  # v:       v(1, 0, 0)
@@ -112,14 +117,9 @@ class Veblen(VeblenBase):
     return [i for i, ord in enumerate(self.param) if ord is None]
 
   def make_combined(self, other) -> Ord:
-    idxs = self.idxs_missing()
-    assert len(idxs) == 1, self
-    idx = idxs[0]
     new_params = list(self.param)
-    new_params[idx] = other
-    ret = Veblen(*new_params)
-    from ordinal import Ord
-    return Ord(ret)
+    new_params[self.get_only_idx_missing()] = other
+    return ordinal.Ord(Veblen(*new_params))
 
   def to_latex(self):
     if self.is_binary() and not self.latex_force_veblen:
