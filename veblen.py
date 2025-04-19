@@ -59,6 +59,9 @@ class VeblenBase:
   def __init__(self, *, latex_force_veblen=False):
     self.latex_force_veblen = latex_force_veblen
 
+  def __add__(self, rhs):
+    from ordinal import Ord
+    return Ord('+', self, rhs)
 
 class Veblen(VeblenBase):
   param: Tuple[Ord, ...]  # v:       v(1, 0, 0)
@@ -87,12 +90,8 @@ class Veblen(VeblenBase):
 
   # !! copy
   def __eq__(self, other):
-    return isinstance(other, Veblen) and \
+    return isinstance(other, Self) and \
            all(v == o for v, o in zip(self.param, other.param))
-
-  def __add__(self, rhs):
-    from ordinal import Ord
-    return Ord('+', self, rhs)
 
   def __str__(self):
     return 'v({})'.format(','.join(
@@ -256,6 +255,10 @@ class OrdPos:
     self.val = Ord.from_any(val)
     self.pos = Ord.from_any(pos)
 
+  def __eq__(self, other):
+    return self.val == other.val and \
+           self.pos == other.pos
+
 class VeblenTF(VeblenBase):
   param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
                         # index:       0    1
@@ -270,3 +273,8 @@ class VeblenTF(VeblenBase):
   @classmethod
   def from_ord_list(cls, *args : Ord, **kwargs) -> Self:
     return cls(*(o.to_pos() for o in args), **kwargs)
+
+  def __eq__(self, other):
+    # todo 2: eq V and V-TF
+    return isinstance(other, Self) and \
+           all(v == o for v, o in zip(self.param, other.param))
