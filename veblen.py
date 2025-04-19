@@ -271,3 +271,11 @@ class VeblenTF(VeblenBase):
   # * note: code idx, not ord idx
   def idxs_missing(self) -> List:
     return [i for i, ord in enumerate(self.param) if ord.val() is None]
+
+  def make_combined(self, other) -> Ord:
+    new_params = list(self.param)
+    idx = self.get_only_idx_missing()
+    new_ord_pos = new_params[idx].make_combined(other, child_only=True)
+    assert new_ord_pos is not None
+    new_params[idx] = new_ord_pos.to_pos()
+    return ordinal.Ord(VeblenTF(*new_params))
