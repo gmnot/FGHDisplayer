@@ -88,11 +88,11 @@ class Veblen(VeblenBase):
           param.append(Ord.from_any(a, latex_force_veblen=latex_force_veblen))
     return Veblen(*param, latex_force_veblen=latex_force_veblen)
 
-  # !! copy
   def __eq__(self, other):
-    return isinstance(other, Self) and \
+    return isinstance(other, Veblen) and \
            all(v == o for v, o in zip(self.param, other.param))
 
+  # !! copy
   def __str__(self):
     return 'v({})'.format(','.join(
       (str(o) if o is not None else '.' for o in self.param)
