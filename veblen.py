@@ -54,9 +54,11 @@ def parse_v_list(s: str, **kwargs) -> Veblen | VeblenTF:
   return Veblen(*ords, **kwargs)
 
 class VeblenBase:
+  param: Tuple
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
 
-  def __init__(self, *, latex_force_veblen=False):
+  def __init__(self, *args, latex_force_veblen=False):
+    self.param = args
     self.latex_force_veblen = latex_force_veblen
 
   def __add__(self, rhs):
@@ -72,9 +74,7 @@ class Veblen(VeblenBase):
     while len(args) > 2 and args[0] == 0:  # drop 0 at beginning
       args = args[1:]
     from ordinal import Ord
-    self.param = [Ord.from_any(o) for o in args]
-    super().__init__(**kwargs)
-
+    super().__init__(*(Ord.from_any(o) for o in args), **kwargs)
 
   # not used
   @classmethod
@@ -267,8 +267,7 @@ class VeblenTF(VeblenBase):
     assert len(args) > 0
     while len(args) > 2 and args[0].val == 0:  # drop 0 at beginning
       args = args[1:]
-    self.param = copy(args)
-    super().__init__(**kwargs)
+    super().__init__(*args, **kwargs)
 
   @classmethod
   def from_ord_list(cls, *args : Ord, **kwargs) -> Self:
