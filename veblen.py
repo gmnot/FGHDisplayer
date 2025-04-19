@@ -12,7 +12,7 @@ from html_utils import contact_request
 import ordinal
 
 if TYPE_CHECKING:
-  from ordinal import Ord, FdmtSeq
+  from ordinal import FdmtSeq, Ord, OrdPos
 
 def strip_pre_post(pre: str, s: str, post: str = '') -> str:
   l1, l2 = len(pre), len(post)
@@ -108,8 +108,7 @@ class Veblen(VeblenBase):
     return isinstance(other, Veblen) and \
            all(v == o for v, o in zip(self.param, other.param))
 
-  # !! copy
-  def idxs_missing(self):
+  def idxs_missing(self) -> List:
     return [i for i, val in enumerate(self.param) if val is None]
 
   def make_combined(self, other) -> Ord:
@@ -250,28 +249,13 @@ class Veblen(VeblenBase):
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
           return succ_v((a, None), self, n_nxt=n-1)
 
-# val@pos
-# todo: just inherit from Ord
-class OrdPos:
-  val: Ord
-  pos: Ord
-
-  def __init__(self, val, pos):
-    from ordinal import Ord
-    self.val = Ord.from_any(val)
-    self.pos = Ord.from_any(pos)
-
-  def __eq__(self, other):
-    return self.val == other.val and \
-           self.pos == other.pos
-
 class VeblenTF(VeblenBase):
   param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
                              # index:       0    1
 
   def __init__(self, *args : OrdPos, **kwargs):
     assert len(args) > 0
-    while len(args) > 2 and args[0].val == 0:  # drop 0 at beginning
+    while len(args) > 2 and args[0].val() == 0:  # drop 0 at beginning
       args = args[1:]
     super().__init__(*args, **kwargs)
 
@@ -283,3 +267,10 @@ class VeblenTF(VeblenBase):
     # todo 2: eq V and V-TF
     return isinstance(other, VeblenTF) and \
            all(v == o for v, o in zip(self.param, other.param))
+
+  def idxs_missing(self) -> List[Ord]:
+    ret : List[Ord] = []
+    for ord in self.param:
+      if ord.val() is None:
+        ret.append(ord.pos())
+    return ret

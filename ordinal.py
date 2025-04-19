@@ -11,7 +11,7 @@ from utils import Recorder
 import veblen
 
 if TYPE_CHECKING:
-  from veblen import OrdPos, Veblen, parse_v_list
+  from veblen import Veblen, parse_v_list
 
 """
 todo:
@@ -601,6 +601,24 @@ class Ord(Node):
   # just a shortcut for FdmtSeq Func
   def fs_at(self, n, *args, **kwargs) -> Recorder:
     return FdmtSeq(self, n).calc(*args, **kwargs)
+
+# val@pos
+# todo: just inherit from Ord
+class OrdPos(Ord):
+
+  def __init__(self, left=None, right=None, **kwargs):
+    super().__init__(
+      '@',
+      Ord.from_any(left , **kwargs),
+      Ord.from_any(right, **kwargs),
+      **kwargs
+    )
+
+  def val(self):
+    return self.left
+
+  def pos(self):
+    return self.right
 
 # Fundamental Sequence
 class FdmtSeq:
