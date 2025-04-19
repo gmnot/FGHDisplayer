@@ -74,6 +74,10 @@ class VeblenBase(ABC):
   def __repr__(self):
     return self.__str__()
 
+  def to_latex(self) -> str:
+    return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
+
+
   @abstractmethod
   def idxs_missing(self) -> List[int]:
     pass
@@ -134,7 +138,8 @@ class Veblen(VeblenBase):
       # v(1,0,a) = G_{a}
       return f'\\Gamma_{{{self.param[-1].to_latex()}}}'
 
-    return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
+    # default case
+    return super().to_latex()
 
   def arity(self):
     return len(self.param)
