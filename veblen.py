@@ -2,7 +2,7 @@ from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
-from typing import Any, List, Dict, Tuple, cast, TYPE_CHECKING
+from typing import Any, Dict, Generator, List, Tuple, cast, TYPE_CHECKING
 import re
 import utils
 from utils import Recorder
@@ -13,11 +13,30 @@ import ordinal
 if TYPE_CHECKING:
   from ordinal import Ord, FdmtSeq
 
-def strip_pre_post(pre: str, s: str, post: str) -> str:
+def strip_pre_post(pre: str, s: str, post: str = '') -> str:
   l1, l2 = len(pre), len(post)
   assert len(s) >= l1 + l2, f'{s} {pre} {post}'
-  assert s.startswith(pre) and s.endswith(post), f'{s} {pre} {post}'
-  return s[l1:-l2]
+  assert s.startswith(pre) and s.endswith(post), f'{pre} {s} {post}'
+  return s[l1:-l2] if l2 > 0 else s[l1:]
+
+def parse_ord_list(s_: str) -> Generator[str, None, None]:
+  s = strip_pre_post('(', s_.replace(' ', ''), ')')
+  depth = 0
+  last = 0
+  for i, c in enumerate(s):
+    if c == '(':
+      depth += 1
+    elif c == ')':
+      depth -= 1
+    elif c == ',' and depth == 0:
+      yield s[last:i]
+      last = i + 1
+  yield s[last:]
+
+def parse_v_list(s_: str) -> Generator[str, None, None]:
+  s = strip_pre_post('v', s_)
+  for t in parse_ord_list(s):
+    yield t
 
 class VeblenBase:
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
@@ -38,32 +57,18 @@ class Veblen(VeblenBase):
     self.param = [Ord.from_any(o) for o in args]
     super().__init__(**kwargs)
 
-  @staticmethod
-  def from_str(s_: str, *, latex_force_veblen=False) -> Veblen:
+  # !! copy
+  @classmethod
+  def from_str(cls, s: str, *, latex_force_veblen=False) -> Veblen:
     from ordinal import Ord
-    s = strip_pre_post('v(', s_.replace(' ', ''), ')')
-
-    parts = []
-    depth = 0
-    last = 0
-    for i, c in enumerate(s):
-      if c == '(':
-        depth += 1
-      elif c == ')':
-        depth -= 1
-      elif c == ',' and depth == 0:
-        parts.append(s[last:i])
-        last = i + 1
-    parts.append(s[last:])
-
     ords = []
-    for part in parts:
+    for part in parse_v_list(s):
       if part.startswith('v(') and part.endswith(')'):
-        ords.append(Veblen.from_str(part, latex_force_veblen=latex_force_veblen))
+        ords.append(cls.from_str(part, latex_force_veblen=latex_force_veblen))
       else:
         ords.append(Ord.from_str(part, latex_force_veblen=latex_force_veblen))
 
-    return Veblen(*ords, latex_force_veblen=latex_force_veblen)
+    return cls(*ords, latex_force_veblen=latex_force_veblen)
 
   @classmethod
   def from_nested(cls, *args, latex_force_veblen=False) -> Veblen:
