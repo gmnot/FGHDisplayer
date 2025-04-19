@@ -298,3 +298,20 @@ class VeblenTF(VeblenBase):
 
   def is_math_binary(self):
     return self.math_arity() == 2
+
+  # get (S, a, b, g) from (S, a@b, g@0)
+  # must rm 0@x before calling
+  def partition(self) -> \
+    Tuple[Tuple[OrdPos,...], Ord | None, Ord | None, Ord]:
+
+    def break_last(li: Tuple[OrdPos,...]) \
+      -> Tuple[Tuple[OrdPos,...], Ord | None, Ord | None]:
+      return li[:-1], li[-1].val(), li[-1].pos()
+
+    assert len(self.param) > 0
+    last = self.param[-1]
+    if last.pos() == 0:
+      if len(self.param) >= 2:
+        return *break_last(self.param[:-1]), last.val()
+      return (), None, None, last.val()
+    return *break_last(self.param), last.val()
