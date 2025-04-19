@@ -65,6 +65,14 @@ class VeblenBase:
     from ordinal import Ord
     return Ord('+', self, rhs)
 
+  def __str__(self):
+    return 'v({})'.format(','.join(
+      (str(o) if o is not None else '.' for o in self.param)
+    ))
+
+  def __repr__(self):
+    return self.__str__()
+
 class Veblen(VeblenBase):
   param: Tuple[Ord, ...]  # v:       v(1, 0, 0)
                           # index:     0  1  2
@@ -93,14 +101,6 @@ class Veblen(VeblenBase):
            all(v == o for v, o in zip(self.param, other.param))
 
   # !! copy
-  def __str__(self):
-    return 'v({})'.format(','.join(
-      (str(o) if o is not None else '.' for o in self.param)
-    ))
-
-  def __repr__(self):
-    return self.__str__()
-
   def idxs_missing(self):
     return [i for i, val in enumerate(self.param) if val is None]
 
@@ -246,6 +246,7 @@ class Veblen(VeblenBase):
           return succ_v((a, None), self, n_nxt=n-1)
 
 # val@pos
+# todo: just inherit from Ord
 class OrdPos:
   val: Ord
   pos: Ord
@@ -261,7 +262,7 @@ class OrdPos:
 
 class VeblenTF(VeblenBase):
   param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
-                        # index:       0    1
+                             # index:       0    1
 
   def __init__(self, *args : OrdPos, **kwargs):
     assert len(args) > 0
