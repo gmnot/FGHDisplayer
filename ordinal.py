@@ -430,13 +430,17 @@ class Ord(Node):
     def precedence(op):
       if op == Operator.FS_AT:
         return 9
-      if op == "+":
-        return 1
-      if op == "*":
-        return 2
       if op == "^":
+        return 4
+      if op == "*":
         return 3
-      return 0
+      if op == "+":
+        return 2
+      if op == "@":
+        return 1
+      if op == "(":
+        return 0
+      assert 0
 
     def is_operand(tok : str | Operator):
       return not isinstance(tok, Operator) and \
