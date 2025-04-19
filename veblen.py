@@ -197,7 +197,7 @@ class Veblen(VeblenBase):
         recorder.skip_next()  # already shown like this
       return succ(Ord('^', 'w', gx))
     if ax.is_succ_ordinal():  # R3-5
-      if gx == 0:  # R3: v(S,a+1,Z,0) : b -> v(S,a,b,Z)
+      if gx == 0:  # R3: v(S,a+1,Z,0) : x -> v(S,a,x,Z)
         # v(S,a+1,Z,0)[0] = 0
         if n == 0:
           recorder.skip_next()
@@ -206,7 +206,7 @@ class Veblen(VeblenBase):
         return succ_v((*S, ax.dec(), None, *Z),
                                      self,
                       n_nxt=n-1)
-      if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
+      if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): x -> v(S,a,x,Z)
         # R4-1 (binary R6) v(S,a+1,Z,g+1)[0]   = v(S,a+1,Z,g) + 1
         if n == 0:
           recorder.skip_next()
@@ -215,7 +215,8 @@ class Veblen(VeblenBase):
         return succ_v((*S, ax.dec(), None, *Z),
                                      self,
                       n_nxt=n-1)
-      else:  # R5 (binary R3) v(S,a+1,Z,g[n])
+      # R5=R8 (binary R3) v(S,a+1,Z,g[n])
+      else:
         return succ_v((*S, ax, *Z, None),
                                    gx)
 
@@ -228,7 +229,7 @@ class Veblen(VeblenBase):
       recorder.skip_next()
       return succ_v((*S, None, *Z, Veblen(*S, ax, *Z, gx.dec()) + 1),
                          ax)
-    # R8 (binary R5) v(S,a,Z,g[n])
+    # R8=R5 (binary R5) v(S,a,Z,g[n])
     return succ_v((*S, ax, *Z, None),
                                gx)
 
@@ -264,11 +265,16 @@ class VeblenTF(VeblenBase):
   param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
                              # index:       0    1
 
-  def __init__(self, *args : OrdPos, **kwargs):
-    assert len(args) > 0
-    while len(args) > 2 and args[0].val() == 0:  # drop 0 at beginning
-      args = args[1:]
+  # val only allow 0, when it's 0@0
+  def __init__(self, *args_ : OrdPos, **kwargs):
+    args = VeblenTF.rm_zero(*args_)
+    if len(args) == 0:
+      args = [ordinal.OrdPos(0,0)]
     super().__init__(*args, **kwargs)
+
+  @staticmethod
+  def rm_zero(*args: OrdPos):
+    return tuple(o for o in args if o.val() != 0)
 
   @classmethod
   def from_ord_list(cls, *args : Ord, **kwargs) -> Self:
@@ -295,7 +301,9 @@ class VeblenTF(VeblenBase):
   def math_arity(self) -> Ord:
     assert len(self.param) > 0
     first = self.param[0]
-    assert first.val() != 0
+    if first.val() == 0:
+      assert first.pos() == 0
+      return ordinal.Ord(1)
     return first.pos()
 
   def is_math_binary(self):
@@ -316,20 +324,23 @@ class VeblenTF(VeblenBase):
       if len(self.param) >= 2:
         return *break_last(self.param[:-1]), last.val()
       return (), None, None, last.val()
-    return *break_last(self.param), last.val()
+    return *break_last(self.param), ordinal.Ord(0)
 
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
-    from ordinal import Ord, FdmtSeq
+    from ordinal import FdmtSeq, Ord, OrdPos
 
     def succ(nxt, remain=None):
       return (True, remain, FdmtSeq(nxt, n))
 
-    def succ_v(v: Tuple | Ord, nxt, *, n_nxt=n):
+    def succ_v(li: Tuple | Ord, val, *, n_nxt=n):
       return (True,
-              (Ord(Veblen(*v)) if isinstance(v, tuple) else v),
-              FdmtSeq(nxt, n_nxt))
+              (Ord(VeblenTF(*li)) if isinstance(li, tuple) else li),
+              FdmtSeq(val, n_nxt))
 
     S, ax, bx, gx = self.partition()
+
+    def ab():
+      return OrdPos(ax, bx)
 
     # binary R4: v(a, 0)[0] = 0
     if self.is_math_binary() and \
@@ -339,33 +350,55 @@ class VeblenTF(VeblenBase):
 
     # R1: v(g) = w^g
     if ax is None:
+      assert len(S) == 0
       if self.is_math_binary():
         recorder.skip_next()  # already shown like this
       return succ(Ord('^', 'w', gx))
+
+    # R2: v(...,g[n])
+    if gx.is_limit_ordinal():
+      return succ_v((*S, ab(), OrdPos(None, 0)),
+                                      gx)
+
+    # R3-6
+    if ax.is_succ_ordinal():
+      assert bx is not None
+      # R3-4
+      if bx.is_succ_ordinal():
+        # R3: v(S, a+1@b+1) : x -> v(S, a@b+1, x@b)
+        # (MV R3)
+        if gx == 0:
+          if n == 0:
+            recorder.skip_next()
+            return succ(Ord(0))
+          # v(S, a+1@b+1)[n+1] = v(S, a@b+1, v(S,a+1@b+1)[n]@b)
+          return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
+                                                          self,
+                        n_nxt=n-1)
+
+        # R4: v(S, a+1@b+1, g+1@0): x -> v(S, a@b+1, x@b)
+        # (MV R4)
+        if gx.is_succ_ordinal():
+          if n == 0:
+            recorder.skip_next()
+            return succ(Veblen(*S, ab(), gx.dec()) + 1)
+          # v(S, a+1@b+1, g+1)[n+1] = v(S, a@b+1, v(S, a+1@b+1,g+1)[n] @ b)
+          return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
+                                                          self,
+                        n_nxt=n-1)
 
     assert 0
     # S, ax, Z, gx = self.partition()
 
     if ax.is_succ_ordinal():  # R3-5
-      if gx == 0:  # R3: v(S,a+1,Z,0) : b -> v(S,a,b,Z)
-        # v(S,a+1,Z,0)[0] = 0
-        if n == 0:
-          recorder.skip_next()
-          return succ(Ord(0))
-        # v(S,a+1,Z,0)[n+1] = v(S,a,v(S,a+1,Z,0)[n],Z)
-        return succ_v((*S, ax.dec(), None, *Z),
-                                     self,
-                      n_nxt=n-1)
       if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
         # R4-1 (binary R6) v(S,a+1,Z,g+1)[0]   = v(S,a+1,Z,g) + 1
-        if n == 0:
-          recorder.skip_next()
-          return succ(Veblen(*S, ax, *Z, gx.dec()) + 1)
         # R4-2 (binary R7) v(S,a+1,Z,g+1)[n+1] = v(S,a,v(S,a+1,Z,g+1)[n],Z)
         return succ_v((*S, ax.dec(), None, *Z),
                                      self,
                       n_nxt=n-1)
-      else:  # R5 (binary R3) v(S,a+1,Z,g[n])
+      # R5=R8 (binary R3) v(S,a+1,Z,g[n])
+      else:
         return succ_v((*S, ax, *Z, None),
                                    gx)
 
@@ -378,6 +411,6 @@ class VeblenTF(VeblenBase):
       recorder.skip_next()
       return succ_v((*S, None, *Z, Veblen(*S, ax, *Z, gx.dec()) + 1),
                          ax)
-    # R8 (binary R5) v(S,a,Z,g[n])
+    # R8=R5 (binary R5) v(S,a,Z,g[n])
     return succ_v((*S, ax, *Z, None),
                                gx)

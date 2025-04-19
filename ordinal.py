@@ -101,11 +101,11 @@ class Token:
   }
 
   def __init__(self, v, *, latex_force_veblen=False):
-    from veblen import Veblen
+    from veblen import VeblenBase
     match v:
       case Token():
         self.v = v.v
-      case int() | Veblen() | FdmtSeq():
+      case int() | VeblenBase() | FdmtSeq():
         self.v = v
       case str():
         assert len(v) > 0
@@ -114,7 +114,7 @@ class Token:
         elif v[0] == 'v':
           self.v = veblen.parse_v_list(v, latex_force_veblen=latex_force_veblen)
         elif v in 'exh':
-          self.v = Veblen('exh'.index(v)+1, 0)
+          self.v = veblen.Veblen('exh'.index(v)+1, 0)
         elif v in 'w+*^@':
           self.v = v
         else:
@@ -259,7 +259,7 @@ class Ord(Node):
 
   @utils.track_total_time()
   def rotate(self) -> None:
-    if self.is_atomic():
+    if self.token == '@' or self.is_atomic():
       return
     self.rotate_op('+', to_right=False)
     self.rotate_op('*', to_right=False)
@@ -336,9 +336,9 @@ class Ord(Node):
   # note: must copy from the top. self can be changed later,
   #       like adding more half node. Returned Ord need to stay the same
   def make_combined(self, other: Ord, child_only=False) -> Ord | None:
-    from veblen import Veblen
+    from veblen import VeblenBase
     if self.n_child() == 0:
-      if isinstance(self.token.v, Veblen) and self.token.v.is_missing_one():
+      if isinstance(self.token.v, VeblenBase) and self.token.v.is_missing_one():
         return self.token.v.make_combined(other)
       return None
     if self.left is None:
@@ -523,7 +523,7 @@ class Ord(Node):
 
   @staticmethod
   def from_any(expression, *, latex_force_veblen=False) -> Ord:
-    from veblen import Veblen
+    from veblen import VeblenBase
     match expression:
       case None:
         return cast(Ord, None)
@@ -533,7 +533,7 @@ class Ord(Node):
         return Ord.from_str(expression, latex_force_veblen=latex_force_veblen)
       case int():
         return Ord.from_str(str(expression))
-      case Veblen() | FdmtSeq():
+      case FdmtSeq() | VeblenBase():
         return Ord(expression, latex_force_veblen=latex_force_veblen)
       case _:
         assert 0, expression
