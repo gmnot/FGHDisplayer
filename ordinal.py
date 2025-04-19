@@ -8,9 +8,10 @@ import re
 from html_utils import contact_request
 import utils
 from utils import Recorder
+import veblen
 
 if TYPE_CHECKING:
-  from veblen import Veblen
+  from veblen import OrdPos, Veblen, parse_v_list
 
 """
 todo:
@@ -110,10 +111,10 @@ class Token:
         if v.isdigit():
           self.v = int(v)
         elif v[0] == 'v':
-          self.v = Veblen.from_str(v, latex_force_veblen=latex_force_veblen)
+          self.v = veblen.parse_v_list(v, latex_force_veblen=latex_force_veblen)
         elif v in 'exh':
           self.v = Veblen('exh'.index(v)+1, 0)
-        elif v in 'w+*^':
+        elif v in 'w+*^@':
           self.v = v
         else:
           assert 0, self.v
@@ -301,6 +302,13 @@ class Ord(Node):
 
   def __repr__(self):
     return self.__str__()
+
+  def is_pos(self):
+    return self.token == '@'
+
+  def to_pos(self) -> OrdPos:
+     assert self.is_pos(), self
+     return veblen.OrdPos(self.left, self.right)
 
   def is_atomic(self):
     assert (self.left is None) == (self.right is None), self

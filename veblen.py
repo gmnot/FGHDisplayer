@@ -2,7 +2,7 @@ from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
-from typing import Any, Dict, Generator, List, Tuple, cast, TYPE_CHECKING
+from typing import Any, Dict, Generator, List, Self, Tuple, cast, TYPE_CHECKING
 import re
 import utils
 from utils import Recorder
@@ -19,7 +19,7 @@ def strip_pre_post(pre: str, s: str, post: str = '') -> str:
   assert s.startswith(pre) and s.endswith(post), f'{pre} {s} {post}'
   return s[l1:-l2] if l2 > 0 else s[l1:]
 
-def parse_ord_list(s_: str) -> Generator[str, None, None]:
+def partition_ord_list(s_: str) -> Generator[str, None, None]:
   s = strip_pre_post('(', s_.replace(' ', ''), ')')
   depth = 0
   last = 0
@@ -33,10 +33,25 @@ def parse_ord_list(s_: str) -> Generator[str, None, None]:
       last = i + 1
   yield s[last:]
 
-def parse_v_list(s_: str) -> Generator[str, None, None]:
+def partition_v_list(s_: str) -> Generator[str, None, None]:
   s = strip_pre_post('v', s_)
-  for t in parse_ord_list(s):
+  for t in partition_ord_list(s):
     yield t
+
+def parse_v_list(s: str, **kwargs) -> Veblen | VeblenTF:
+  from ordinal import Ord
+  ords = []
+  for part in partition_v_list(s):
+    if part.startswith('v(') and part.endswith(')'):
+      ords.append(parse_v_list(part, **kwargs))
+    else:
+      ords.append(Ord.from_str(part, **kwargs))
+
+  is_pos = (isinstance(o, Ord) and o.is_pos() for o in ords)
+  if any(is_pos):
+    assert all(is_pos), f'{s}\n{ords}'
+    return VeblenTF.from_ord_list(*cast(List, ord), **kwargs)
+  return Veblen(*ords, **kwargs)
 
 class VeblenBase:
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
@@ -57,19 +72,8 @@ class Veblen(VeblenBase):
     self.param = [Ord.from_any(o) for o in args]
     super().__init__(**kwargs)
 
-  # !! copy
-  @classmethod
-  def from_str(cls, s: str, *, latex_force_veblen=False) -> Veblen:
-    from ordinal import Ord
-    ords = []
-    for part in parse_v_list(s):
-      if part.startswith('v(') and part.endswith(')'):
-        ords.append(cls.from_str(part, latex_force_veblen=latex_force_veblen))
-      else:
-        ords.append(Ord.from_str(part, latex_force_veblen=latex_force_veblen))
 
-    return cls(*ords, latex_force_veblen=latex_force_veblen)
-
+  # not used
   @classmethod
   def from_nested(cls, *args, latex_force_veblen=False) -> Veblen:
     param = []
@@ -81,6 +85,7 @@ class Veblen(VeblenBase):
           param.append(Ord.from_any(a, latex_force_veblen=latex_force_veblen))
     return Veblen(*param, latex_force_veblen=latex_force_veblen)
 
+  # !! copy
   def __eq__(self, other):
     return isinstance(other, Veblen) and \
            all(v == o for v, o in zip(self.param, other.param))
@@ -246,6 +251,11 @@ class OrdPos:
   val: Ord
   pos: Ord
 
+  def __init__(self, val, pos):
+    from ordinal import Ord
+    self.val = Ord.from_any(val)
+    self.pos = Ord.from_any(pos)
+
 class VeblenTF(VeblenBase):
   param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
                         # index:       0    1
@@ -256,3 +266,7 @@ class VeblenTF(VeblenBase):
       args = args[1:]
     self.param = copy(args)
     super().__init__(**kwargs)
+
+  @classmethod
+  def from_ord_list(cls, *args : Ord, **kwargs) -> Self:
+    return cls(*(o.to_pos() for o in args), **kwargs)
