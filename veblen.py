@@ -19,10 +19,12 @@ def strip_pre_post(pre: str, s: str, post: str) -> str:
   assert s.startswith(pre) and s.endswith(post), f'{s} {pre} {post}'
   return s[l1:-l2]
 
-class Veblen:
-  param: List[Ord]  # v:       v(1, 0, 0)
-                    # index:     0  1  2
+class VeblenBase:
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
+
+class Veblen(VeblenBase):
+  param: Tuple[Ord]  # v:       v(1, 0, 0)
+                     # index:     0  1  2
 
   def __init__(self, *args, latex_force_veblen=False):
     assert len(args) > 0
@@ -96,8 +98,9 @@ class Veblen:
     idxs = self.idxs_missing()
     assert len(idxs) == 1, self
     idx = idxs[0]
-    ret = Veblen(*self.param)
-    ret.param[idx] = other
+    new_params = list(self.param)
+    new_params[idx] = other
+    ret = Veblen(*new_params)
     from ordinal import Ord
     return Ord(ret)
 
@@ -135,7 +138,7 @@ class Veblen:
     gx = self.param[-1]
     remain = self.param[:-1]
 
-    Z = []
+    Z : List[Ord] = []
     while len(remain) > 0 and remain[-1] == 0:
       Z.append(remain[-1])
       remain = remain[:-1]
