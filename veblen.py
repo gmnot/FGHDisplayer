@@ -109,7 +109,7 @@ class Veblen(VeblenBase):
            all(v == o for v, o in zip(self.param, other.param))
 
   def idxs_missing(self) -> List:
-    return [i for i, val in enumerate(self.param) if val is None]
+    return [i for i, ord in enumerate(self.param) if ord is None]
 
   def make_combined(self, other) -> Ord:
     idxs = self.idxs_missing()
@@ -268,9 +268,6 @@ class VeblenTF(VeblenBase):
     return isinstance(other, VeblenTF) and \
            all(v == o for v, o in zip(self.param, other.param))
 
-  def idxs_missing(self) -> List[Ord]:
-    ret : List[Ord] = []
-    for ord in self.param:
-      if ord.val() is None:
-        ret.append(ord.pos())
-    return ret
+  # * note: code idx, not ord idx
+  def idxs_missing(self) -> List:
+    return [i for i, ord in enumerate(self.param) if ord.val() is None]
