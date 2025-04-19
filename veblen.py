@@ -22,17 +22,21 @@ def strip_pre_post(pre: str, s: str, post: str) -> str:
 class VeblenBase:
   latex_force_veblen: bool  # force showing forms like v(0, 1) in latex
 
-class Veblen(VeblenBase):
-  param: Tuple[Ord]  # v:       v(1, 0, 0)
-                     # index:     0  1  2
+  def __init__(self, *, latex_force_veblen=False):
+    self.latex_force_veblen = latex_force_veblen
 
-  def __init__(self, *args, latex_force_veblen=False):
+
+class Veblen(VeblenBase):
+  param: Tuple[Ord, ...]  # v:       v(1, 0, 0)
+                          # index:     0  1  2
+
+  def __init__(self, *args, **kwargs):
     assert len(args) > 0
     while len(args) > 2 and args[0] == 0:  # drop 0 at beginning
       args = args[1:]
     from ordinal import Ord
     self.param = [Ord.from_any(o) for o in args]
-    self.latex_force_veblen = latex_force_veblen
+    super().__init__(**kwargs)
 
   @staticmethod
   def from_str(s_: str, *, latex_force_veblen=False) -> Veblen:
@@ -132,7 +136,7 @@ class Veblen(VeblenBase):
     return func(sub_node, remain)
 
   # to (S, ax, Z, gx)
-  def partition(self) -> Tuple[List[Ord], Ord | None, List[Ord], Ord]:
+  def partition(self) -> Tuple[Tuple[Ord,...], Ord | None, List[Ord], Ord]:
 
     assert self.arity() > 0
     gx = self.param[-1]
@@ -145,7 +149,7 @@ class Veblen(VeblenBase):
 
     if len(remain) > 0:
       return remain[:-1], remain[-1], Z, gx
-    return [], None, Z, gx
+    return (), None, Z, gx
 
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
     from ordinal import Ord, FdmtSeq
@@ -231,3 +235,19 @@ class Veblen(VeblenBase):
         else:  # R7 v(a+1,g+1)[n+1]: g -> v(a, g)
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
           return succ_v((a, None), self, n_nxt=n-1)
+
+# val@pos
+class OrdPos:
+  val: Ord
+  pos: Ord
+
+class VeblenTF(VeblenBase):
+  param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
+                        # index:       0    1
+
+  def __init__(self, *args : OrdPos, **kwargs):
+    assert len(args) > 0
+    while len(args) > 2 and args[0].val == 0:  # drop 0 at beginning
+      args = args[1:]
+    self.param = copy(args)
+    super().__init__(**kwargs)
