@@ -77,7 +77,6 @@ class VeblenBase(ABC):
   def to_latex(self) -> str:
     return '\\varphi({})'.format(', '.join(o.to_latex() for o in self.param))
 
-
   @abstractmethod
   def idxs_missing(self) -> List[int]:
     pass
@@ -89,6 +88,12 @@ class VeblenBase(ABC):
     idxs = self.idxs_missing()
     assert len(idxs) == 1, self
     return idxs[0]
+
+  def recurse_at(self, idx, func):
+    sub_node = self.param[idx]
+    remain   = copy(self)
+    self.param[idx] = None
+    return func(sub_node, remain)
 
 class Veblen(VeblenBase):
   param: Tuple[Ord, ...]  # v:       v(1, 0, 0)
@@ -126,7 +131,7 @@ class Veblen(VeblenBase):
     return ordinal.Ord(Veblen(*new_params))
 
   def to_latex(self):
-    if self.is_binary() and not self.latex_force_veblen:
+    if self.is_math_binary() and not self.latex_force_veblen:
       a = self.param[0].token.v
       if isinstance(a, int) and 0 <= a <= 3:
         ax = [r'\omega', r'\varepsilon', r'\xi', r'\eta'][a]
@@ -134,29 +139,24 @@ class Veblen(VeblenBase):
         if a == 0:
           return f'{ax}^{{{gx}}}'  # latex_add_parentheses(gx)
         return f'{ax}_{{{gx}}}'
-    elif self.arity() == 3 and self.param[0] == 1 and self.param[1] == 0:
+    elif self.math_arity() == 3 and self.param[0] == 1 and self.param[1] == 0:
       # v(1,0,a) = G_{a}
       return f'\\Gamma_{{{self.param[-1].to_latex()}}}'
 
     # default case
     return super().to_latex()
 
-  def arity(self):
+  # emphasize it's math, not coding (diff for V-TF)
+  def math_arity(self):
     return len(self.param)
 
-  def is_binary(self):
-    return self.arity() == 2
-
-  def recurse_at(self, idx, func):
-    sub_node = self.param[idx]
-    remain   = copy(self)
-    self.param[idx] = None
-    return func(sub_node, remain)
+  def is_math_binary(self):
+    return self.math_arity() == 2
 
   # to (S, ax, Z, gx)
   def partition(self) -> Tuple[Tuple[Ord,...], Ord | None, List[Ord], Ord]:
 
-    assert self.arity() > 0
+    assert len(self.param) > 0
     gx = self.param[-1]
     remain = self.param[:-1]
 
@@ -176,7 +176,7 @@ class Veblen(VeblenBase):
       return (True, remain, FdmtSeq(nxt, n))
 
     gx = self.param[-1]     # last term, g or g+1
-    if self.is_binary() and \
+    if self.is_math_binary() and \
        gx == 0 and n == 0:  # R4: v(a, 0)[0] = 0
       recorder.skip_next()
       return succ(Ord(0))
@@ -189,7 +189,7 @@ class Veblen(VeblenBase):
     S, ax, Z, gx = self.partition()
 
     if ax is None:  # R1 R2
-      if self.is_binary():
+      if self.is_math_binary():
         recorder.skip_next()  # already shown like this
       return succ(Ord('^', 'w', gx))
     if ax.is_succ_ordinal():  # R3-5
