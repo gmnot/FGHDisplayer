@@ -148,7 +148,9 @@ class Veblen(VeblenBase):
 
   # emphasize it's math, not coding (diff for V-TF)
   def math_arity(self):
-    return len(self.param)
+    n = len(self.param)
+    assert n > 0, self
+    return n
 
   def is_math_binary(self):
     return self.math_arity() == 2
@@ -254,6 +256,8 @@ class Veblen(VeblenBase):
           # e.g. e2 = {e1+1, w^(...), w^w^(...), }
           return succ_v((a, None), self, n_nxt=n-1)
 
+# TransFinitary Veblen
+# note: order must be from larger Ord to smaller
 class VeblenTF(VeblenBase):
   param: Tuple[OrdPos, ...]  # v:       v(1@w, 1@0)
                              # index:       0    1
@@ -284,3 +288,13 @@ class VeblenTF(VeblenBase):
     assert new_ord_pos is not None
     new_params[idx] = new_ord_pos.to_pos()
     return ordinal.Ord(VeblenTF(*new_params))
+
+  # emphasize it's math, not coding (diff for V-TF)
+  def math_arity(self) -> Ord:
+    assert len(self.param) > 0
+    first = self.param[0]
+    assert first.val() != 0
+    return first.pos()
+
+  def is_math_binary(self):
+    return self.math_arity() == 2
