@@ -212,8 +212,8 @@ def test_main():
     # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
     test_f_s('v(1,0,0)'    , 3, until="v((w^3)[3],0)",
                                 test_only=True),
-    test_f_s('v(1@2)'      , 3, until="v((w^3)[3],0)",
-                                show_step=True),
+    test_f_s('v(1@2)'      , 3, until="v((w^3)[3]@1)",
+                                test_only=True),
     test_f_s('v(1,0,0)'    , 3, limit=65,
                                 show_step=True),
     # R4 v(S,a+1,Z,g+1): b -> v(S,a,b,Z)

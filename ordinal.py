@@ -859,7 +859,8 @@ def calc_display(obj : FdmtSeq | FGH, expected=None, *,
   res = recorder.get_result()
 
   if recorder.until is not None:
-    assert recorder.until_met, f'never reached {recorder.until}\n{recorder}'
+    assert recorder.until_met, \
+           f'never reached {recorder.until}\n{recorder}'
 
   if expected is not None:
     assert res == expected, f'{res} != {expected}'
