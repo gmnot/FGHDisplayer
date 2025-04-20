@@ -287,7 +287,13 @@ class VeblenTF(VeblenBase):
 
   # * note: code idx, not ord idx
   def idxs_missing(self) -> List:
-    return [i for i, ord in enumerate(self.param) if ord.val() is None]
+    ret = []
+    for i, ord in enumerate(self.param):
+      miss = (ord.val() is None) + (ord.pos() is None)
+      assert miss != 2
+      if miss == 1:
+        ret.append(i)
+    return ret
 
   def make_combined(self, other) -> Ord:
     new_params = list(self.param)
@@ -378,16 +384,43 @@ class VeblenTF(VeblenBase):
 
         # R4: v(S, a+1@b+1, g+1@0): x -> v(S, a@b+1, x@b)
         # (MV R4)
-        if gx.is_succ_ordinal():
-          if n == 0:
-            recorder.skip_next()
-            return succ(Veblen(*S, ab(), gx.dec()) + 1)
-          # v(S, a+1@b+1, g+1)[n+1] = v(S, a@b+1, v(S, a+1@b+1,g+1)[n] @ b)
-          return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
-                                                          self,
-                        n_nxt=n-1)
+        assert gx.is_succ_ordinal()
+        if n == 0:
+          recorder.skip_next()
+          return succ(Veblen(*S, ab(), gx.dec()) + 1)
+        # v(S, a+1@b+1, g+1)[n+1] = v(S, a@b+1, v(S, a+1@b+1,g+1)[n] @ b)
+        return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
+                                                        self,
+                      n_nxt=n-1)
 
-    assert 0
+      # R5-6, b is LO
+      # R5 v(S, a+1@b)[n] = v(S, a@b, 1@b[n])
+      if gx == 0:
+        return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(1, None)),
+                                                           bx)
+      # R6 v(a+1@b, g+1) = v(a@b, v(a+1@b, g)+1 @ b[n])
+      return succ_v((*S,
+                     OrdPos(ax.dec(), bx),
+                     OrdPos(VeblenTF(*S,
+                                     OrdPos(ax, bx),
+                                     OrdPos(gx.dec(), 0)) + 1, None)),
+                                                               bx)
+
+    # R7-8 ax is LO
+    # R7 (wiki 3.8) v(a[n]@b)
+    if gx == 0:
+      return succ_v((*S, OrdPos(None, bx)),
+                                ax)
+
+    # R8 v(a@b, g+1)[n] = v(a[n]@b, v(a@b,g)+1 @ b[n])
+    assert gx.is_succ_ordinal()
+    return succ_v((*S,
+                   OrdPos(FdmtSeq(ax, n), bx),
+                   OrdPos(VeblenTF(*S,
+                                   OrdPos(ax, bx),
+                                   OrdPos(gx.dec(), 0)) + 1, None)),
+                                                             bx)
+
     # S, ax, Z, gx = self.partition()
 
     if ax.is_succ_ordinal():  # R3-5
