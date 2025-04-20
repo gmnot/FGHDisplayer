@@ -3,7 +3,7 @@ from html_utils import OutType
 import ordinal
 from ordinal import calc_display, get_rotate_counter, FdmtSeq, FGH, \
                     ord_set_debug_mode, Ord, WIPError
-from veblen import Veblen
+from veblen import Veblen, parse_v_list
 import utils
 
 latex_html_headers = r"""<!DOCTYPE html>
@@ -68,6 +68,9 @@ def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
     expected, **kwargs
   )
 
+def test_basics():
+  assert parse_v_list("v(1,0,0)") == parse_v_list("v(1@2)")
+
 
 def test_associative():
   for s1, s2 in [('(w*2+w)+1', 'w*2+(w+1)'),
@@ -103,6 +106,7 @@ def test_main():
   f223 = 2**24*24
   f2_256 = 29642774844752946028434172162224104410437116074403984394101141506025761187823616
 
+  test_basics()
   test_associative()
   # test_exceptions()
 

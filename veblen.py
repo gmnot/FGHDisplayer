@@ -40,15 +40,14 @@ def partition_v_list(s_: str) -> Generator[str, None, None]:
     yield t
 
 def parse_v_list(s: str, **kwargs) -> Veblen | VeblenTF:
-  from ordinal import Ord
   ords = []
   for part in partition_v_list(s):
     if part.startswith('v(') and part.endswith(')'):
       ords.append(parse_v_list(part, **kwargs))
     else:
-      ords.append(Ord.from_str(part, **kwargs))
+      ords.append(ordinal.Ord.from_str(part, **kwargs))
 
-  is_pos = (isinstance(o, Ord) and o.is_pos() for o in ords)
+  is_pos = (isinstance(o, ordinal.Ord) and o.is_pos() for o in ords)
   if any(is_pos):
     assert all(is_pos), f'{s}\n{ords}'
     return VeblenTF.from_ord_list(*cast(List, ords), **kwargs)
@@ -119,8 +118,17 @@ class Veblen(VeblenBase):
     return Veblen(*param, latex_force_veblen=latex_force_veblen)
 
   def __eq__(self, other):
-    return isinstance(other, Veblen) and \
-           all(v == o for v, o in zip(self.param, other.param))
+    match other:
+      case Veblen():
+        return all(v == o for v, o in zip(self.param, other.param))
+      case VeblenTF():
+        return other.__eq__(self)
+      case int():
+        if other != 1:  # only w^0 == 1 could equal
+          return False
+        return all(v == 0 for v in self.param)
+      case _:
+        assert 0
 
   def idxs_missing(self) -> List:
     return [i for i, ord in enumerate(self.param) if ord is None]
@@ -280,10 +288,31 @@ class VeblenTF(VeblenBase):
   def from_ord_list(cls, *args : Ord, **kwargs) -> Self:
     return cls(*(o.to_pos() for o in args), **kwargs)
 
+  def toVeblen(self) -> Veblen:
+    assert self.math_arity().is_natural()
+    ans = [ordinal.Ord(0) for _ in range(cast(int, self.math_arity().token.v) + 1)]
+    for val, pos in self.param:
+      i = pos.token.v
+      assert isinstance(i, int) and i >= 0
+      ans[i] = val
+    return Veblen(*ans[::-1])
+
   def __eq__(self, other):
+    match other:
+      case VeblenTF():
+        return all(v == o for v, o in zip(VeblenTF.rm_zero(*self.param),
+                                          VeblenTF.rm_zero(*other.param)))
+      case Veblen():
+        if not self.math_arity().is_natural() or \
+           not self.math_arity() == other.math_arity():
+          return False
+        # todo 3: sml perf: cmp w/o fully expand
+        return self.toVeblen() == other
+
+      case _:
+        assert 0
+
     # todo 2: eq V and V-TF
-    return isinstance(other, VeblenTF) and \
-           all(v == o for v, o in zip(self.param, other.param))
 
   # * note: code idx, not ord idx
   def idxs_missing(self) -> List:
@@ -310,7 +339,7 @@ class VeblenTF(VeblenBase):
     if first.val() == 0:
       assert first.pos() == 0
       return ordinal.Ord(1)
-    return first.pos()
+    return first.pos() + 1
 
   def is_math_binary(self):
     return self.math_arity() == 2
@@ -420,30 +449,3 @@ class VeblenTF(VeblenBase):
                                    OrdPos(ax, bx),
                                    OrdPos(gx.dec(), 0)) + 1, None)),
                                                              bx)
-
-    # S, ax, Z, gx = self.partition()
-
-    if ax.is_succ_ordinal():  # R3-5
-      if gx.is_succ_ordinal():  # R4: v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
-        # R4-1 (binary R6) v(S,a+1,Z,g+1)[0]   = v(S,a+1,Z,g) + 1
-        # R4-2 (binary R7) v(S,a+1,Z,g+1)[n+1] = v(S,a,v(S,a+1,Z,g+1)[n],Z)
-        return succ_v((*S, ax.dec(), None, *Z),
-                                     self,
-                      n_nxt=n-1)
-      # R5=R8 (binary R3) v(S,a+1,Z,g[n])
-      else:
-        return succ_v((*S, ax, *Z, None),
-                                   gx)
-
-    # R6-8: ax is LO
-    if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
-      return succ_v((*S, None, *Z, 0),
-                         ax)
-    # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
-    elif gx.is_succ_ordinal():
-      recorder.skip_next()
-      return succ_v((*S, None, *Z, Veblen(*S, ax, *Z, gx.dec()) + 1),
-                         ax)
-    # R8=R5 (binary R5) v(S,a,Z,g[n])
-    return succ_v((*S, ax, *Z, None),
-                               gx)

@@ -2,7 +2,7 @@ from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
-from typing import Any, List, Dict, Tuple, cast, TYPE_CHECKING
+from typing import Any, List, Dict, Generator, Tuple, cast, TYPE_CHECKING
 import re
 
 from html_utils import contact_request
@@ -569,6 +569,11 @@ class Ord(Node):
 
   # * math
 
+  def __add__(self, rhs):
+    if self.is_natural():
+      return Ord(self.token.v + rhs)
+    return Ord('+', self, rhs)
+
   # must be a + n, where n \in N
   # note: otherwise dec is not trivial
   def is_succ_ordinal(self):
@@ -615,6 +620,10 @@ class OrdPos(Ord):
       Ord.from_any(right, **kwargs),
       **kwargs
     )
+
+  def __iter__(self) -> Generator[Ord, None, None]:
+    yield self.val()
+    yield self.pos()
 
   def val(self):
     return self.left
