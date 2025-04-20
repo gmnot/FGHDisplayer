@@ -876,7 +876,8 @@ def calc_display(obj : FdmtSeq | FGH, expected=None, *,
 
   recorder = obj.calc((n_steps if show_step else 1),
                       limit if limit else obj.cal_limit_default,
-                      until=until)
+                      until=until if isinstance(until, FGH)
+                                  else Ord.from_any(until))
   res = recorder.get_result()
 
   if recorder.until is not None:
