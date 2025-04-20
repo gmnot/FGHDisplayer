@@ -70,7 +70,7 @@ def test_fgh(ord1 : str | int, n : int, expected=None, **kwargs):
 
 def test_basics():
   assert parse_v_list("v(1,0,0)") == parse_v_list("v(1@2)")
-
+  assert parse_v_list("v((w^3)[3],0)") == parse_v_list("v((w^3)[3]@1)")
 
 def test_associative():
   for s1, s2 in [('(w*2+w)+1', 'w*2+(w+1)'),

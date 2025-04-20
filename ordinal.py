@@ -11,7 +11,7 @@ from utils import Recorder
 import veblen
 
 if TYPE_CHECKING:
-  from veblen import parse_v_list, Veblen
+  from veblen import parse_v_list, VeblenBase
 
 """
 todo:
@@ -85,7 +85,7 @@ class Operator(Enum):
 
 # number, w, e, operators, Veblen
 class Token:
-  v: int | str | Veblen | FdmtSeq
+  v: int | str | VeblenBase | FdmtSeq
   ord_maps : Dict[str, str] = {
     'w': r'\omega',
     'e': r'\varepsilon_{0}',
@@ -122,9 +122,19 @@ class Token:
       case _:
         assert 0, v
 
-  def __eq__(self, other_):
-    other = other_ if isinstance(other_, Token) else Token(other_)
-    return type(self.v) == type(other.v) and self.v == other.v
+  def __eq__(self, other):
+    b = other.v if isinstance(other, Token) else other
+    a = self.v
+    if isinstance(b, str):
+      assert b in Token.latex_maps, \
+             (f"Don't cmp Token with complex expression {other}\n"
+              "Ord tree should be build.")
+      return isinstance(a, str) and a == b
+    if isinstance(a, str):
+      if not isinstance(b, str):
+        return False
+      # todo: allow w = v(0,1) ?
+    return a == b
 
   def __str__(self):
     return str(self.v)
@@ -212,7 +222,7 @@ class Ord(Node):
     def should_recur(node):
         return not node.is_atomic() and node.token == op
 
-    def can_rotate(node):
+    def can_rotate(node : Ord):
       return should_recur(node) and \
         (to_right     and node.left.token  == op or
          not to_right and node.right.token == op)
@@ -259,7 +269,7 @@ class Ord(Node):
 
   @utils.track_total_time()
   def rotate(self) -> None:
-    if self.token == '@' or self.is_atomic():
+    if self.is_pos() or self.is_atomic():
       return
     self.rotate_op('+', to_right=False)
     self.rotate_op('*', to_right=False)
@@ -648,8 +658,10 @@ class FdmtSeq:
         return self == Ord.from_any(other)
       case FdmtSeq():
         return self.ord == other.ord and self.n == other.n
+      case int() | veblen.VeblenBase():  # no eval
+        return False
       case _:
-        assert 0, f'{self} {other}'
+        assert 0, f'{self}\n{other}'
 
   def __str__(self):
     return f'{self.ord}[{self.n}]'

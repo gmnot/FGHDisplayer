@@ -88,6 +88,10 @@ class VeblenBase(ABC):
     assert len(idxs) == 1, self
     return idxs[0]
 
+  @abstractmethod
+  def make_combined(self, other) -> Ord:
+    pass
+
   def recurse_at(self, idx, func):
     sub_node = self.param[idx]
     remain   = copy(self)
@@ -123,12 +127,15 @@ class Veblen(VeblenBase):
         return all(v == o for v, o in zip(self.param, other.param))
       case VeblenTF():
         return other.__eq__(self)
+      case ordinal.FdmtSeq():  # structual, no eval
+        return False
       case int():
+        return False  # # structual, no eval
         if other != 1:  # only w^0 == 1 could equal
           return False
         return all(v == 0 for v in self.param)
       case _:
-        assert 0
+        return NotImplemented
 
   def idxs_missing(self) -> List:
     return [i for i, ord in enumerate(self.param) if ord is None]
@@ -309,10 +316,10 @@ class VeblenTF(VeblenBase):
         # todo 3: sml perf: cmp w/o fully expand
         return self.toVeblen() == other
 
-      case _:
-        assert 0
+      case int() | ordinal.FdmtSeq():
+        return False
 
-    # todo 2: eq V and V-TF
+    return NotImplemented
 
   # * note: code idx, not ord idx
   def idxs_missing(self) -> List:
