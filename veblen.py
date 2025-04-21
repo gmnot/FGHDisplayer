@@ -251,11 +251,11 @@ class Veblen(VeblenBase):
     if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
       return succ_v((*S, None, *Z, 0),
                          ax)
-    # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,g,Z)+1)
+    # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],(S,a,g,Z)+1,Z)
     # wiki 2.7, book R7 is WRONG and not match V(@)!
     elif gx.is_succ_ordinal():
       recorder.skip_next()
-      return succ_v((*S, None, Veblen(*S, ax, *Z, gx.dec(), *Z) + 1),
+      return succ_v((*S, None, Veblen(*S, ax, *Z, gx.dec()) + 1, *Z),
                          ax)
     # R8=R5 (binary R5) v(S,a,Z,g[n])
     return succ_v((*S, ax, *Z, None),
