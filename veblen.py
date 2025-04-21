@@ -121,10 +121,22 @@ class Veblen(VeblenBase):
           param.append(Ord.from_any(a, latex_force_veblen=latex_force_veblen))
     return Veblen(*param, latex_force_veblen=latex_force_veblen)
 
+  def rm_zero(self):
+    self.param = Veblen.zero_removed(*self.param)
+
+  @staticmethod
+  def zero_removed(*args: Ord):
+    while len(args) > 1 and args[0] == 0:
+      args = args[1:]
+    return tuple(args)
+
   def __eq__(self, other):
+    self.rm_zero()
     match other:
       case Veblen():
-        return all(v == o for v, o in zip(self.param, other.param))
+        other.rm_zero()
+        return all(v == o for v, o in zip(self.param ,
+                                          other.param))
       case VeblenTF():
         return other.__eq__(self)
       case ordinal.FdmtSeq():  # structual, no eval
@@ -282,13 +294,16 @@ class VeblenTF(VeblenBase):
 
   # val only allow 0, when it's 0@0
   def __init__(self, *args_ : OrdPos, **kwargs):
-    args = VeblenTF.rm_zero(*args_)
+    args = VeblenTF.zero_removed(*args_)
     if len(args) == 0:
       args = [ordinal.OrdPos(0,0)]
     super().__init__(*args, **kwargs)
 
+  def rm_zero(self):
+    self.param = VeblenTF.zero_removed(*self.param)
+
   @staticmethod
-  def rm_zero(*args: OrdPos):
+  def zero_removed(*args: OrdPos):
     result = []
     for o in args:
       assert o.is_pos(), f"Not OrdPos: {o}"
@@ -302,7 +317,7 @@ class VeblenTF(VeblenBase):
 
   def toVeblen(self) -> Veblen:
     assert self.math_arity().is_natural()
-    ans = [ordinal.Ord(0) for _ in range(cast(int, self.math_arity().token.v) + 1)]
+    ans = [ordinal.Ord(0) for _ in range(cast(int, self.math_arity().token.v))]
     for val, pos in self.param:
       i = pos.token.v
       assert isinstance(i, int) and i >= 0
@@ -310,10 +325,12 @@ class VeblenTF(VeblenBase):
     return Veblen(*ans[::-1])
 
   def __eq__(self, other):
+    self.rm_zero()
     match other:
       case VeblenTF():
-        return all(v == o for v, o in zip(VeblenTF.rm_zero(*self.param),
-                                          VeblenTF.rm_zero(*other.param)))
+        other.rm_zero()
+        return all(v == o for v, o in zip(self.param,
+                                          other.param))
       case Veblen():
         if not self.math_arity().is_natural() or \
            not self.math_arity() == other.math_arity():
@@ -412,18 +429,18 @@ class VeblenTF(VeblenBase):
       assert bx is not None
       # R3-4
       if bx.is_succ_ordinal():
-        # R3: v(S, a+1@b+1) : x -> v(S, a@b+1, x@b)
+        # R3: v(a+1@b+1) : x -> v(a@b+1, x@b)
         # (MV R3)
         if gx == 0:
           if n == 0:
             recorder.skip_next()
             return succ(Ord(0))
-          # v(S, a+1@b+1)[n+1] = v(S, a@b+1, v(S,a+1@b+1)[n]@b)
+          # v(a+1@b+1)[n+1] = v(a@b+1, v(S,a+1@b+1)[n]@b)
           return succ_v((*S, ax.dec() @ bx, OrdPos(None, bx.dec())),
                                                    self,
                         n_nxt=n-1)
 
-        # R4: v(S, a+1@b+1, g+1@0): x -> v(S, a@b+1, x@b)
+        # R4: v(a+1@b+1, g+1@0): x -> v(a@b+1, x@b)
         # (MV R4; wiki 3.2.1)
         assert gx.is_succ_ordinal()
         if n == 0:
