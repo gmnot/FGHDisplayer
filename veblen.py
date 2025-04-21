@@ -376,7 +376,6 @@ class VeblenTF(VeblenBase):
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
     from ordinal import FdmtSeq, Ord, OrdPos
 
-    # todo 1: use @
     def succ(nxt, remain=None):
       return (True, remain, FdmtSeq(nxt, n))
 
@@ -420,8 +419,8 @@ class VeblenTF(VeblenBase):
             recorder.skip_next()
             return succ(Ord(0))
           # v(S, a+1@b+1)[n+1] = v(S, a@b+1, v(S,a+1@b+1)[n]@b)
-          return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
-                                                          self,
+          return succ_v((*S, ax.dec() @ bx, OrdPos(None, bx.dec())),
+                                                   self,
                         n_nxt=n-1)
 
         # R4: v(S, a+1@b+1, g+1@0): x -> v(S, a@b+1, x@b)
@@ -433,22 +432,21 @@ class VeblenTF(VeblenBase):
           return succ(VeblenTF(*S, ab(), gx.dec()@0) + 1)
 
         # v(S, a+1@b+1, g+1)[n+1] = v(S, a@b+1, v(S, a+1@b+1,g+1)[n] @ b)
-        return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
-                                                        self,
+        return succ_v((*S, ax.dec() @ bx, OrdPos(None, bx.dec())),
+                                                 self,
                        n_nxt=n-1)
 
       # R5-6, b is LO
       # R5 v(S, a+1@b)[n] = v(S, a@b, 1@b[n])
       if gx == 0:
-        return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(1, None)),
-                                                           bx)
+        return succ_v((*S, ax.dec() @ bx, OrdPos(1, None)),
+                                                    bx)
       # R6 v(a+1@b, g+1) = v(a@b, v(a+1@b, g)+1 @ b[n])
       return succ_v((*S,
-                     OrdPos(ax.dec(), bx),
-                     OrdPos(VeblenTF(*S,
-                                     OrdPos(ax, bx),
-                                     OrdPos(gx.dec())) + 1, None)),
-                                                            bx)
+                     ax.dec() @ bx,
+                     OrdPos(VeblenTF(*S, ab(), gx.dec() @ 0) + 1,
+                            None)),
+                            bx)
 
     # R7-8 ax is LO
     # R7 (wiki 3.8) v(a[n]@b)
@@ -458,9 +456,7 @@ class VeblenTF(VeblenBase):
 
     # R8 v(a@b, g+1)[n] = v(a[n]@b, v(a@b,g)+1 @ b[n])
     assert gx.is_succ_ordinal()
-    return succ_v((*S,
-                   OrdPos(FdmtSeq(ax, n), bx),
-                   OrdPos(VeblenTF(*S,
-                                   OrdPos(ax, bx),
-                                   OrdPos(gx.dec(), 0)) + 1, None)),
-                                                             bx)
+    return succ_v((*S, OrdPos(FdmtSeq(ax, n), bx),
+                   OrdPos(VeblenTF(*S, ab(), gx.dec() @ 0) + 1,
+                          None)),
+                          bx)

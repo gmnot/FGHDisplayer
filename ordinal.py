@@ -692,7 +692,7 @@ class FdmtSeq:
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
       ord = fs.ord
-      ret_failed = (False, None, fs)
+      ret_failed = (False, None, fs)  # when Fail, must return fs back
 
       # * note: sub_node first
       def succ(sub_node: Ord, remain: Ord | None = None):
@@ -749,14 +749,12 @@ class FdmtSeq:
     if record_fs([], Ord.from_any(curr)):
       return recorder
     while True:
-      # todo 1: merge curr and next
-      succ, pre, next = impl(curr)  # * idx could change! like R5
+      succ, pre, curr = impl(curr)  # * idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
-        if record_fs(copy(pre_stack), Ord.from_any(next)):
+        if record_fs(copy(pre_stack), Ord.from_any(curr)):
           return recorder
-        curr = next
       else:  # can't eval curr
         assert pre is None
         # try combine and continue
@@ -772,7 +770,8 @@ class FdmtSeq:
             break
         # add all
         if len(adds_reversed) > 0:
-          curr = FdmtSeq(Ord.from_list('+', adds_reversed[::-1] + [next.ord]), self.n)
+          curr = FdmtSeq(Ord.from_list('+', adds_reversed[::-1] + [curr.ord]),
+                         self.n)
         if non_add:
           # * when can't eval, restore with n of *self*
           # e.g. e[1] = w^e[0] = w^(0[0]) = (w^0)[1]
