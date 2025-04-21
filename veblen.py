@@ -251,10 +251,11 @@ class Veblen(VeblenBase):
     if gx == 0:  # R6 v(S,a,Z,0)[n] = v(S,a[n],Z,0)
       return succ_v((*S, None, *Z, 0),
                          ax)
-    # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
+    # R7 (binary R9) v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,g,Z)+1)
+    # wiki 2.7, book R7 is WRONG and not match V(@)!
     elif gx.is_succ_ordinal():
       recorder.skip_next()
-      return succ_v((*S, None, *Z, Veblen(*S, ax, *Z, gx.dec()) + 1),
+      return succ_v((*S, None, Veblen(*S, ax, *Z, gx.dec(), *Z) + 1),
                          ax)
     # R8=R5 (binary R5) v(S,a,Z,g[n])
     return succ_v((*S, ax, *Z, None),
@@ -336,12 +337,20 @@ class VeblenTF(VeblenBase):
            not self.math_arity() == other.math_arity():
           return False
         # todo 3: sml perf: cmp w/o fully expand
+        # False if any pos unresolved
+        for pos in self.poses():
+          if isinstance(pos.token.v, ordinal.FdmtSeq):
+            return False
         return self.toVeblen() == other
 
       case int() | ordinal.FdmtSeq():
         return False
 
     return NotImplemented
+
+  def poses(self) -> Generator[Ord, None, None]:
+    for ord_pos in self.param:
+      yield ord_pos.pos()
 
   # * note: code idx, not ord idx
   def idxs_missing(self) -> List:
@@ -406,6 +415,12 @@ class VeblenTF(VeblenBase):
     def ab():
       return ax @ bx
 
+    # R8 - resolve
+    # if isinstance(bx, FdmtSeq):
+    #   return succ_v((*S, OrdPos(ax, None), OrdPos(gx, 0)),
+    #                                 bx,
+    #                  n_nxt=bx.n)
+
     # binary R4: v(a, 0)[0] = 0
     if self.is_math_binary() and \
        gx == 0 and n == 0:
@@ -420,12 +435,13 @@ class VeblenTF(VeblenBase):
       return succ(Ord('^', 'w', gx))
 
     # R2: v(...,g[n])
-    # (MV R5, R8)
+    # (MV R5=R8, wiki 3.3)
     if gx.is_limit_ordinal():
       return succ_v((*S, ab(), OrdPos(None, 0)),
                                       gx)
 
     # R3-6
+    # ! todo 1: double check 3-6 w/ wiki before adding cases
     if ax.is_succ_ordinal():
       assert bx is not None
       # R3-4
@@ -467,14 +483,22 @@ class VeblenTF(VeblenBase):
                             bx)
 
     # R7-8 ax is LO
-    # R7 (wiki 3.8) v(a[n]@b)
-    # (MV R6)
+    # R7 v(a[n]@b)
+    # (wiki 3.4, 3.8; MV R6)
     if gx == 0:
       return succ_v((*S, OrdPos(None, bx)),
                                 ax)
 
+    # Rx a@b+1, g+1@0
+    # (wiki 3.5)
+    assert bx is not None
+    if bx.is_succ_ordinal():
+      return succ_v((*S, OrdPos(None, bx),
+                    (VeblenTF(*S, ab(), gx.dec() @ 0) + 1) @ bx.dec()),
+                                ax)
+
     # R8 v(a@b, g+1)[n] = v(a[n]@b, v(a@b,g)+1 @ b[n])
-    # (MV R7)
+    # (wiki 3.9; MV R7)
     assert gx.is_succ_ordinal()
     return succ_v((*S, OrdPos(FdmtSeq(ax, n), bx),
                    OrdPos(VeblenTF(*S, ab(), gx.dec() @ 0) + 1,
