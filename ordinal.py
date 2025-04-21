@@ -584,6 +584,9 @@ class Ord(Node):
       return Ord(self.token.v + rhs)
     return Ord('+', self, rhs)
 
+  def __matmul__(self, pos):
+    return OrdPos(self, Ord.from_any(pos))
+
   # must be a + n, where n \in N
   # note: otherwise dec is not trivial
   def is_succ_ordinal(self):
@@ -734,6 +737,8 @@ class FdmtSeq:
             return succ(Ord('+' if ord.token.v == '*' else '*',
                             Ord(ord.token, ord.left, ord.right.dec()),
                             ord.left))
+        case '@':
+          raise ValueError(f"Shouldn't eval @: {fs}")
         case _:
           assert 0, ord
 
@@ -744,6 +749,7 @@ class FdmtSeq:
     if record_fs([], Ord.from_any(curr)):
       return recorder
     while True:
+      # todo 1: merge curr and next
       succ, pre, next = impl(curr)  # * idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:

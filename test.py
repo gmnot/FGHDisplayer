@@ -223,6 +223,8 @@ def test_main():
     # R4 v(S,a+1,Z,g+1): b -> v(S,a,b,Z)
     test_f_s('v(1,0,1)'    , 3, until="v(v(v(v(1,0,0),v((v(1,0,0)+1),0)[2]),0),0)",
                                 show_step=True),
+    test_f_s('v(1@2,1@0)'  , 3, until="v(v(v(v(1,0,0),v((v(1,0,0)+1),0)[2]),0),0)",
+                                show_step=True),
     # R5 R4
     test_f_s('v(1,0,w)'    , 3, until="v(v(1,0,3)[2],0)",
                                 show_step=True),

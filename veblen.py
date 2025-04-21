@@ -289,7 +289,12 @@ class VeblenTF(VeblenBase):
 
   @staticmethod
   def rm_zero(*args: OrdPos):
-    return tuple(o for o in args if o.val() != 0)
+    result = []
+    for o in args:
+      assert o.is_pos(), f"Not OrdPos: {o}"
+      if o.val() != 0:
+        result.append(o)
+    return tuple(result)
 
   @classmethod
   def from_ord_list(cls, *args : Ord, **kwargs) -> Self:
@@ -371,6 +376,7 @@ class VeblenTF(VeblenBase):
   def index(self, n : int, recorder: Recorder) -> Tuple[bool, Ord | None, FdmtSeq]:
     from ordinal import FdmtSeq, Ord, OrdPos
 
+    # todo 1: use @
     def succ(nxt, remain=None):
       return (True, remain, FdmtSeq(nxt, n))
 
@@ -382,7 +388,7 @@ class VeblenTF(VeblenBase):
     S, ax, bx, gx = self.partition()
 
     def ab():
-      return OrdPos(ax, bx)
+      return ax @ bx
 
     # binary R4: v(a, 0)[0] = 0
     if self.is_math_binary() and \
@@ -419,15 +425,17 @@ class VeblenTF(VeblenBase):
                         n_nxt=n-1)
 
         # R4: v(S, a+1@b+1, g+1@0): x -> v(S, a@b+1, x@b)
-        # (MV R4)
+        # (MV R4; wiki 3.2.1)
         assert gx.is_succ_ordinal()
         if n == 0:
           recorder.skip_next()
-          return succ(Veblen(*S, ab(), gx.dec()) + 1)
+          # v(a+1@b+1,g+1@0)[0] = v[a+1@b+1,g@0]+1
+          return succ(VeblenTF(*S, ab(), gx.dec()@0) + 1)
+
         # v(S, a+1@b+1, g+1)[n+1] = v(S, a@b+1, v(S, a+1@b+1,g+1)[n] @ b)
         return succ_v((*S, OrdPos(ax.dec(), bx), OrdPos(None, bx.dec())),
                                                         self,
-                      n_nxt=n-1)
+                       n_nxt=n-1)
 
       # R5-6, b is LO
       # R5 v(S, a+1@b)[n] = v(S, a@b, 1@b[n])
@@ -439,8 +447,8 @@ class VeblenTF(VeblenBase):
                      OrdPos(ax.dec(), bx),
                      OrdPos(VeblenTF(*S,
                                      OrdPos(ax, bx),
-                                     OrdPos(gx.dec(), 0)) + 1, None)),
-                                                               bx)
+                                     OrdPos(gx.dec())) + 1, None)),
+                                                            bx)
 
     # R7-8 ax is LO
     # R7 (wiki 3.8) v(a[n]@b)
