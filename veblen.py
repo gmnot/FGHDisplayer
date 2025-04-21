@@ -135,6 +135,8 @@ class Veblen(VeblenBase):
     match other:
       case Veblen():
         other.rm_zero()
+        if self.math_arity() != other.math_arity():
+          return False
         return all(v == o for v, o in zip(self.param ,
                                           other.param))
       case VeblenTF():
@@ -330,6 +332,8 @@ class VeblenTF(VeblenBase):
     match other:
       case VeblenTF():
         other.rm_zero()
+        if len(self.param) != len(other.param):
+          return False
         return all(v == o for v, o in zip(self.param,
                                           other.param))
       case Veblen():

@@ -269,7 +269,7 @@ def test_main():
                                      test_only=True),
     # MV R7 v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
     # @Rx
-    test_f_s('v(w,0,1)'         , 3, until="v(3,(v(w,0,0)+1),0)[3]",
+    test_f_s('v(w,0,1)'         , 3, until="v(3,(v(w,0,0)+1),0)[3]", print_str=True,
                                      show_step=True),
     test_f_s('v(w@2,1@0)'       , 3, until="v(3,(v(w,0,0)+1),0)[3]",
                                      test_only=True),
