@@ -420,6 +420,7 @@ class VeblenTF(VeblenBase):
       return succ(Ord('^', 'w', gx))
 
     # R2: v(...,g[n])
+    # (MV R5, R8)
     if gx.is_limit_ordinal():
       return succ_v((*S, ab(), OrdPos(None, 0)),
                                       gx)
@@ -467,11 +468,13 @@ class VeblenTF(VeblenBase):
 
     # R7-8 ax is LO
     # R7 (wiki 3.8) v(a[n]@b)
+    # (MV R6)
     if gx == 0:
       return succ_v((*S, OrdPos(None, bx)),
                                 ax)
 
     # R8 v(a@b, g+1)[n] = v(a[n]@b, v(a@b,g)+1 @ b[n])
+    # (MV R7)
     assert gx.is_succ_ordinal()
     return succ_v((*S, OrdPos(FdmtSeq(ax, n), bx),
                    OrdPos(VeblenTF(*S, ab(), gx.dec() @ 0) + 1,

@@ -252,14 +252,23 @@ def test_main():
     test_f_s('v(1,v(1,1,0),0)'  , 3, until="v(1,v(1,0,v(1,0,v(v(1,0,0)[2],0))),0)"),
     test_f_s('v(1@2,v(1,1,0)@1)', 3, until="v(1,v(1,0,v(1,0,v(v(1,0,0)[2],0))),0)",
                                      test_only=True),
-    # R3 R6
-    test_f_s('v(2,0,0)'         , 3, until="v(1, v(1, v(v(1, 0, 0)[2], 0), 0), 0)",
+    # MV R3 R6
+    # @ R3 R7
+    test_f_s('v(2,0,0)'         , 3, until="v(1,v(1,v(v(1,0,0)[2],0),0),0)",
+                                     test_only=True),
+    test_f_s('v(2@2)'           , 3, until="v(1,v(1,v(v(1,0,0)[2],0),0),0)",
                                      test_only=True),
     test_f_s('v(w,0,0)'         , 3, until="v(2,v(2,v(1,v(1,v(v(v(1,0,0)[1],0),0),0),0),0),0)",
                                      show_step=True),
+    test_f_s('v(w@2)'           , 3, until="v(2,v(2,v(1,v(1,v(v(v(1,0,0)[1],0),0),0),0),0),0)",
+                                     test_only=True),
     test_f_s('v(w+1,0,0)'       , 3, until="v(w,v(w,v(2,v(2,v(1,v(1,v(1,0,0)"
                                            "[3],0),0),0),0),0),0)",),
-    # R7 v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
+    test_f_s('v(w+1@2)'         , 3, until="v(w,v(w,v(2,v(2,v(1,v(1,v(1,0,0)"
+                                           "[3],0),0),0),0),0),0)",
+                                     test_only=True),
+    # MV R7 v(S,a,Z,g+1)[n] = v(S,a[n],Z,(S,a,Z,g)+1)
+    # @R8
     test_f_s('v(1,w,0,1)'       , 3, until="v(1,2,v(1,2,v(1,3,0,(v(1,w,0,0)+1))[1],0),0)",
                                      show_step=True),
     test_f_s('v(w,w,0,1)'       , 3, until="v(w,2,v(w,2,v(w,3,0,(v(w,w,0,0)+1))[1],0),0)",
