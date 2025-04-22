@@ -296,7 +296,7 @@ def test_main():
     # @R1: v(g) = w^g
     test_f_s('v(w@0)'           , 3, until='(w^w)[3]'),
     # @R5
-    test_f_s('v(1@w)'           , 3, until='v((1@3))[3]'),  # ! display is not until
+    test_f_s('v(1@w)'           , 3, until='v((1@3))[3]'),
     test_f_s('v(2@w)'           , 3, until='v((1@w),(v((1@w),(v((1@w))[3]@2))@2))',
                                      show_step=True),
     # todo: @R568

@@ -776,7 +776,8 @@ class FdmtSeq:
           # * when can't eval, restore with n of *self*
           # e.g. e[1] = w^e[0] = w^(0[0]) = (w^0)[1]
           curr = FdmtSeq(utils.not_none(non_add.make_combined(curr.ord)), self.n)
-          record_fs(copy(pre_stack), Ord.from_any(curr))
+          if record_fs(copy(pre_stack), Ord.from_any(curr)):
+            return recorder
         else:  # a+b+c+... and last can't eval, end.
           assert curr.n == self.n
           assert len(pre_stack) == 0, f'{pre_stack}'
