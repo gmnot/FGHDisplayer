@@ -323,7 +323,7 @@ def test_main():
 
 
     # ! template
-    # test_f_s('v(1@v(1@w))'      , 3, print_str=True, n_steps=50,
+    # test_f_s('v(w@w,1@0) '      , 3, print_str=True, n_steps=50,
     #                                  show_step=True),
   ]
 

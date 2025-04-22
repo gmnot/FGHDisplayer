@@ -4,5 +4,5 @@ services:
     name: FGHDisplayer
     env: python
     buildCommand: "pip install -r requirements.txt"
-    startCommand: gunicorn app:app --timeout 5
+    startCommand: gunicorn app:app --timeout 12
     plan: free
