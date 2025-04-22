@@ -205,6 +205,8 @@ def test_main():
     test_f_s('v(3)'        , 2, until="(w^3)[2]"),       # R1 v(g+1)
     test_f_s('v(w)'        , 3, until="(w^3)[3]",
                                 test_only=True),         # R2 v(g)
+    test_f_s('v(v(2)+v(1))', 3, until="((w^(v(2)+2))*w)[3]",
+                                test_only=True),
     test_f_s('v(1,0,0)'    , 0, expected=0,
                                 test_only=True),         # R3-1 v(S,a+1,Z,0)[0] = 0
     test_f_s('v(1@2)'      , 0, expected=0,

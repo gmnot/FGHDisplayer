@@ -42,10 +42,7 @@ def partition_v_list(s_: str) -> Generator[str, None, None]:
 def parse_v_list(s: str, **kwargs) -> Veblen | VeblenTF:
   ords = []
   for part in partition_v_list(s):
-    if part.startswith('v(') and part.endswith(')'):
-      ords.append(parse_v_list(part, **kwargs))
-    else:
-      ords.append(ordinal.Ord.from_str(part, **kwargs))
+    ords.append(ordinal.Ord.from_str(part, **kwargs))
 
   is_pos = (isinstance(o, ordinal.Ord) and o.is_pos() for o in ords)
   if any(is_pos):
