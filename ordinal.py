@@ -2,15 +2,16 @@ from __future__ import annotations
 from copy import copy, deepcopy
 from enum import Enum
 from html_utils import OutType
-from typing import Any, List, Dict, Tuple, cast, TYPE_CHECKING
+from typing import Any, List, Dict, Generator, Tuple, cast, TYPE_CHECKING
 import re
 
 from html_utils import contact_request
 import utils
 from utils import Recorder
+import veblen
 
 if TYPE_CHECKING:
-  from veblen import Veblen
+  from veblen import parse_v_list, VeblenBase
 
 """
 todo:
@@ -84,7 +85,7 @@ class Operator(Enum):
 
 # number, w, e, operators, Veblen
 class Token:
-  v: int | str | Veblen | FdmtSeq
+  v: int | str | VeblenBase | FdmtSeq
   ord_maps : Dict[str, str] = {
     'w': r'\omega',
     'e': r'\varepsilon_{0}',
@@ -96,33 +97,44 @@ class Token:
     '+': '+',
     '*': r'\cdot',
     '^': '^',
+    '@': r'\mathbin{\char64}',
   }
 
   def __init__(self, v, *, latex_force_veblen=False):
-    from veblen import Veblen
+    from veblen import VeblenBase
     match v:
       case Token():
         self.v = v.v
-      case int() | Veblen() | FdmtSeq():
+      case int() | VeblenBase() | FdmtSeq():
         self.v = v
       case str():
         assert len(v) > 0
         if v.isdigit():
           self.v = int(v)
         elif v[0] == 'v':
-          self.v = Veblen.from_str(v, latex_force_veblen=latex_force_veblen)
+          self.v = veblen.parse_v_list(v, latex_force_veblen=latex_force_veblen)
         elif v in 'exh':
-          self.v = Veblen('exh'.index(v)+1, 0)
-        elif v in 'w+*^':
+          self.v = veblen.Veblen('exh'.index(v)+1, 0)
+        elif v in 'w+*^@':
           self.v = v
         else:
           assert 0, self.v
       case _:
         assert 0, v
 
-  def __eq__(self, other_):
-    other = other_ if isinstance(other_, Token) else Token(other_)
-    return type(self.v) == type(other.v) and self.v == other.v
+  def __eq__(self, other):
+    b = other.v if isinstance(other, Token) else other
+    a = self.v
+    if isinstance(b, str):
+      assert b in Token.latex_maps, \
+             (f"Don't cmp Token with complex expression {other}\n"
+              "Ord tree should be build.")
+      return isinstance(a, str) and a == b
+    if isinstance(a, str):
+      if not isinstance(b, str):
+        return False
+      # todo: allow w = v(0,1) ?
+    return a == b
 
   def __str__(self):
     return str(self.v)
@@ -138,11 +150,11 @@ class Token:
     return cast(int, self.v)
 
   def to_latex(self):
-    from veblen import Veblen
+    from veblen import Veblen, VeblenTF
     match self.v:
       case int():
         return str(self.v)
-      case Veblen() | FdmtSeq():
+      case Veblen() | VeblenTF() | FdmtSeq():
         return self.v.to_latex()
       case str():
         assert self.v in Token.latex_maps.keys()
@@ -210,7 +222,7 @@ class Ord(Node):
     def should_recur(node):
         return not node.is_atomic() and node.token == op
 
-    def can_rotate(node):
+    def can_rotate(node : Ord):
       return should_recur(node) and \
         (to_right     and node.left.token  == op or
          not to_right and node.right.token == op)
@@ -257,7 +269,7 @@ class Ord(Node):
 
   @utils.track_total_time()
   def rotate(self) -> None:
-    if self.is_atomic():
+    if self.is_pos() or self.is_atomic():
       return
     self.rotate_op('+', to_right=False)
     self.rotate_op('*', to_right=False)
@@ -302,6 +314,13 @@ class Ord(Node):
   def __repr__(self):
     return self.__str__()
 
+  def is_pos(self):
+    return self.token == '@'
+
+  def to_pos(self) -> OrdPos:
+     assert self.is_pos(), self
+     return OrdPos(self.left, self.right)
+
   def is_atomic(self):
     assert (self.left is None) == (self.right is None), self
     return self.left is None
@@ -327,9 +346,9 @@ class Ord(Node):
   # note: must copy from the top. self can be changed later,
   #       like adding more half node. Returned Ord need to stay the same
   def make_combined(self, other: Ord, child_only=False) -> Ord | None:
-    from veblen import Veblen
+    from veblen import VeblenBase
     if self.n_child() == 0:
-      if isinstance(self.token.v, Veblen) and self.token.v.is_missing_one():
+      if isinstance(self.token.v, VeblenBase) and self.token.v.is_missing_one():
         return self.token.v.make_combined(other)
       return None
     if self.left is None:
@@ -412,7 +431,7 @@ class Ord(Node):
           m = re.match(r'\d+', s[i:])
           tokens.append(m.group(0))
           i += len(m.group(0))
-        elif s[i] in '+*^()':
+        elif s[i] in '+*^()@':
           tokens.append(s[i])
           i += 1
         else:
@@ -430,13 +449,17 @@ class Ord(Node):
     def precedence(op):
       if op == Operator.FS_AT:
         return 9
-      if op == "+":
-        return 1
-      if op == "*":
-        return 2
       if op == "^":
+        return 4
+      if op == "*":
         return 3
-      return 0
+      if op == "+":
+        return 2
+      if op == "@":
+        return 1
+      if op == "(":
+        return 0
+      assert 0
 
     def is_operand(tok : str | Operator):
       return not isinstance(tok, Operator) and \
@@ -510,7 +533,7 @@ class Ord(Node):
 
   @staticmethod
   def from_any(expression, *, latex_force_veblen=False) -> Ord:
-    from veblen import Veblen
+    from veblen import VeblenBase
     match expression:
       case None:
         return cast(Ord, None)
@@ -520,7 +543,7 @@ class Ord(Node):
         return Ord.from_str(expression, latex_force_veblen=latex_force_veblen)
       case int():
         return Ord.from_str(str(expression))
-      case Veblen() | FdmtSeq():
+      case FdmtSeq() | VeblenBase():
         return Ord(expression, latex_force_veblen=latex_force_veblen)
       case _:
         assert 0, expression
@@ -536,7 +559,7 @@ class Ord(Node):
       return '{(' + node.to_latex(**kwargs) + ')}'
 
     match self.token.v:
-      case '+':
+      case '+' | '@':
         return self.left.to_latex(**kwargs)  + \
                self.token.to_latex(**kwargs) + \
                self.right.to_latex(**kwargs)
@@ -551,9 +574,18 @@ class Ord(Node):
         return parentheses_on_demand(self.left, '^') + \
                self.token.to_latex(**kwargs) + \
                rhs
+        assert 0, self
 
 
   # * math
+
+  def __add__(self, rhs):
+    if self.is_natural():
+      return Ord(self.token.v + rhs)
+    return Ord('+', self, rhs)
+
+  def __matmul__(self, pos):
+    return OrdPos(self, Ord.from_any(pos))
 
   # must be a + n, where n \in N
   # note: otherwise dec is not trivial
@@ -590,6 +622,28 @@ class Ord(Node):
   def fs_at(self, n, *args, **kwargs) -> Recorder:
     return FdmtSeq(self, n).calc(*args, **kwargs)
 
+# val@pos
+# todo: just inherit from Ord
+class OrdPos(Ord):
+
+  def __init__(self, left=None, right=None, **kwargs):
+    super().__init__(
+      '@',
+      Ord.from_any(left , **kwargs),
+      Ord.from_any(right, **kwargs),
+      **kwargs
+    )
+
+  def __iter__(self) -> Generator[Ord, None, None]:
+    yield self.val()
+    yield self.pos()
+
+  def val(self):
+    return self.left
+
+  def pos(self):
+    return self.right
+
 # Fundamental Sequence
 class FdmtSeq:
   ord: Ord
@@ -607,8 +661,10 @@ class FdmtSeq:
         return self == Ord.from_any(other)
       case FdmtSeq():
         return self.ord == other.ord and self.n == other.n
+      case int() | veblen.VeblenBase():  # no eval
+        return False
       case _:
-        assert 0, f'{self} {other}'
+        assert 0, f'{self}\n{other}'
 
   def __str__(self):
     return f'{self.ord}[{self.n}]'
@@ -626,7 +682,7 @@ class FdmtSeq:
   # @utils.validate_return_based_on_arg(
   #     'recorder', lambda ret, rec: not debug_mode or ret == rec.get_result())
   def calc(self, *args, **kwargs) -> Recorder:
-    from veblen import Veblen
+    from veblen import Veblen, VeblenTF
     recorder = Recorder(*args, **kwargs)
 
     def record_fs(pres : List[Ord], curr : Ord) -> bool:
@@ -636,7 +692,7 @@ class FdmtSeq:
     def impl(fs: FdmtSeq) -> Tuple[bool, Ord | None, FdmtSeq]:
 
       ord = fs.ord
-      ret_failed = (False, None, fs)
+      ret_failed = (False, None, fs)  # when Fail, must return fs back
 
       # * note: sub_node first
       def succ(sub_node: Ord, remain: Ord | None = None):
@@ -646,8 +702,12 @@ class FdmtSeq:
         if ord.is_natural():
           return ret_failed
         match ord.token.v:
-          case Veblen():
+          case Veblen() | VeblenTF():
             return ord.token.v.index(fs.n, recorder)
+          case FdmtSeq():  # only VeblenTF @R8 could cause w[3][3] at ax
+            assert ord.token.v.n == fs.n
+            recorder.skip_next()
+            return succ(ord.token.v.ord)
           case 'w':
             recorder.skip_next()
             return succ(Ord(fs.n))
@@ -681,6 +741,8 @@ class FdmtSeq:
             return succ(Ord('+' if ord.token.v == '*' else '*',
                             Ord(ord.token, ord.left, ord.right.dec()),
                             ord.left))
+        case '@':
+          raise ValueError(f"Shouldn't eval @: {fs}")
         case _:
           assert 0, ord
 
@@ -691,13 +753,12 @@ class FdmtSeq:
     if record_fs([], Ord.from_any(curr)):
       return recorder
     while True:
-      succ, pre, next = impl(curr)  # * idx could change! like R5
+      succ, pre, curr = impl(curr)  # * idx could change! like R5
       if succ:  # curr expands to next
         if pre is not None:
           pre_stack.append(pre)
-        if record_fs(copy(pre_stack), Ord.from_any(next)):
+        if record_fs(copy(pre_stack), Ord.from_any(curr)):
           return recorder
-        curr = next
       else:  # can't eval curr
         assert pre is None
         # try combine and continue
@@ -713,12 +774,14 @@ class FdmtSeq:
             break
         # add all
         if len(adds_reversed) > 0:
-          curr = FdmtSeq(Ord.from_list('+', adds_reversed[::-1] + [next.ord]), self.n)
+          curr = FdmtSeq(Ord.from_list('+', adds_reversed[::-1] + [curr.ord]),
+                         self.n)
         if non_add:
           # * when can't eval, restore with n of *self*
           # e.g. e[1] = w^e[0] = w^(0[0]) = (w^0)[1]
           curr = FdmtSeq(utils.not_none(non_add.make_combined(curr.ord)), self.n)
-          record_fs(copy(pre_stack), Ord.from_any(curr))
+          if record_fs(copy(pre_stack), Ord.from_any(curr)):
+            return recorder
         else:  # a+b+c+... and last can't eval, end.
           assert curr.n == self.n
           assert len(pre_stack) == 0, f'{pre_stack}'
@@ -823,11 +886,13 @@ def calc_display(obj : FdmtSeq | FGH, expected=None, *,
 
   recorder = obj.calc((n_steps if show_step else 1),
                       limit if limit else obj.cal_limit_default,
-                      until=until)
+                      until=until if isinstance(until, FGH)
+                                  else Ord.from_any(until))
   res = recorder.get_result()
 
   if recorder.until is not None:
-    assert recorder.until_met, f'never reached {recorder.until}\n{recorder}'
+    assert recorder.until_met, \
+           f'never reached {recorder.until}\n{recorder}'
 
   if expected is not None:
     assert res == expected, f'{res} != {expected}'
