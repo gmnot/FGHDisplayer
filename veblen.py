@@ -222,7 +222,7 @@ class Veblen(VeblenBase):
     S, ax, Z, gx = self.partition()
 
     if ax is None:  # R1 R2
-      if self.is_math_binary():
+      if self.is_math_binary():  # (0,g)
         recorder.skip_next()  # already shown like this
       return succ(Ord('^', 'w', gx))
     if ax.is_succ_ordinal():  # R3-5
@@ -352,6 +352,23 @@ class VeblenTF(VeblenBase):
 
     return NotImplemented
 
+  def to_latex(self):
+    if len(self.param) == 1:
+      return super().to_latex()
+    #  $ \begin{pmatrix} a & b \\ c & d \end{pmatrix} $
+    l1 = ' & '.join(o.to_latex() for o in self.vals())
+    l2 = ' & '.join(o.to_latex() for o in self.poses())
+    return (r'{\begin{pmatrix} ' +
+            l1 +
+            r' \\ ' +
+            l2 +
+            r' \end{pmatrix}}'
+            )
+
+  def vals(self) -> Generator[Ord, None, None]:
+    for ord_pos in self.param:
+      yield ord_pos.val()
+
   def poses(self) -> Generator[Ord, None, None]:
     for ord_pos in self.param:
       yield ord_pos.pos()
@@ -439,47 +456,52 @@ class VeblenTF(VeblenBase):
       return succ(Ord('^', 'w', gx))
 
     # R2: v(...,g[n])
-    # (MV R5=R8, wiki 3.3)
+    # wiki 3.3; MV R5,R8
     if gx.is_limit_ordinal():
       return succ_v((*S, ab(), OrdPos(None, 0)),
                                       gx)
 
     # R3-6
-    # ! todo 1: double check 3-6 w/ wiki before adding cases
     if ax.is_succ_ordinal():
       assert bx is not None
       # R3-4
       if bx.is_succ_ordinal():
         # R3: v(a+1@b+1) : x -> v(a@b+1, x@b)
-        # (MV R3)
+        # wiki 3.1; MV R3
         if gx == 0:
           if n == 0:
             recorder.skip_next()
+            # wiki 3.1.1
             return succ(Ord(0))
           # v(a+1@b+1)[n+1] = v(a@b+1, v(S,a+1@b+1)[n]@b)
+          # wiki 3.1.2
           return succ_v((*S, ax.dec() @ bx, OrdPos(None, bx.dec())),
                                                    self,
                         n_nxt=n-1)
 
         # R4: v(a+1@b+1, g+1@0): x -> v(a@b+1, x@b)
-        # (MV R4; wiki 3.2.1)
+        # wiki 3.2; MV R4
         assert gx.is_succ_ordinal()
         if n == 0:
           recorder.skip_next()
-          # v(a+1@b+1,g+1@0)[0] = v[a+1@b+1,g@0]+1
+          # v(a+1@b+1,g+1@0)[0] = v(a+1@b+1,g@0)+1
+          # wiki 3.2.1
           return succ(VeblenTF(*S, ab(), gx.dec()@0) + 1)
 
         # v(S, a+1@b+1, g+1)[n+1] = v(S, a@b+1, v(S, a+1@b+1,g+1)[n] @ b)
+        # wiki 3.2.2
         return succ_v((*S, ax.dec() @ bx, OrdPos(None, bx.dec())),
                                                  self,
                        n_nxt=n-1)
 
       # R5-6, b is LO
       # R5 v(S, a+1@b)[n] = v(S, a@b, 1@b[n])
+      # wiki 3.6
       if gx == 0:
         return succ_v((*S, ax.dec() @ bx, OrdPos(1, None)),
                                                     bx)
       # R6 v(a+1@b, g+1) = v(a@b, v(a+1@b, g)+1 @ b[n])
+      # wiki 3.7
       return succ_v((*S,
                      ax.dec() @ bx,
                      OrdPos(VeblenTF(*S, ab(), gx.dec() @ 0) + 1,
