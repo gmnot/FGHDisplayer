@@ -224,16 +224,16 @@ def test_main():
     test_f_s('v(1,0,1)'    , 3, until="v(v(v(v(1,0,0),v((v(1,0,0)+1),0)[2]),0),0)",
                                 show_step=True),
     test_f_s('v(1@2,1@0)'  , 3, until="v(v(v(v(1,0,0),v((v(1,0,0)+1),0)[2]),0),0)",
-                                test_only=True),
+                                test_only=True),  # @R4
     # R5 R4
     test_f_s('v(1,0,w)'    , 3, until="v(v(1,0,3)[2],0)",
                                 show_step=True),
     test_f_s('v(1@2,w@0)'  , 3, until="v(v(1,0,3)[2],0)",
-                                test_only=True),  # @R2: g is LO
+                                test_only=True),  # @R2: g is LO; @R4
     test_f_s('v(1,0,e)'    , 3, until="v(1,0,(((w^2)*2)+((w*2)+w)[3]))",
                                 test_only=True),
     test_f_s('v(1@2,e@0)'  , 3, until="v(1,0,(((w^2)*2)+((w*2)+w)[3]))",
-                                test_only=True),  # @R2: g is LO
+                                test_only=True),  # @R2: g is LO; @R4
     test_f_s('v(1,0,v(1,0,0))'  , 3, until="v(1,0,v(v(0,v(1,0)[2]),0))",
                                      show_step=True),
     test_f_s('v(1@2,v(1@2)@0)'  , 3, until="v(1,0,v(v(0,v(1,0)[2]),0))",
@@ -253,7 +253,7 @@ def test_main():
     test_f_s('v(1@2,v(1,1,0)@1)', 3, until="v(1,v(1,0,v(1,0,v(v(1,0,0)[2],0))),0)",
                                      test_only=True),
     # MV R3 R6
-    # @ R3 R7
+    # @R3 @R7
     test_f_s('v(2,0,0)'         , 3, until="v(1,v(1,v(v(1,0,0)[2],0),0),0)",
                                      test_only=True),
     test_f_s('v(2@2)'           , 3, until="v(1,v(1,v(v(1,0,0)[2],0),0),0)",
@@ -293,10 +293,15 @@ def test_main():
                                      show_step=True),
 
     (OutType.PLAIN, r'<h2> $ \varphi(\alpha \mathbin{\char64} \beta) $ </h2>'+'\n'),
+    # @R1: v(g) = w^g
     test_f_s('v(w@0)'           , 3, until='(w^w)[3]'),
+    # @R5
+    test_f_s('v(1@w)'           , 3, until='v((1@3))[3]'),  # ! display is not until
+    test_f_s('v(2@w)'           , 3, until='v((1@w),(v((1@w),(v((1@w))[3]@2))@2))',
+                                     show_step=True),
+    # todo: @R568
     # ! template
-    # R1: v(g) = w^g
-    test_f_s('v(w@0)'           , 3, print_str=True, limit=60,
+    test_f_s('v(2@w)'           , 3, print_str=True, limit=60,
                                      show_step=True),
   ]
 
