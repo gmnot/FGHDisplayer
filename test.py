@@ -299,9 +299,16 @@ def test_main():
     test_f_s('v(1@w)'           , 3, until='v((1@3))[3]'),
     test_f_s('v(2@w)'           , 3, until='v((1@w),(v((1@w),(v((1@w))[3]@2))@2))',
                                      show_step=True),
-    # todo: @R568
+    # @R6
+    test_f_s('v(1@w,1@0)'       , 3, until='v((v((1@w))@3),(v(((v((1@w))+1)@3))[2]@2))',
+                                     show_step=True),  # also @R3.1
+    test_f_s('v(2@w,w@0)'       , 3, until='v((1@w),((v((2@w),(2@0))+1)@3))[3]',
+                                     show_step=True),
+
+
+    # todo: @R68
     # ! template
-    test_f_s('v(2@w)'           , 3, print_str=True, limit=60,
+    test_f_s('v(2@w,w@0)'       , 3, print_str=True, limit=60,
                                      show_step=True),
   ]
 
