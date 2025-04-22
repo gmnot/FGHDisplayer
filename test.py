@@ -318,10 +318,13 @@ def test_main():
     test_f_s('v(w@w,1@0)'       , 3, until='v((w[3]@w),(v((w@w))@3),(v((w[3]@w),'
                                            '((v((w@w))+1)@3))[2]@2))',
                                      show_step=True),
+    test_f_s('v(1@v(1@w))'      , 3, until='v((1@v((v((((((w^2)*2)+(w*2))+2)@1),'
+                                           '(v((((((w^2)*2)+(w*2))+3)@1))[2]@0))@2))))',),
+
 
     # ! template
-    test_f_s('v(w@w,1@0)'       , 1, print_str=True, n_steps=100,
-                                     show_step=True),
+    # test_f_s('v(1@v(1@w))'      , 3, print_str=True, n_steps=50,
+    #                                  show_step=True),
   ]
 
   latex_to_html([s for s in tests if s is not None], './local_test.html')

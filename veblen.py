@@ -160,7 +160,10 @@ class Veblen(VeblenBase):
     return ordinal.Ord(Veblen(*new_params))
 
   def to_latex(self):
-    if self.is_math_binary() and not self.latex_force_veblen:
+    arity = self.math_arity()
+    if arity == 1 and not self.latex_force_veblen:
+      return f'\\omega^{{{self.param[0].to_latex()}}}'
+    if arity == 2 and not self.latex_force_veblen:
       a = self.param[0].token.v
       if isinstance(a, int) and 0 <= a <= 3:
         ax = [r'\omega', r'\varepsilon', r'\xi', r'\eta'][a]
@@ -168,7 +171,7 @@ class Veblen(VeblenBase):
         if a == 0:
           return f'{ax}^{{{gx}}}'  # latex_add_parentheses(gx)
         return f'{ax}_{{{gx}}}'
-    elif self.math_arity() == 3 and self.param[0] == 1 and self.param[1] == 0:
+    elif arity == 3 and self.param[0] == 1 and self.param[1] == 0:
       # v(1,0,a) = G_{a}
       return f'\\Gamma_{{{self.param[-1].to_latex()}}}'
 

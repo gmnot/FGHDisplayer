@@ -75,7 +75,7 @@
         <td>$ \varphi(1,0,1) $</td>
       </tr>
       <tr>
-        <td>(work in progress)</td>
+        <td>v(1@w)</td>
         <td>$ \varphi(1@\omega) $</td>
       </tr>
       <tr>
@@ -208,7 +208,8 @@
    $$</p>
   <p>$$ f_{\omega^{\omega^{2}\cdot2}}(3)=f_{\omega^{\omega^{2}+\omega\cdot2+2}\cdot2+\omega^{\omega^{2}+\omega\cdot2+1}\cdot2+\omega^{\omega^{2}+\omega\cdot2}\cdot2+\omega^{\omega^{2}+\omega+2}\cdot2+\omega^{\omega^{2}+\omega+1}\cdot2+\omega^{\omega^{2}+\omega}\cdot2+\omega^{\omega^{2}+2}\cdot2+\omega^{\omega^{2}+1}\cdot2+\omega^{\omega^{2}}\cdot2+\omega^{\omega\cdot2+2}\cdot2+\omega^{\omega\cdot2+1}\cdot2+\omega^{\omega\cdot2}\cdot2+\omega^{\omega+2}\cdot2+\omega^{\omega+1}\cdot2+\omega^{\omega}\cdot2+\omega^{2}\cdot2+\omega\cdot2+3}(3)=\dots $$</p>
   <p>$$  \begin{align*}
-  \varphi(1, \varphi(0, 1))[2]  &= \varepsilon_{\varphi(0, 1)[2]} \\
+  \varphi(1, \varphi(1))[2]  &= \varepsilon_{\varphi(1)[2]} \\
+    &= \varepsilon_{\omega^{1}[2]} \\
     &= \varepsilon_{\omega[2]} \\
     &= \varepsilon_{2}[2] \\
     &= \omega^{\varepsilon_{2}[1]} \\
@@ -252,8 +253,7 @@
     &= \varepsilon_{\omega^{\omega^{0}[2]}} \\
     &= \varepsilon_{\omega^{1}[2]} \\
     &= \varepsilon_{\omega[2]} \\
-    &= \varepsilon_{2}[2] \\
-    &= \omega^{\varepsilon_{2}[1]}  = \dots\\
+    &= \varepsilon_{2}[2]  = \dots\\
   \end{align*} 
    $$</p>
   <p>$$  \begin{align*}
@@ -315,7 +315,7 @@
     &= \xi_{\xi_{\varepsilon_{\varepsilon_{\varepsilon_{\xi_{\eta_{\varphi(\omega, 1)}+1}[0]}}}}}  = \dots\\
   \end{align*} 
    $$</p>
-  <h2> $ \Gamma_0, \ \varphi(S,\alpha,Z,\gamma) $ </h2>
+  <h2> $ \Gamma_0, \ \varphi(\alpha,\beta,\dots,\gamma) $ </h2>
   <p>$$  \begin{align*}
   \varphi(\varphi(\varphi(\omega, 0), 0), 0)[3]  &= \varphi(\varphi(\varphi(\omega, 0), 0)[3], 0) \\
     &= \varphi(\varphi(\varphi(\omega, 0)[3], 0), 0) \\
@@ -350,8 +350,8 @@
     &= \varphi(\omega^{\omega[3]}, 0) \\
     &= \varphi(\omega^{3}[3], 0) \\
     &= \varphi(\omega^{2}\cdot\omega[3], 0) \\
-    &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{after 29 more steps}} \\
-    &= \varphi(\omega^{2}\cdot2+\omega\cdot2+2, \varphi(\omega^{2}\cdot2+\omega\cdot2+2, \varphi(\omega^{2}\cdot2+\omega\cdot2+1, \varphi(\omega^{2}\cdot2+\omega\cdot2+2, 0)[2])))  = \dots\\
+    &\phantom{=} \vdots \quad \raisebox{0.2em}{\text{after 27 more steps}} \\
+    &= \varphi(\omega^{2}\cdot2+\omega\cdot2+2, \varphi(\omega^{2}\cdot2+\omega\cdot2+2, \varphi(\omega^{2}\cdot2+\omega\cdot2+2, 0)[3]))  = \dots\\
   \end{align*} 
    $$</p>
   <p>$$  \begin{align*}
@@ -399,53 +399,67 @@
    $$</p>
   <p>$$ \varphi(1, \Gamma_{1}, 0)[3]=\varphi(1, \varphi(\varphi(\varphi(\Gamma_{0}, \varphi(\Gamma_{0}+1, 0)[2]), 0), 0), 0)=\dots $$</p>
   <p>$$ \varphi(1, \varphi(1, 1, 0), 0)[3]=\varphi(1, \Gamma_{\Gamma_{\varphi(\Gamma_{0}[2], 0)}}, 0)=\dots $$</p>
+  <p>$$ \varphi(\omega, 0, 0)[3]=\varphi(2, \varphi(2, \varphi(1, \varphi(1, \varphi(\varphi(\Gamma_{0}[1], 0), 0), 0), 0), 0), 0)=\dots $$</p>
+  <p>$$ \varphi(\omega+1, 0, 0)[3]=\varphi(\omega, \varphi(\omega, \varphi(2, \varphi(2, \varphi(1, \varphi(1, \Gamma_{0}[3], 0), 0), 0), 0), 0), 0)=\dots $$</p>
   <p>$$  \begin{align*}
-  \varphi(\omega, 0, 0)[3]  &= \varphi(\omega[3], 0, 0) \\
-    &= \varphi(3, 0, 0)[3] \\
-    &= \varphi(2, \varphi(3, 0, 0)[2], 0) \\
-    &= \varphi(2, \varphi(2, \varphi(3, 0, 0)[1], 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(2, \varphi(3, 0, 0)[0], 0), 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(2, 0, 0)[3], 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(1, \varphi(2, 0, 0)[2], 0), 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(1, \varphi(1, \varphi(2, 0, 0)[1], 0), 0), 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(1, \varphi(1, \varphi(1, \varphi(2, 0, 0)[0], 0), 0), 0), 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(1, \varphi(1, \Gamma_{0}[3], 0), 0), 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(1, \varphi(1, \varphi(\Gamma_{0}[2], 0), 0), 0), 0), 0) \\
-    &= \varphi(2, \varphi(2, \varphi(1, \varphi(1, \varphi(\varphi(\Gamma_{0}[1], 0), 0), 0), 0), 0), 0)  = \dots\\
-  \end{align*} 
-   $$</p>
-  <p>$$ \varphi(\omega+1, 0, 0)[3]=\varphi(\omega, \varphi(\omega, \varphi(2, \varphi(2, \varphi(1, \varphi(1, \varphi(\Gamma_{0}[2], 0), 0), 0), 0), 0), 0), 0)=\dots $$</p>
-  <p>$$  \begin{align*}
-  \varphi(1, \omega, 0, 1)[3]  &= \varphi(1, 3, 0, \varphi(1, \omega, 0, 0)+1)[3] \\
-    &= \varphi(1, 2, \varphi(1, 3, 0, \varphi(1, \omega, 0, 0)+1)[2], 0) \\
-    &= \varphi(1, 2, \varphi(1, 2, \varphi(1, 3, 0, \varphi(1, \omega, 0, 0)+1)[1], 0), 0)  = \dots\\
+  \varphi(\omega, 0, 1)[3]  &= \varphi(3, \varphi(\omega, 0, 0)+1, 0)[3]  = \dots\\
   \end{align*} 
    $$</p>
   <p>$$  \begin{align*}
   \varphi(\varepsilon_{0}, \omega, 0, \omega)[3]  &= \varphi(\varepsilon_{0}, \omega, 0, \omega[3]) \\
     &= \varphi(\varepsilon_{0}, \omega, 0, 3)[3] \\
-    &= \varphi(\varepsilon_{0}, 3, 0, \varphi(\varepsilon_{0}, \omega, 0, 2)+1)[3] \\
-    &= \varphi(\varepsilon_{0}, 2, \varphi(\varepsilon_{0}, 3, 0, \varphi(\varepsilon_{0}, \omega, 0, 2)+1)[2], 0) \\
-    &= \varphi(\varepsilon_{0}, 2, \varphi(\varepsilon_{0}, 2, \varphi(\varepsilon_{0}, 3, 0, \varphi(\varepsilon_{0}, \omega, 0, 2)+1)[1], 0), 0)  = \dots\\
+    &= \varphi(\varepsilon_{0}, 3, \varphi(\varepsilon_{0}, \omega, 0, 2)+1, 0)[3] \\
+    &= \varphi(\varepsilon_{0}, 3, \varphi(\varepsilon_{0}, \omega, 0, 2), \varphi(\varepsilon_{0}, 3, \varphi(\varepsilon_{0}, \omega, 0, 2)+1, 0)[2])  = \dots\\
   \end{align*} 
    $$</p>
   <p>$$  \begin{align*}
   \varphi(1, 0, 0, 0, 0)[3]  &= \varphi(\varphi(1, 0, 0, 0, 0)[2], 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(1, 0, 0, 0, 0)[1], 0, 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(\varphi(1, 0, 0, 0, 0)[0], 0, 0, 0), 0, 0, 0), 0, 0, 0) \\
-    &= \varphi(\varphi(\varphi(0, 0, 0, 0)[3], 0, 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\omega^{0}[3], 0, 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(1, 0, 0, 0)[3], 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(1, 0, 0, 0)[2], 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(\varphi(1, 0, 0, 0)[1], 0, 0), 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(\varphi(\varphi(1, 0, 0, 0)[0], 0, 0), 0, 0), 0, 0), 0, 0, 0) \\
-    &= \varphi(\varphi(\varphi(\varphi(0, 0, 0)[3], 0, 0), 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(\omega^{0}[3], 0, 0), 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\Gamma_{0}[3], 0, 0), 0, 0, 0) \\
     &= \varphi(\varphi(\varphi(\Gamma_{0}[2], 0), 0, 0), 0, 0, 0)  = \dots\\
   \end{align*} 
    $$</p>
-
+  <h2> $ \varphi(\alpha \mathbin{\char64} \beta) $ </h2>
+  <p>$$ \varphi(\omega\mathbin{\char64}0)[3]=\omega^{\omega}[3]=\dots $$</p>
+  <p>$$ \varphi(1\mathbin{\char64}\omega)[3]=\varphi(1\mathbin{\char64}3)[3]=\dots $$</p>
+  <p>$$  \begin{align*}
+  \varphi(2\mathbin{\char64}\omega)[3]  &= {\begin{pmatrix} 1 & 1 \\ \omega & \omega[3] \end{pmatrix}} \\
+    &= {\begin{pmatrix} 1 & 1 \\ \omega & 3 \end{pmatrix}}[3] \\
+    &= {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & 1 \\ \omega & 3 \end{pmatrix}}[2] \\ \omega & 2 \end{pmatrix}} \\
+    &= {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & 1 \\ \omega & 3 \end{pmatrix}}[1] \\ \omega & 2 \end{pmatrix}} \\ \omega & 2 \end{pmatrix}} \\
+    &= {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & 1 \\ \omega & 3 \end{pmatrix}}[0] \\ \omega & 2 \end{pmatrix}} \\ \omega & 2 \end{pmatrix}} \\ \omega & 2 \end{pmatrix}} \\
+    &= {\begin{pmatrix} 1 & {\begin{pmatrix} 1 & \varphi(1\mathbin{\char64}\omega)[3] \\ \omega & 2 \end{pmatrix}} \\ \omega & 2 \end{pmatrix}}  = \dots\\
+  \end{align*} 
+   $$</p>
+  <p>$$  \begin{align*}
+  {\begin{pmatrix} 1 & 1 \\ \omega & 0 \end{pmatrix}}[3]  &= \varphi(\varphi(1\mathbin{\char64}\omega)+1\mathbin{\char64}\omega[3]) \\
+    &= \varphi(\varphi(1\mathbin{\char64}\omega)+1\mathbin{\char64}3)[3] \\
+    &= {\begin{pmatrix} \varphi(1\mathbin{\char64}\omega) & \varphi(\varphi(1\mathbin{\char64}\omega)+1\mathbin{\char64}3)[2] \\ 3 & 2 \end{pmatrix}}  = \dots\\
+  \end{align*} 
+   $$</p>
+  <p>$$  \begin{align*}
+  {\begin{pmatrix} 2 & \omega \\ \omega & 0 \end{pmatrix}}[3]  &= {\begin{pmatrix} 2 & \omega[3] \\ \omega & 0 \end{pmatrix}} \\
+    &= {\begin{pmatrix} 2 & 3 \\ \omega & 0 \end{pmatrix}}[3] \\
+    &= {\begin{pmatrix} 1 & {\begin{pmatrix} 2 & 2 \\ \omega & 0 \end{pmatrix}}+1 \\ \omega & \omega[3] \end{pmatrix}} \\
+    &= {\begin{pmatrix} 1 & {\begin{pmatrix} 2 & 2 \\ \omega & 0 \end{pmatrix}}+1 \\ \omega & 3 \end{pmatrix}}[3]  = \dots\\
+  \end{align*} 
+   $$</p>
+  <p>$$ \varphi(\varepsilon_{0}\mathbin{\char64}\varepsilon_{0})[3]={\begin{pmatrix} \omega^{2}\cdot2+\omega\cdot2+2 & 1 \\ \varepsilon_{0} & \varepsilon_{0}[3] \end{pmatrix}}=\dots $$</p>
+  <p>$$  \begin{align*}
+  {\begin{pmatrix} \omega & 1 \\ \omega & 0 \end{pmatrix}}[3]  &= {\begin{pmatrix} \omega[3] & \varphi(\omega\mathbin{\char64}\omega)+1 \\ \omega & \omega[3] \end{pmatrix}} \\
+    &= {\begin{pmatrix} \omega[3] & \varphi(\omega\mathbin{\char64}\omega)+1 \\ \omega & 3 \end{pmatrix}}[3] \\
+    &= {\begin{pmatrix} \omega[3] & \varphi(\omega\mathbin{\char64}\omega) & {\begin{pmatrix} \omega[3] & \varphi(\omega\mathbin{\char64}\omega)+1 \\ \omega & 3 \end{pmatrix}}[2] \\ \omega & 3 & 2 \end{pmatrix}}  = \dots\\
+  \end{align*} 
+   $$</p>
+  <p>$$ \varphi(1\mathbin{\char64}\varphi(1\mathbin{\char64}\omega))[3]=\varphi(1\mathbin{\char64}\varphi({\begin{pmatrix} \omega^{2}\cdot2+\omega\cdot2+2 & \varphi(\omega^{2}\cdot2+\omega\cdot2+3\mathbin{\char64}1)[2] \\ 1 & 0 \end{pmatrix}}\mathbin{\char64}2))=\dots $$</p>
+  
   <!-- copy-paste end -->
 
   <p> $$ \dots \text{more cases to come} \dots $$ </p>
