@@ -704,6 +704,10 @@ class FdmtSeq:
         match ord.token.v:
           case Veblen() | VeblenTF():
             return ord.token.v.index(fs.n, recorder)
+          case FdmtSeq():  # only VeblenTF @R8 could cause w[3][3] at ax
+            assert ord.token.v.n == fs.n
+            recorder.skip_next()
+            return succ(ord.token.v.ord)
           case 'w':
             recorder.skip_next()
             return succ(Ord(fs.n))
