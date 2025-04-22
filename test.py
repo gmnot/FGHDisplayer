@@ -308,11 +308,14 @@ def test_main():
                                      show_step=True),  # also @R3.1
     test_f_s('v(2@w,w@0)'       , 3, until='v((1@w),((v((2@w),(2@0))+1)@3))[3]',
                                      show_step=True),
-
+    # @R7
+    test_f_s('v(w@w)'           , 3, until='v((2@w),(1@3))[3]',
+                                     test_only=True),
+    test_f_s('v(e@e)'           , 3, until='v((((((w^2)*2)+(w*2))+2)@v(1,0)),(1@v(1,0)[3]))',),
 
     # todo: @R8
     # ! template
-    test_f_s('v(1@w+1)'           , 3, print_str=True, limit=110,
+    test_f_s('v(e@e)'           , 3, print_str=True, limit=110, n_steps=100,
                                      show_step=True),
   ]
 
