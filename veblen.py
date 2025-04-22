@@ -356,8 +356,12 @@ class VeblenTF(VeblenBase):
     return NotImplemented
 
   def to_latex(self):
+    arity = self.math_arity()
+    if arity.is_natural() and arity.token.v <= 3 and \
+       not self.latex_force_veblen:
+      return self.toVeblen().to_latex()
     if len(self.param) == 1:
-      return super().to_latex()
+      return super().to_latex()  # shown as v(a@b)
     #  $ \begin{pmatrix} a & b \\ c & d \end{pmatrix} $
     l1 = ' & '.join(o.to_latex() for o in self.vals())
     l2 = ' & '.join(o.to_latex() for o in self.poses())
